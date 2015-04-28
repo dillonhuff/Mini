@@ -5,7 +5,8 @@ module CGen(CTopLevelItem,
             cBlock,
             cAssign, cAdd, cSub, cMul,
             cIntLit, cFloatLit, cDoubleLit,
-            cVar, cArrAcc, ) where
+            cVar, cArrAcc,
+            Pretty(..)) where
 
 import Data.List as L
 
@@ -36,7 +37,15 @@ data CType
   | CFILE
   | CPtr CType
   | CVoid
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+
+instance Show CType where
+  show CInt = "int"
+  show CFloat = "float"
+  show CDouble = "double"
+  show CFILE = "FILE"
+  show (CPtr t) = show t ++ "*"
+  show CVoid = "void"
 
 cInt = CInt
 cFloat = CFloat
@@ -69,6 +78,8 @@ data CStmt a
 instance Pretty (CStmt a) where
   prettyPrint indL (CFor st end inc blk ann) =
     indent indL $ "for () {}"
+  prettyPrint indL (CAssign e1 e2 ann) =
+    indent indL $ show e1 ++ " = " ++ show e2 ++ ";\n"
 
 cAssign = CAssign
 
@@ -78,7 +89,17 @@ data CExpr
   | CDoubleLit Double
   | CVar String
   | CBinop CBinop CExpr CExpr
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+
+instance Show CExpr where
+  show = showExpr
+  
+showExpr (CVar n) = n
+showExpr (CBinop ArrAcc l r) = show l ++ "[" ++ show r ++ "]"
+showExpr (CBinop op l r) = show l ++ " " ++ show op ++ " " ++ show r
+showExpr (CIntLit i) = show i
+showExpr (CDoubleLit d) = show d
+showExpr (CFloatLit f) = show f
 
 cIntLit = CIntLit
 cFloatLit = CFloatLit
@@ -95,7 +116,13 @@ data CBinop
   | Times
   | Or
   | ArrAcc
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+
+instance Show CBinop where
+  show Plus = "+"
+  show Minus = "-"
+  show Times = "*"
+  show Or = "||"
 
 class Pretty a where
   prettyPrint :: Int -> a -> String

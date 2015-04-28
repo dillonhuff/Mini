@@ -74,17 +74,13 @@ data Type
   | SReg Type
   | SinglePrecision
   | DoublePrecision
-    deriving (Eq, Ord)
+    deriving (Eq, Ord, Show)
 
 toCType (Buffer pt) = cPtr $ toCType pt
 toCType Index = cInt
 toCType (SReg tp) = toCType tp
 toCType SinglePrecision = cFloat
 toCType DoublePrecision = cDouble
-
-instance Show Type where
-  show (Buffer pt) = show pt ++ "*"
-  show (SReg pt) = show pt
 
 sReg t = SReg t
 buffer t = Buffer t

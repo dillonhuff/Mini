@@ -5,6 +5,7 @@ module TestHarness(cTestHarness,
 import Data.List as L
 import Data.Map as M
 
+import CGen
 import Syntax
 import SystemSettings
 
@@ -15,10 +16,16 @@ data EvaluationResult
 evaluationResult = EvaluationResult
 
 cTestHarness :: (Show a) => String -> Maybe (Operation a) -> [Operation a] -> String
-cTestHarness fileName (Just scImp) implsToTime =
+cTestHarness fileName (Just scImp) implsToTime = 
   let opNames = L.map getOpName implsToTime
-      args = getOpArguments scImp in
+      args = getOpArguments scImp
+      cImplFuncs = L.map toCFunc implsToTime
+      cSCFunc = toCFunc scImp
+      implFuncCode = L.concatMap (\cF -> prettyPrint 0 cF) cImplFuncs
+      scFuncCode = prettyPrint 0 cSCFunc in
   includeStr ++
+  implFuncCode ++
+  scFuncCode ++
   sanityCheckFunc (getOpName scImp) opNames args ++
   timingFunc opNames args ++
   "int main() {\n" ++
