@@ -4,9 +4,10 @@ import RuntimeEvaluation
 import Syntax
 
 main :: IO ()
-main = do
-  timeResults <- timeImplementations "tiny_test.c" (Just sanityCheckImpl) [sanityCheckImpl]
-  putStrLn $ show timeResults
+main = putStrLn $ show $ toCFunc sanityCheckImpl
+--main = do
+--  timeResults <- timeImplementations "tiny_test.c" (Just sanityCheckImpl) [sanityCheckImpl]
+--  putStrLn $ show timeResults
 
 sanityCheckImpl = operation "testOp" stSym $ block [load "b_reg" "b" (indConst 0) "",
                                                     load "c_reg" "c" (indConst 1) "",
