@@ -1,5 +1,8 @@
 module Syntax(Operation,
+              Type,
               operation,
+              getOpName,
+              getOpArguments,
               symInfo,
               symtab,
               block,
@@ -20,6 +23,9 @@ instance Show a => Show (Operation a) where
   show (Operation n st blk) = prototype n st ++ prettyPrint 0 blk
 
 operation = Operation
+
+getOpName (Operation n _ _) = n
+getOpArguments (Operation _ st _) = arguments st
 
 prototype :: String -> Symtab -> String
 prototype n st = "void " ++ n ++ "(" ++ argumentStr st ++ ")"

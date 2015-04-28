@@ -1,37 +1,45 @@
 module RuntimeEvaluation(timeImplementations) where
 
+import Data.List as L
 import Data.Map as M
+import System.Process
 
 import Syntax
+import SystemSettings
+import TestHarness
 
-data EvaluationResult
-  = EvaluationResult [Int] Bool
-    deriving (Eq, Ord, Show)
-
-timeImplementations :: (Show a) => String -> Maybe (Operation a) -> [Operation a] -> IO (Map (Operation a) EvaluationResult)
+timeImplementations :: (Ord a, Show a) => String -> Maybe (Operation a) -> [Operation a] -> IO (Map (Operation a) EvaluationResult)
 timeImplementations fileName sanityCheckImpl impls =
-  let testCode = cTestHarness sanityCheckImpl impls in
+  let testCode = cTestHarness (evalPath ++ fileName) sanityCheckImpl impls in
   do
     resultFileName <- runCTestCode fileName testCode
     opNameToEvalResultMap <- readResultFile resultFileName
     return $ reconstructOpMap impls opNameToEvalResultMap
 
-cTestHarness :: (Show a) => Maybe (Operation a) -> [Operation a] -> String
-cTestHarness scImp implsToTime =
-  "int main() {\n\treturn 0;\n}\n"
-
 runCTestCode :: String -> String -> IO String
-runCTestCode fileName testStr = do
-  writeFile fileName testStr
-  return fileName
+runCTestCode fileName testStr =
+  let filePath = evalPath ++ fileName in
+  do
+    writeFile filePath testStr
+    putStrLn $ "Compile string: " ++ compileString filePath
+    runCommand $ compileString filePath
+    putStrLn $ "Run string: " ++ runString filePath
+    runCommand $ runString filePath
+    runCommand $ cleanupCommand filePath
+    return $ dataFileName filePath
 
 readResultFile :: String -> IO (Map String EvaluationResult)
 readResultFile fileName = do
   timingResults <- readFile fileName
   return $ parseTimingResults timingResults
 
-reconstructOpMap :: [Operation a] -> Map String EvaluationResult -> Map (Operation a) EvaluationResult
-reconstructOpMap impls nameTimingResultMap = error "reconstructOpMap not implemented"
+reconstructOpMap :: (Show a, Ord a) => [Operation a] -> Map String EvaluationResult -> Map (Operation a) EvaluationResult
+reconstructOpMap impls nameTimingResultMap =
+  M.fromList $ L.map (\imp -> (imp, lookupOpTimeResByName nameTimingResultMap imp)) impls
 
-parseTimingResults :: String -> Map String EvaluationResult
-parseTimingResults str = M.empty
+lookupOpTimeResByName :: (Show a, Ord a) => Map String EvaluationResult -> Operation a -> EvaluationResult
+lookupOpTimeResByName m op =
+  case M.lookup (getOpName op) m of
+    Just timeRes -> timeRes
+    Nothing -> error $ "could not find result " ++ show op ++ " in " ++ show m
+
