@@ -14,6 +14,8 @@ timeImplementations fileName sanityCheckImpl impls =
   do
     resultFileName <- runCTestCode fileName testCode
     opNameToEvalResultMap <- readResultFile resultFileName
+    putStrLn $ "Delete string: " ++ "rm -rf " ++ resultFileName
+    res <- runCommand $ "rm -rf " ++ resultFileName
     return $ reconstructOpMap impls opNameToEvalResultMap
 
 runCTestCode :: String -> String -> IO String
@@ -25,7 +27,6 @@ runCTestCode fileName testStr =
     runCommand $ compileString filePath
     putStrLn $ "Run string: " ++ runString filePath
     runCommand $ runString filePath
-    runCommand $ cleanupCommand filePath
     return $ dataFileName filePath
 
 readResultFile :: String -> IO (Map String EvaluationResult)

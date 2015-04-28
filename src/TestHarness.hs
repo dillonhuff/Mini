@@ -12,6 +12,8 @@ data EvaluationResult
   = EvaluationResult [Int] Bool
     deriving (Eq, Ord, Show)
 
+evaluationResult = EvaluationResult
+
 cTestHarness :: (Show a) => String -> Maybe (Operation a) -> [Operation a] -> String
 cTestHarness fileName (Just scImp) implsToTime =
   let opNames = L.map getOpName implsToTime
@@ -19,15 +21,25 @@ cTestHarness fileName (Just scImp) implsToTime =
   includeStr ++
   sanityCheckFunc (getOpName scImp) opNames args ++
   timingFunc opNames args ++
-  "int main() {\n\t" ++
+  "int main() {\n" ++
   createDataFileString fileName ++
-  "sanity_check_impls(fp);\n\ttime_impls(fp);\n" ++
+  "\tsanity_check_impls(fp);\n\ttime_impls(fp);\n" ++
   closeDataFileString fileName ++
-  "return 0;\n}\n"
+  "\treturn 0;\n}\n"
 cTestHarness _ _ _ = error "Are you sure you don't want to do a sanity check?"
 
 parseTimingResults :: String -> Map String EvaluationResult
-parseTimingResults str = M.empty
+parseTimingResults str =
+  let strLines = L.lines str
+      scLines = L.takeWhile (\l -> l /= scTimingSeparator) strLines in
+  M.fromList $ parseSCResults scLines
+
+scTimingSeparator = "#"
+
+parseSCResults :: [String] -> [(String, EvaluationResult)]
+parseSCResults [] = []
+parseSCResults (n:passFail:rest) = (n, evaluationResult [] $ if passFail == "passed" then True else False):(parseSCResults rest)
+parseSCResults other = error $ "parseSCResults failed with " ++ show other
 
 sanityCheckFunc :: String -> [String] -> [(String, Type)] -> String
 sanityCheckFunc scFuncName implFuncNames argBuffers =
