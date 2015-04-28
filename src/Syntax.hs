@@ -31,7 +31,7 @@ prototype :: String -> Symtab -> String
 prototype n st = "void " ++ n ++ "(" ++ argumentStr st ++ ")"
 
 argumentStr :: Symtab -> String
-argumentStr st = L.concat $ L.intersperse ", " $ L.map (\(n, tp) -> show tp ++ n) $ arguments st
+argumentStr st = L.concat $ L.intersperse ", " $ L.map (\(n, tp) -> show tp ++ " " ++ n) $ arguments st
 
 data Symtab
   = Symtab (Map String SymbolInfo)
@@ -58,7 +58,11 @@ data Type
   = Buffer PrimType
   | Index
   | SReg PrimType
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+
+instance Show Type where
+  show (Buffer pt) = show pt ++ "*"
+  show (SReg pt) = show pt
 
 sReg t = SReg t
 buffer t = Buffer t
@@ -66,7 +70,11 @@ buffer t = Buffer t
 data PrimType
   = SinglePrecision
   | DoublePrecision
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+
+instance Show PrimType where
+  show SinglePrecision = "float"
+  show DoublePrecision = "double"
 
 double = DoublePrecision
 single = SinglePrecision
@@ -101,7 +109,7 @@ data Statement a
 
 instance (Show a) => Pretty (Statement a) where
   prettyPrint indL (BOp b lhs op1 op2 ann) =
-    (indent indL) (lhs ++ " = " ++ op1 ++ show b ++ op2 ++ ";\n")
+    (indent indL) (lhs ++ " = " ++ op1 ++ " " ++ show b ++ " " ++ op2 ++ ";\n")
   prettyPrint indL (Load lhs op1 off ann) =
     (indent indL) (lhs ++ " = " ++ op1 ++ "[" ++ show off ++ "];\n")
   prettyPrint indL (Store lhs off rhs ann) =
@@ -117,20 +125,33 @@ plus = BOp Plus
 data IExpr
   = Ind ITerm
   | Sum ITerm IExpr
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+
+instance Show IExpr where
+  show (Ind it) = show it
+  show (Sum it rest) = show it ++ " + " ++ show rest
 
 indConst i = Ind $ IConst i
 
 data ITerm
   = ITerm Int String
   | IConst Int
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+
+instance Show ITerm where
+  show (IConst i) = show i
+  show (ITerm i n) = (show i) ++ "*" ++ (show n)
 
 data Binop
   = Plus
   | Minus
   | Times
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+
+instance Show Binop where
+  show Plus = "+"
+  show Minus = "-"
+  show Times = "*"
 
 class Pretty a where
   prettyPrint :: Int -> a -> String
