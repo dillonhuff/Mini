@@ -10,10 +10,10 @@ import TestHarness
 
 timeImplementations :: (Ord a, Show a) => a -> String -> Maybe (Operation a) -> [Operation a] -> IO (Map (Operation a) EvaluationResult)
 timeImplementations dummyAnn fileName sanityCheckImpl impls =
-  let testCode = cTestHarness dummyAnn (evalPath ++ fileName) sanityCheckImpl impls in
+  let testCode = cTestHarness dummyAnn (dataFilePath ++ fileName) (evalPath ++ fileName) sanityCheckImpl impls in
   do
     resultFileName <- runCTestCode fileName testCode
-    opNameToEvalResultMap <- readResultFile resultFileName
+    opNameToEvalResultMap <- readResultFile (dataFilePath ++ resultFileName)
     putStrLn $ "Delete string: " ++ "rm -rf " ++ resultFileName
     res <- runCommand $ "rm -rf " ++ resultFileName
     return $ reconstructOpMap impls opNameToEvalResultMap

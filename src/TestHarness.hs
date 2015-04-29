@@ -15,16 +15,16 @@ data EvaluationResult
 
 evaluationResult = EvaluationResult
 
-cTestHarness :: (Show a) => a -> String -> Maybe (Operation a) -> [Operation a] -> String
-cTestHarness dummyAnn fileName (Just scImp) implsToTime = 
+cTestHarness :: (Show a) => a -> String -> String -> Maybe (Operation a) -> [Operation a] -> String
+cTestHarness dummyAnn dataFileName fileName (Just scImp) implsToTime = 
   let opNames = L.map getOpName implsToTime
       args = getOpArguments scImp in
   L.concatMap (\decl -> (prettyPrint 0 decl) ++ "\n") $
   prelude (scImp:implsToTime) ++
   [sanityCheckFunc dummyAnn scImp implsToTime,
    timingFunc implsToTime,
-   mainFunc dummyAnn]
-cTestHarness _ _ _ _ = error "Are you sure you don't want to do a sanity check?"
+   mainFunc dummyAnn dataFileName]
+cTestHarness _ _ _ _ _ = error "Are you sure you don't want to do a sanity check?"
 
 parseTimingResults :: String -> Map String EvaluationResult
 parseTimingResults str =
@@ -48,12 +48,14 @@ prelude impls =
       includes = [cInclude "<stdio.h>", cInclude "<stdlib.h>", cInclude "<string.h>", cInclude "\"mini_utilities.h\""] in
   includes ++ cImplFuncs
 
-mainFunc :: a -> CTopLevelItem a
-mainFunc dummyAnn =
+mainFunc :: a -> String -> CTopLevelItem a
+mainFunc dummyAnn dataFileName =
   cFuncDecl cInt "main" [] $
             cBlock [(cPtr cFILE, "data_file")]
-                   [cExprSt (cFuncall "sanity_check_impls" [cVar "data_file"]) dummyAnn,
+                   [cAssign (cVar "data_file") (cFuncall "fopen" [cVar ("\"" ++ dataFileName ++ "\""), cVar "\"w\""]) dummyAnn,
+                    cExprSt (cFuncall "sanity_check_impls" [cVar "data_file"]) dummyAnn,
                     cExprSt (cFuncall "time_impls" [cVar "data_file"]) dummyAnn,
+                    cExprSt (cFuncall "fclose" [cVar "data_file"]) dummyAnn,
                     cReturn (cIntLit 0) dummyAnn]
 
 sanityCheckFunc :: a -> Operation a -> [Operation a] -> CTopLevelItem a
@@ -146,11 +148,11 @@ scResultCode :: a -> [(String, Type)] -> Operation a -> [CStmt a]
 scResultCode dummyAnn args imp = asgResults ++ [writeOutput]
   where
     asgResults = L.map (\(n, tp) -> setSCResVar dummyAnn n (getReferencedType $ toCType tp) (iExprToCExpr $ getBufferSize n imp)) args
-    resVars = L.map (\(n, tp) -> cVar (n ++ "_test")) args
+    resVars = L.map (\(n, tp) -> cVar (n ++ "_sc_res")) args
     resExpr = orExprs resVars
     writeOutput = cIfThenElse resExpr
-                              (cBlock [] [cExprSt (cFuncall "fprintf" [cVar "df", cVar "\"FAILED\""]) dummyAnn])
-                              (cBlock [] [cExprSt (cFuncall "fprintf" [cVar "df", cVar "\"passed\""]) dummyAnn])
+                              (cBlock [] [cExprSt (cFuncall "fprintf" [cVar "df", cVar "\"FAILED\\n\""]) dummyAnn])
+                              (cBlock [] [cExprSt (cFuncall "fprintf" [cVar "df", cVar "\"passed\\n\""]) dummyAnn])
                               dummyAnn
 
 orExprs [e] = e
@@ -159,8 +161,8 @@ orExprs (e2:rest) = cOr e2 $ orExprs rest
 setSCResVar :: a -> String -> CType -> CExpr -> CStmt a
 setSCResVar dummyAnn n tp sizeExpr =
   case tp == cDouble of
-    True -> cAssign (cVar (n ++ "_sc_res")) (cFuncall "test_buffer_diff_double" [cVar n, cVar (n ++ "_test"), sizeExpr]) dummyAnn
+    True -> cAssign (cVar (n ++ "_sc_res")) (cFuncall "test_buffer_diff_double" [cVar (n ++ "_ref"), cVar (n ++ "_test"), sizeExpr]) dummyAnn
     False -> case tp == cFloat of
-      True -> cAssign (cVar (n ++ "_sc_res")) (cFuncall "test_buffer_diff_float" [cVar n, cVar (n ++ "_test"), sizeExpr]) dummyAnn
+      True -> cAssign (cVar (n ++ "_sc_res")) (cFuncall "test_buffer_diff_float" [cVar (n ++ "_ref"), cVar (n ++ "_test"), sizeExpr]) dummyAnn
       False -> error $ "Unrecognized type " ++ show tp ++ " in setSCResVar"
   
