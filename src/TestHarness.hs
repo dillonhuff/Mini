@@ -15,16 +15,16 @@ data EvaluationResult
 
 evaluationResult = EvaluationResult
 
-cTestHarness :: (Show a) => a -> String -> String -> Maybe (Operation a) -> [Operation a] -> String
-cTestHarness dummyAnn dataFileName fileName (Just scImp) implsToTime = 
+cTestHarness :: (Show a) => a -> String -> Maybe (Operation a) -> [Operation a] -> String
+cTestHarness dummyAnn opName (Just scImp) implsToTime = 
   let opNames = L.map getOpName implsToTime
       args = getOpArguments scImp in
   L.concatMap (\decl -> (prettyPrint 0 decl) ++ "\n") $
   prelude (scImp:implsToTime) ++
   [sanityCheckFunc dummyAnn scImp implsToTime,
    timingFunc implsToTime,
-   mainFunc dummyAnn dataFileName]
-cTestHarness _ _ _ _ _ = error "Are you sure you don't want to do a sanity check?"
+   mainFunc dummyAnn (dataFileName opName)]
+cTestHarness _ _ _ _ = error "Are you sure you don't want to do a sanity check?"
 
 parseTimingResults :: String -> Map String EvaluationResult
 parseTimingResults str =
@@ -38,9 +38,6 @@ parseSCResults :: [String] -> [(String, EvaluationResult)]
 parseSCResults [] = []
 parseSCResults (n:passFail:rest) = (n, evaluationResult [] $ if passFail == "passed" then True else False):(parseSCResults rest)
 parseSCResults other = error $ "parseSCResults failed with " ++ show other
-
-createDataFileString fileName = "\tFILE* fp = fopen(\"" ++ dataFileName fileName ++ "\", \"w\");\n"
-closeDataFileString fileName = "\tfclose(fp);\n"
 
 prelude :: [Operation a] -> [CTopLevelItem a]
 prelude impls =
@@ -141,7 +138,8 @@ compareImpls dummyAnn scImp imp = cmpBlk
     decls = L.map (\(n, tp) -> (cInt, n ++ "_sc_res")) args
     copyStmts = copyArgsTo dummyAnn "_test" scImp
     testArgs = L.map (\(n, tp) -> cVar (n ++ "_test")) args
-    blkStmts = copyStmts ++ [cExprSt (cFuncall (getOpName imp) testArgs) dummyAnn] ++ scResultCode dummyAnn args scImp
+    writeOpName = cExprSt (cFuncall "fprintf" [cVar "df", cVar ("\"" ++ getOpName imp ++ "\\n\"")]) dummyAnn
+    blkStmts = copyStmts ++ [cExprSt (cFuncall (getOpName imp) testArgs) dummyAnn, writeOpName] ++ scResultCode dummyAnn args scImp
     cmpBlk = cBlockSt decls blkStmts dummyAnn
 
 scResultCode :: a -> [(String, Type)] -> Operation a -> [CStmt a]

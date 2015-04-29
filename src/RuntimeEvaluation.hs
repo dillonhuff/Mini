@@ -9,29 +9,25 @@ import SystemSettings
 import TestHarness
 
 timeImplementations :: (Ord a, Show a) => a -> String -> Maybe (Operation a) -> [Operation a] -> IO (Map (Operation a) EvaluationResult)
-timeImplementations dummyAnn fileName sanityCheckImpl impls =
-  let testCode = cTestHarness dummyAnn (dataFilePath ++ fileName) (evalPath ++ fileName) sanityCheckImpl impls in
+timeImplementations dummyAnn opName sanityCheckImpl impls =
+  let testCode = cTestHarness dummyAnn opName sanityCheckImpl impls in
   do
-    resultFileName <- runCTestCode fileName testCode
-    opNameToEvalResultMap <- readResultFile (dataFilePath ++ resultFileName)
-    putStrLn $ "Delete string: " ++ "rm -rf " ++ resultFileName
-    res <- runCommand $ "rm -rf " ++ resultFileName
+    runCTestCode opName testCode
+    opNameToEvalResultMap <- readResultFile opName
     return $ reconstructOpMap impls opNameToEvalResultMap
 
-runCTestCode :: String -> String -> IO String
-runCTestCode fileName testStr =
-  let filePath = evalPath ++ fileName in
-  do
-    writeFile filePath testStr
-    putStrLn $ "Compile string: " ++ compileString filePath
-    runCommand $ compileString filePath
-    putStrLn $ "Run string: " ++ runString filePath
-    runCommand $ runString filePath
-    return $ dataFileName filePath
+runCTestCode :: String -> String -> IO ()
+runCTestCode opName testStr = do
+  writeFile (cFileName opName) testStr
+  putStrLn $ "Compile string: " ++ compileString opName
+  runCommand $ compileString opName
+  putStrLn $ "Run string: " ++ runString opName
+  runCommand $ runString opName
+  return ()
 
 readResultFile :: String -> IO (Map String EvaluationResult)
-readResultFile fileName = do
-  timingResults <- readFile fileName
+readResultFile opName = do
+  timingResults <- readFile (dataFileName opName)
   return $ parseTimingResults timingResults
 
 reconstructOpMap :: (Show a, Ord a) => [Operation a] -> Map String EvaluationResult -> Map (Operation a) EvaluationResult
