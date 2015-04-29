@@ -1,9 +1,11 @@
 module Syntax(Operation,
               toCFunc,
+              toCType,
               Type,
               operation,
               getOpName,
               getOpArguments,
+              getBufferSize,
               symInfo,
               symtab,
               block,
@@ -11,11 +13,11 @@ module Syntax(Operation,
               sReg, buffer,
               single, double,
               arg, local,
+              iExprToCExpr,
               indConst) where
 
 import Data.List as L
 import Data.Map as M
-import Data.Tuple as T
 
 import CGen
 
@@ -35,6 +37,9 @@ getOpName (Operation n _ _) = n
 getOpArguments (Operation _ st _) = arguments st
 getOpBlock (Operation _ _ b) = b
 getOpLocalVars (Operation _ st _) = localVars st
+
+getBufferSize :: String -> Operation a -> IExpr
+getBufferSize _ (Operation _ _ _) = indConst 1
 
 prototype :: String -> Symtab -> String
 prototype n st = "void " ++ n ++ "(" ++ argumentStr st ++ ")"

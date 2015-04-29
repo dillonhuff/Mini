@@ -8,9 +8,9 @@ import Syntax
 import SystemSettings
 import TestHarness
 
-timeImplementations :: (Ord a, Show a) => String -> Maybe (Operation a) -> [Operation a] -> IO (Map (Operation a) EvaluationResult)
-timeImplementations fileName sanityCheckImpl impls =
-  let testCode = cTestHarness (evalPath ++ fileName) sanityCheckImpl impls in
+timeImplementations :: (Ord a, Show a) => a -> String -> Maybe (Operation a) -> [Operation a] -> IO (Map (Operation a) EvaluationResult)
+timeImplementations dummyAnn fileName sanityCheckImpl impls =
+  let testCode = cTestHarness dummyAnn (evalPath ++ fileName) sanityCheckImpl impls in
   do
     resultFileName <- runCTestCode fileName testCode
     opNameToEvalResultMap <- readResultFile resultFileName

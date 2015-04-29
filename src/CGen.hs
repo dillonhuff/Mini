@@ -1,11 +1,16 @@
 module CGen(CTopLevelItem,
-            cFuncDecl,
+            cFuncDecl, cInclude,
             cInt, cFloat, cDouble, cFILE, cVoid, cPtr,
             CBlock,
             cBlock,
-            cAssign, cAdd, cSub, cMul,
+            CStmt,
+            CExpr,
+            cExprSt,
+            CType,
+            cAssign, cAdd, cSub, cMul, cFuncall,
             cIntLit, cFloatLit, cDoubleLit,
-            cVar, cArrAcc,
+            cVar, cArrAcc, cReturn, cSizeOf,
+            getReferencedType,
             Pretty(..)) where
 
 import Data.List as L
@@ -15,6 +20,7 @@ data CTopLevelItem a
   | CFuncDecl (CFunc a)
     deriving (Eq, Ord, Show)
 
+cInclude str = CInclude str
 cFuncDecl retType name fParams body = CFuncDecl $ CFunc retType name fParams body
 
 instance Pretty (CTopLevelItem a) where
@@ -47,6 +53,8 @@ instance Show CType where
   show (CPtr t) = show t ++ "*"
   show CVoid = "void"
 
+getReferencedType (CPtr tp) = tp
+
 cInt = CInt
 cFloat = CFloat
 cDouble = CDouble
@@ -71,15 +79,23 @@ data CStmt a
   = CFor CExpr CExpr CExpr (CBlock a) a
   | CIfThenElse CExpr (CBlock a) (CBlock a) a
   | CBlockStmt (CBlock a) a
-  | CFuncall [CExpr] a
+  | CExprSt CExpr a
   | CAssign CExpr CExpr a
+  | CReturn CExpr a
     deriving (Eq, Ord, Show)
+
+cReturn e a = CReturn e a
+cExprSt e a = CExprSt e a
 
 instance Pretty (CStmt a) where
   prettyPrint indL (CFor st end inc blk ann) =
     indent indL $ "for () {}"
   prettyPrint indL (CAssign e1 e2 ann) =
     indent indL $ show e1 ++ " = " ++ show e2 ++ ";\n"
+  prettyPrint indL (CReturn e ann) =
+    indent indL $ "return " ++ show e ++ ";\n"
+  prettyPrint indL (CExprSt e ann) =
+    indent indL $ show e ++ ";\n"
 
 cAssign = CAssign
 
@@ -89,6 +105,8 @@ data CExpr
   | CDoubleLit Double
   | CVar String
   | CBinop CBinop CExpr CExpr
+  | CFuncall String [CExpr]
+  | CSizeOf CType
     deriving (Eq, Ord)
 
 instance Show CExpr where
@@ -100,7 +118,10 @@ showExpr (CBinop op l r) = show l ++ " " ++ show op ++ " " ++ show r
 showExpr (CIntLit i) = show i
 showExpr (CDoubleLit d) = show d
 showExpr (CFloatLit f) = show f
-
+showExpr (CSizeOf tp) = "sizeof(" ++ show tp ++ ")"
+showExpr (CFuncall n args) =
+  n ++ "(" ++ (L.concat $ L.intersperse ", " $ L.map show args) ++ ")"
+  
 cIntLit = CIntLit
 cFloatLit = CFloatLit
 cDoubleLit = CDoubleLit
@@ -109,6 +130,8 @@ cArrAcc v e = CBinop ArrAcc v e
 cAdd e1 e2 = CBinop Plus e1 e2
 cSub e1 e2 = CBinop Minus e1 e2
 cMul e1 e2 = CBinop Times e1 e2
+cSizeOf tp = CSizeOf tp
+cFuncall n args = CFuncall n args
 
 data CBinop
   = Plus

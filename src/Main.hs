@@ -6,7 +6,7 @@ import Syntax
 
 main :: IO ()
 main = do
-  timeResults <- timeImplementations "tiny_test.c" (Just sanityCheckImpl) [testImpl]
+  timeResults <- timeImplementations "" "tiny_test.c" (Just sanityCheckImpl) [testImpl]
   putStrLn $ show timeResults
 
 sanityCheckImpl = operation "sanity_check" stSym $ block [load "b_reg" "b" (indConst 0) "",
