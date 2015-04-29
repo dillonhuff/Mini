@@ -78,7 +78,7 @@ scStatements dummyAnn scImp implsToCheck = bufferAllocs ++ refImplSetup ++ refIm
     buffersToDealloc = L.map snd $ scBufferDecls scImp
     bufferDeallocs = L.map (\n -> cExprSt (cFuncall "free" [cVar n]) dummyAnn) buffersToDealloc
     refImplSetup = referenceImplSetup dummyAnn scImp
-    refImplTestImplComparisons = []
+    refImplTestImplComparisons = referenceImplTestImplComparisons dummyAnn scImp implsToCheck
 
 allocSCBufferStmts :: a -> Operation a -> [CStmt a]
 allocSCBufferStmts dummyAnn scImp = allocStmts
@@ -103,14 +103,14 @@ referenceImplSetup :: a -> Operation a -> [CStmt a]
 referenceImplSetup dummyAnn scImp = setArgsToRand ++ copyArgsToRefs ++ [callSCImp]
   where
     setArgsToRand = setArgsToRandValues dummyAnn scImp
-    copyArgsToRefs = copyArgsToReferences dummyAnn scImp
+    copyArgsToRefs = copyArgsTo dummyAnn "_ref" scImp
     callSCImp = cExprSt (cFuncall (getOpName scImp) $ L.map (\(n, tp) -> cVar (n ++ "_ref")) $ getOpArguments scImp) dummyAnn
 
-copyArgsToReferences :: a -> Operation a -> [CStmt a]
-copyArgsToReferences dummyAnn scImp = copyArgStmts
+copyArgsTo :: a -> String -> Operation a -> [CStmt a]
+copyArgsTo dummyAnn suffix scImp = copyArgStmts
   where
     args = getOpArguments scImp
-    copyArgStmts = L.map (\(n, tp) -> cExprSt (cFuncall "memcpy" [cVar (n ++ "_ref"), cVar n, cMul (cSizeOf $ toCType tp) (iExprToCExpr $ getBufferSize n scImp)]) dummyAnn) args
+    copyArgStmts = L.map (\(n, tp) -> cExprSt (cFuncall "memcpy" [cVar (n ++ suffix), cVar n, cMul (cSizeOf $ getReferencedType $ toCType tp) (iExprToCExpr $ getBufferSize n scImp)]) dummyAnn) args
 
 setArgsToRandValues :: a -> Operation a -> [CStmt a]
 setArgsToRandValues dummyAnn scImp = randValStmts
@@ -125,5 +125,42 @@ setArgToRandValuesCode dummyAnn ((name, tp), sz) =
     True -> cExprSt (cFuncall "rand_doubles" [cVar name, sz]) dummyAnn
     False -> case getReferencedType tp == cFloat of
       True -> cExprSt (cFuncall "rand_floats" [cVar name, sz]) dummyAnn
-      False -> error $ "Unrecognized typ ein setArgToRandValuesCode " ++ show tp
-    
+      False -> error $ "Unrecognized type in setArgToRandValuesCode " ++ show tp
+
+referenceImplTestImplComparisons :: a -> Operation a -> [Operation a] -> [CStmt a]
+referenceImplTestImplComparisons dummyAnn scImp implsToCheck = compareStmts
+  where
+    compareStmts = L.map (\imp -> compareImpls dummyAnn scImp imp) implsToCheck
+
+compareImpls :: a -> Operation a -> Operation a -> CStmt a
+compareImpls dummyAnn scImp imp = cmpBlk
+  where
+    args = getOpArguments scImp
+    decls = L.map (\(n, tp) -> (cInt, n ++ "_sc_res")) args
+    copyStmts = copyArgsTo dummyAnn "_test" scImp
+    testArgs = L.map (\(n, tp) -> cVar (n ++ "_test")) args
+    blkStmts = copyStmts ++ [cExprSt (cFuncall (getOpName imp) testArgs) dummyAnn] ++ scResultCode dummyAnn args scImp
+    cmpBlk = cBlockSt decls blkStmts dummyAnn
+
+scResultCode :: a -> [(String, Type)] -> Operation a -> [CStmt a]
+scResultCode dummyAnn args imp = asgResults ++ [writeOutput]
+  where
+    asgResults = L.map (\(n, tp) -> setSCResVar dummyAnn n (getReferencedType $ toCType tp) (iExprToCExpr $ getBufferSize n imp)) args
+    resVars = L.map (\(n, tp) -> cVar (n ++ "_test")) args
+    resExpr = orExprs resVars
+    writeOutput = cIfThenElse resExpr
+                              (cBlock [] [cExprSt (cFuncall "fprintf" [cVar "df", cVar "\"FAILED\""]) dummyAnn])
+                              (cBlock [] [cExprSt (cFuncall "fprintf" [cVar "df", cVar "\"passed\""]) dummyAnn])
+                              dummyAnn
+
+orExprs [e] = e
+orExprs (e2:rest) = cOr e2 $ orExprs rest
+
+setSCResVar :: a -> String -> CType -> CExpr -> CStmt a
+setSCResVar dummyAnn n tp sizeExpr =
+  case tp == cDouble of
+    True -> cAssign (cVar (n ++ "_sc_res")) (cFuncall "test_buffer_diff_double" [cVar n, cVar (n ++ "_test"), sizeExpr]) dummyAnn
+    False -> case tp == cFloat of
+      True -> cAssign (cVar (n ++ "_sc_res")) (cFuncall "test_buffer_diff_float" [cVar n, cVar (n ++ "_test"), sizeExpr]) dummyAnn
+      False -> error $ "Unrecognized type " ++ show tp ++ " in setSCResVar"
+  

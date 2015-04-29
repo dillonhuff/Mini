@@ -5,9 +5,9 @@ module CGen(CTopLevelItem,
             cBlock,
             CStmt,
             CExpr,
-            cExprSt,
+            cExprSt, cBlockSt,
             CType,
-            cAssign, cAdd, cSub, cMul, cFuncall,
+            cAssign, cAdd, cSub, cMul, cFuncall, cOr, cIfThenElse,
             cIntLit, cFloatLit, cDoubleLit,
             cVar, cArrAcc, cReturn, cSizeOf,
             getReferencedType,
@@ -73,7 +73,7 @@ instance Pretty (CBlock a) where
     indent indL "{\n" ++
     (L.concatMap (\(tp, n) -> indent (indL + 1) $ show tp ++ " " ++ n ++ ";\n") decls) ++
     (L.concatMap (\st -> prettyPrint (indL + 1) st) stmts) ++
-    indent indL "\n}\n"
+    indent indL "}\n"
 
 data CStmt a
   = CFor CExpr CExpr CExpr (CBlock a) a
@@ -82,10 +82,13 @@ data CStmt a
   | CExprSt CExpr a
   | CAssign CExpr CExpr a
   | CReturn CExpr a
+  | CBlockSt (CBlock a) a
     deriving (Eq, Ord, Show)
 
+cIfThenElse e l r a = CIfThenElse e l r a
 cReturn e a = CReturn e a
 cExprSt e a = CExprSt e a
+cBlockSt d st a = CBlockSt (CBlock d st) a
 
 instance Pretty (CStmt a) where
   prettyPrint indL (CFor st end inc blk ann) =
@@ -96,6 +99,10 @@ instance Pretty (CStmt a) where
     indent indL $ "return " ++ show e ++ ";\n"
   prettyPrint indL (CExprSt e ann) =
     indent indL $ show e ++ ";\n"
+  prettyPrint indL (CBlockSt b ann) =
+    prettyPrint indL b
+  prettyPrint indL (CIfThenElse e l r ann) =
+    indent indL $ "if (" ++ show e ++ ")\n" ++ prettyPrint indL l ++ (indent indL "else\n") ++ prettyPrint indL r
 
 cAssign = CAssign
 
@@ -130,6 +137,7 @@ cArrAcc v e = CBinop ArrAcc v e
 cAdd e1 e2 = CBinop Plus e1 e2
 cSub e1 e2 = CBinop Minus e1 e2
 cMul e1 e2 = CBinop Times e1 e2
+cOr e1 e2 = CBinop Or e1 e2
 cSizeOf tp = CSizeOf tp
 cFuncall n args = CFuncall n args
 

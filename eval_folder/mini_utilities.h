@@ -10,4 +10,13 @@ void rand_doubles(double* buf, int n) {
   }
 }
 
+int test_buffer_diff_double(double* left, double* right, unsigned int len) {
+  int i;
+  for (i = 0; i < len; i++) {
+    if (left[i] - right[i] != 0.0) {
+      return 1;
+    }
+  }
+  return 0;
+}
 #endif
