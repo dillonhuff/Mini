@@ -9,19 +9,19 @@ import Syntax
 import TestHarness
 
 testConvertToMini = do
-  testConvert "" "matrix_add" maddSC maddOp
+  testConvert "matrix_add" maddSC maddOp
 
-testConvert :: (Ord a, Show a) => a -> String -> Operation a -> MOp a -> IO ()
-testConvert dummy opName scImpl op =
+testConvert :: String -> Operation String -> MOp -> IO ()
+testConvert opName scImpl op =
   let resOp = convertToMini op in
   do
-    rtRes <- timeImplementations dummy opName (Just scImpl) [resOp]
+    rtRes <- timeImplementations "" opName (Just scImpl) [resOp]
     case L.and $ L.map (\(n, evalRes) -> passedSanityCheck evalRes) $ M.toList rtRes of
       True -> putStrLn "test passed"
       False -> putStrLn $ opName ++ " test FAILED"
 
 maddOp =
-  mOp "one_matrix_add" maddOpSym [madd "a" "b" "c" ""]
+  mOp "one_matrix_add" maddOpSym [madd "a" "b" "c"]
 
 maddOpSym = mSymtab M.empty
 
