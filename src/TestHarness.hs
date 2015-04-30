@@ -1,6 +1,7 @@
 module TestHarness(cTestHarness,
                    parseTimingResults,
-                   EvaluationResult) where
+                   EvaluationResult,
+                   passedSanityCheck) where
 
 import Data.List as L
 import Data.Map as M
@@ -14,6 +15,8 @@ data EvaluationResult
     deriving (Eq, Ord, Show)
 
 evaluationResult = EvaluationResult
+
+passedSanityCheck (EvaluationResult _ b) = b
 
 cTestHarness :: (Show a) => a -> String -> Maybe (Operation a) -> [Operation a] -> String
 cTestHarness dummyAnn opName (Just scImp) implsToTime = 

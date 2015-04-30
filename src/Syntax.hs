@@ -14,7 +14,7 @@ module Syntax(Operation,
               single, double,
               arg, local,
               iExprToCExpr,
-              indConst) where
+              iConst, iTerm, iSum) where
 
 import Data.List as L
 import Data.Map as M
@@ -39,7 +39,7 @@ getOpBlock (Operation _ _ b) = b
 getOpLocalVars (Operation _ st _) = localVars st
 
 getBufferSize :: String -> Operation a -> IExpr
-getBufferSize _ (Operation _ _ _) = indConst 1
+getBufferSize _ (Operation _ _ _) = iConst 1
 
 prototype :: String -> Symtab -> String
 prototype n st = "void " ++ n ++ "(" ++ argumentStr st ++ ")"
@@ -122,7 +122,7 @@ data Statement a
   = BOp Binop String String String a
   | Load String String IExpr a
   | Store String IExpr String a
-  | For String Int Int Int (Block a) a
+  | For String IExpr IExpr IExpr (Block a) a
     deriving (Eq, Ord, Show)
 
 toCStmt (Load n1 n2 iExpr ann) = cAssign (cVar n1) (cArrAcc (cVar n2) (iExprToCExpr iExpr)) ann
@@ -132,12 +132,17 @@ toCStmt (Store s1 iExpr s2 ann) = cAssign (cArrAcc (cVar s1) (iExprToCExpr iExpr
 load = Load
 store = Store
 plus = BOp Plus
+for n start end inc b ann = For n start end inc b ann
 
 data IExpr
   = IConst Int
   | ITerm Int String
-  | Sum IExpr IExpr
+  | ISum IExpr IExpr
     deriving (Eq, Ord)
+
+iTerm ind s = ITerm ind s
+iSum l r = ISum l r
+iConst i = IConst i
 
 iExprToCExpr (IConst i) = cIntLit i
 iExprToCExpr (ITerm i s) = cAdd (cIntLit i) (cVar s)
@@ -145,9 +150,7 @@ iExprToCExpr (ITerm i s) = cAdd (cIntLit i) (cVar s)
 instance Show IExpr where
   show (IConst it) = show it
   show (ITerm i s) = show i ++ "*" ++ s
-  show (Sum l r) = "(" ++ show l ++ " + " ++ show r ++ ")"
-
-indConst i = IConst i
+  show (ISum l r) = "(" ++ show l ++ " + " ++ show r ++ ")"
 
 data Binop
   = Plus
