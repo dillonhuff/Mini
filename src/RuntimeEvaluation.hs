@@ -3,6 +3,7 @@ module RuntimeEvaluation(timeImplementations,
 
 import Data.List as L
 import Data.Map as M
+import System.IO.Strict as S
 import System.Process
 
 import MiniOperation
@@ -38,7 +39,7 @@ runCTestCode opName testStr = do
 
 readResultFile :: String -> IO (Map String EvaluationResult)
 readResultFile opName = do
-  timingResults <- readFile (dataFileName opName)
+  timingResults <- S.readFile (dataFileName opName)
   return $ parseTimingResults timingResults
 
 reconstructOpMap :: (Show a, Ord a) => [Operation a] -> Map String EvaluationResult -> Map (Operation a) EvaluationResult
