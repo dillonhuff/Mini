@@ -13,6 +13,7 @@ import Data.List as L
 
 import CGen
 import IndexExpression
+import SymbolTable
 import Syntax
 
 data Operation a
@@ -47,7 +48,7 @@ getOpBlock (Operation _ _ _ b) = b
 getOpLocalVars (Operation _ _ st _) = localVars st
 
 getBufferSize :: String -> Operation a -> IExpr
-getBufferSize _ (Operation _ _ _ _) = iConst 1
+getBufferSize n (Operation _ _ st _) = getMiniSymInfo n bufferSize st
 
 
 data Optimization a

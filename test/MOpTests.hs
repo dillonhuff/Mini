@@ -46,12 +46,12 @@ maddBodyStmts =
   [load "a_r" "a" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "",
    load "b_r" "b" (iAdd (iMul (iConst 8) (iVar "i")) (iMul (iConst 1) (iVar "j"))) "",
    plus "b_r" "a_r" "b_r" "",
-   Store "c" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "b_r" ""]
+   store "c" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "b_r" ""]
 
 maddSym =
-  miniSymtab [("a", symInfo (buffer double) arg),
-              ("b", symInfo (buffer double) arg),
-              ("c", symInfo (buffer double) arg),
+  miniSymtab [("a", symInfo (buffer double $ iConst 24) arg),
+              ("b", symInfo (buffer double $ iConst 24) arg),
+              ("c", symInfo (buffer double $ iConst 24) arg),
               ("a_r", symInfo (sReg double) local),
               ("b_r", symInfo (sReg double) local),
               ("i", symInfo index local),

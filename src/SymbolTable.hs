@@ -10,12 +10,14 @@ module SymbolTable(MOpSymtab,
                    EntryType, doubleFloat, singleFloat,
                    MiniSymtab,
                    miniSymtab,
+                   getMiniSymInfo,
                    getBufferType,
                    addEntry,
                    arguments, sReg, buffer, double, single, index,
                    localVars,
                    symInfo,
                    local, arg,
+                   bufferSize,
                    Type,
                    toCType) where
 
@@ -63,7 +65,7 @@ numCols (MOpSymInfo _ _ (Layout _ nc _ _)) = nc
 rowStride (MOpSymInfo _ _ (Layout _ _ rs _)) = rs
 colStride (MOpSymInfo _ _ (Layout _ _ _ cs)) = cs
 
-mOpSymInfoToMiniSymInfo (MOpSymInfo scope entType _) = symInfo (entryTypeToBufferType entType) scope
+mOpSymInfoToMiniSymInfo (MOpSymInfo scope entType l) = symInfo (entryTypeToBufferType entType (layoutSizeIExpr l)) scope
 
 data EntryType
   = DoubleFloat
@@ -82,27 +84,10 @@ data Layout
 
 layout nRows nCols rowStride colStride = Layout nRows nCols rowStride colStride
 
-data Type
-  = Buffer Type
-  | Index
-  | SReg Type
-  | SinglePrecision
-  | DoublePrecision
-    deriving (Eq, Ord, Show)
-
-toCType (Buffer pt) = cPtr $ toCType pt
-toCType Index = cInt
-toCType (SReg tp) = toCType tp
-toCType SinglePrecision = cFloat
-toCType DoublePrecision = cDouble
-
-sReg t = SReg t
-buffer t = Buffer t
-double = DoublePrecision
-single = SinglePrecision
-index = Index
-
-bufType (Buffer t) = t
+layoutSizeIExpr (Layout nr nc rs cs) =
+  (iAdd ind0Size (iConst 1))
+  where
+    ind0Size = iAdd (iMul (iAdd nr (iConst (-1))) rs) (iMul (iAdd nc (iConst (-1))) cs)
 
 data Scope
   = Local
@@ -126,6 +111,12 @@ miniSymtab l = MiniSymtab $ M.fromList l
 
 addEntry name info (MiniSymtab m) = MiniSymtab $ M.insert name info m
 
+getMiniSymInfo :: String -> (SymbolInfo -> a) -> MiniSymtab -> a
+getMiniSymInfo symName f (MiniSymtab symMap) =
+  case M.lookup symName symMap of
+    Just info -> f info
+    Nothing -> error $ "Symbol " ++ symName ++ " not found in " ++ show symMap
+
 getBufferType :: String -> MiniSymtab -> Type
 getBufferType n (MiniSymtab symMap) =
   case M.lookup n symMap of
@@ -148,8 +139,32 @@ data SymbolInfo
 symInfo = SymbolInfo
 
 bufferType (SymbolInfo t _) = bufType t
+bufferSize (SymbolInfo t _) = bufSize t
 
 symIsArg :: SymbolInfo -> Bool
 symIsArg info = isArg $ scope info
 
 symIsLocalVar info = isLocalVar $ scope info
+
+data Type
+  = Buffer Type IExpr
+  | Index
+  | SReg Type
+  | SinglePrecision
+  | DoublePrecision
+    deriving (Eq, Ord, Show)
+
+toCType (Buffer pt _) = cPtr $ toCType pt
+toCType Index = cInt
+toCType (SReg tp) = toCType tp
+toCType SinglePrecision = cFloat
+toCType DoublePrecision = cDouble
+
+sReg t = SReg t
+buffer t size = Buffer t size
+double = DoublePrecision
+single = SinglePrecision
+index = Index
+
+bufType (Buffer t _) = t
+bufSize (Buffer _ sz) = sz
