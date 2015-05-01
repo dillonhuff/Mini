@@ -4,6 +4,7 @@ import Data.List as L
 import Data.Map as M
 import System.Process
 
+import MiniOperation
 import Syntax
 import SystemSettings
 import TestHarness

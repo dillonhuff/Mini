@@ -1,17 +1,12 @@
-module Syntax(Operation,
-              applyToOpBlock,
-              toCFunc,
-              toCType,
+module Syntax(toCType,
               transformBlock,
+              MiniSymtab,
+              localVars, arguments,
               Statement,
               transformStatementIExprs,
               Type,
-              operation,
-              getOpName,
-              getOpArguments,
-              getBufferSize,
-              getBufferType,
               Block,
+              toCBlock,
               block,
               load, store, plus, minus, times, for,
               sReg, buffer) where
@@ -23,35 +18,11 @@ import CGen
 import IndexExpression
 import SymbolTable
 
-data Operation a
-  = Operation String MiniSymtab (Block a)
-    deriving (Eq, Ord, Show)
-
-applyToOpBlock :: (Block a -> Block a) -> Operation a -> Operation a
-applyToOpBlock f (Operation n st b) = Operation n st (f b)
-
-toCFunc :: Operation a -> CTopLevelItem a
-toCFunc op = cFuncDecl cVoid (getOpName op) cArgs cBlock
-  where
-    cArgs = L.map (\(n, tp) -> (toCType tp, n)) $ getOpArguments op
-    cBlock = toCBlock (getOpLocalVars op) (getOpBlock op)
-
-operation = Operation
-
-getOpName (Operation n _ _) = n
-getOpArguments (Operation _ st _) = arguments st
-getOpBlock (Operation _ _ b) = b
-getOpLocalVars (Operation _ st _) = localVars st
-
-getBufferSize :: String -> Operation a -> IExpr
-getBufferSize _ (Operation _ _ _) = iConst 1
-
 prototype :: String -> MiniSymtab -> String
 prototype n st = "void " ++ n ++ "(" ++ argumentStr st ++ ")"
 
 argumentStr :: MiniSymtab -> String
 argumentStr st = L.concat $ L.intersperse ", " $ L.map (\(n, tp) -> show tp ++ " " ++ n) $ arguments st
-
 
 toCBlock :: [(String, Type)] -> Block a -> CBlock a
 toCBlock decls (Block stmts) = cBlock cDecls cStmts

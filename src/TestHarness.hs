@@ -8,6 +8,7 @@ import Data.Map as M
 
 import CGen
 import IndexExpression
+import MiniOperation
 import Syntax
 import SystemSettings
 

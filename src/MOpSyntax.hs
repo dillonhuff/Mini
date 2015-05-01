@@ -7,6 +7,7 @@ import Control.Monad.State.Lazy
 import Data.Map as M
 
 import IndexExpression
+import MiniOperation
 import SymbolTable
 import Syntax
 

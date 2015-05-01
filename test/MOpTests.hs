@@ -4,6 +4,7 @@ import Data.List as L
 import Data.Map as M
 
 import IndexExpression
+import MiniOperation
 import MOpSyntax
 import RuntimeEvaluation
 import SymbolTable
