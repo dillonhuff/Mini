@@ -1,14 +1,10 @@
-module IndexExpressionOptimizations(EvalIExprConsts) where
+module IndexExpressionOptimizations(evalIExprConstants) where
 
 import IndexExpression
-import Optimization
+import MiniOperation
 import Syntax
 
-data EvalIExprConsts
-  = EvalIExprConsts
-    deriving (Eq, Ord, Show)
-
-evalIExprConsts =
+evalIExprConstants =
   optimization
         "EvaluateIExprConstants"
         (applyToOpBlock (transformBlock (transformStatementIExprs evaluateIExprConstants)))

@@ -1,4 +1,5 @@
-module RuntimeEvaluation(timeImplementations) where
+module RuntimeEvaluation(timeImplementations,
+                         timeOperationsWithOptimizations) where
 
 import Data.List as L
 import Data.Map as M
@@ -8,6 +9,15 @@ import MiniOperation
 import Syntax
 import SystemSettings
 import TestHarness
+
+timeOperationsWithOptimizations :: (Ord a, Show a) => a -> String -> [Operation a] -> [Optimization a] -> IO [Map (Operation a) EvaluationResult]
+timeOperationsWithOptimizations dummyAnn testName opImpls optimizations =
+  sequence $ L.map (\impl -> timeOptimizations dummyAnn testName impl optimizations) opImpls
+
+timeOptimizations :: (Ord a, Show a) => a -> String -> Operation a -> [Optimization a] -> IO (Map (Operation a) EvaluationResult)
+timeOptimizations dummyAnn opName originalImpl opts =
+  let optimizedImpls = L.map (\opt -> applyOptimization opt originalImpl) opts in
+  timeImplementations dummyAnn opName (Just originalImpl) optimizedImpls
 
 timeImplementations :: (Ord a, Show a) => a -> String -> Maybe (Operation a) -> [Operation a] -> IO (Map (Operation a) EvaluationResult)
 timeImplementations dummyAnn opName sanityCheckImpl impls =
