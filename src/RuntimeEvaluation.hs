@@ -32,9 +32,11 @@ runCTestCode :: String -> String -> IO ()
 runCTestCode opName testStr = do
   writeFile (cFileName opName) testStr
   putStrLn $ "Compile string: " ++ compileString opName
-  runCommand $ compileString opName
+  compCommand <- runCommand $ compileString opName
+  waitForProcess compCommand
   putStrLn $ "Run string: " ++ runString opName
-  runCommand $ runString opName
+  execCommand <- runCommand $ runString opName
+  waitForProcess execCommand
   return ()
 
 readResultFile :: String -> IO (Map String EvaluationResult)
