@@ -3,8 +3,10 @@ module MOpTests() where
 import Data.List as L
 import Data.Map as M
 
+import IndexExpression
 import MOpSyntax
 import RuntimeEvaluation
+import SymbolTable
 import Syntax
 import TestHarness
 
@@ -23,7 +25,11 @@ testConvert opName scImpl op =
 maddOp =
   mOp "one_matrix_add" maddOpSym [madd "a" "b" "c"]
 
-maddOpSym = mSymtab M.empty
+argLayout = layout (iConst 8) (iConst 4) (iConst 1) (iConst 8)
+
+maddOpSym = mOpSymtab [("a", mOpSymInfo arg doubleFloat argLayout),
+                       ("b", mOpSymInfo arg doubleFloat argLayout),
+                       ("c", mOpSymInfo arg doubleFloat argLayout)]
 
 maddSC =
   operation "madd_manual_sc" maddSym $
@@ -36,9 +42,9 @@ maddSC =
                                         store "c" (iSum (iTerm 1 "i") (iTerm 8 "j")) "c_r"]) ""]-}
 
 maddSym =
-  symtab [("a", symInfo (buffer double) arg),
-          ("b", symInfo (buffer double) arg),
-          ("c", symInfo (buffer double) arg),
-          ("a_reg", symInfo (sReg double) local),
-          ("b_reg", symInfo (sReg double) local),
-          ("c_reg", symInfo (sReg double) local)]
+  miniSymtab [("a", symInfo (buffer double) arg),
+              ("b", symInfo (buffer double) arg),
+              ("c", symInfo (buffer double) arg),
+              ("a_reg", symInfo (sReg double) local),
+              ("b_reg", symInfo (sReg double) local),
+              ("c_reg", symInfo (sReg double) local)]

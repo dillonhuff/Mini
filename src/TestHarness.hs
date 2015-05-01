@@ -7,6 +7,7 @@ import Data.List as L
 import Data.Map as M
 
 import CGen
+import IndexExpression
 import Syntax
 import SystemSettings
 
@@ -52,7 +53,7 @@ mainFunc :: a -> String -> CTopLevelItem a
 mainFunc dummyAnn dataFileName =
   cFuncDecl cInt "main" [] $
             cBlock [(cPtr cFILE, "data_file")]
-                   [cAssign (cVar "data_file") (cFuncall "fopen" [cVar ("\"" ++ dataFileName ++ "\""), cVar "\"w\""]) dummyAnn,
+                   [cExprSt (cAssign (cVar "data_file") (cFuncall "fopen" [cVar ("\"" ++ dataFileName ++ "\""), cVar "\"w\""])) dummyAnn,
                     cExprSt (cFuncall "sanity_check_impls" [cVar "data_file"]) dummyAnn,
                     cExprSt (cFuncall "time_impls" [cVar "data_file"]) dummyAnn,
                     cExprSt (cFuncall "fclose" [cVar "data_file"]) dummyAnn,
@@ -94,7 +95,7 @@ allocSCBufferStmts dummyAnn scImp = allocStmts
     refBufCDeclsWSize = L.map (\((tp, n), sz) -> ((tp, n ++ "_ref"), sz)) argBufCDeclsWSize
     testBufCDeclsWSize = L.map (\((tp, n), sz) -> ((tp, n ++ "_test"), sz)) argBufCDeclsWSize
     allArgBufs = argBufCDeclsWSize ++ refBufCDeclsWSize ++ testBufCDeclsWSize
-    allocStmts = L.map (\((tp, n), sz) -> cAssign (cVar n) (cFuncall "malloc" [cMul (cSizeOf tp) sz]) dummyAnn) allArgBufs
+    allocStmts = L.map (\((tp, n), sz) -> cExprSt (cAssign (cVar n) (cFuncall "malloc" [cMul (cSizeOf tp) sz])) dummyAnn) allArgBufs
 
 timingFunc :: [Operation a] -> CTopLevelItem a
 timingFunc [] = error $ "no implementations to time in timingFunc"
@@ -162,8 +163,8 @@ orExprs (e2:rest) = cOr e2 $ orExprs rest
 setSCResVar :: a -> String -> CType -> CExpr -> CStmt a
 setSCResVar dummyAnn n tp sizeExpr =
   case tp == cDouble of
-    True -> cAssign (cVar (n ++ "_sc_res")) (cFuncall "test_buffer_diff_double" [cVar (n ++ "_ref"), cVar (n ++ "_test"), sizeExpr]) dummyAnn
+    True -> cExprSt (cAssign (cVar (n ++ "_sc_res")) (cFuncall "test_buffer_diff_double" [cVar (n ++ "_ref"), cVar (n ++ "_test"), sizeExpr])) dummyAnn
     False -> case tp == cFloat of
-      True -> cAssign (cVar (n ++ "_sc_res")) (cFuncall "test_buffer_diff_float" [cVar (n ++ "_ref"), cVar (n ++ "_test"), sizeExpr]) dummyAnn
+      True -> cExprSt (cAssign (cVar (n ++ "_sc_res")) (cFuncall "test_buffer_diff_float" [cVar (n ++ "_ref"), cVar (n ++ "_test"), sizeExpr])) dummyAnn
       False -> error $ "Unrecognized type " ++ show tp ++ " in setSCResVar"
   

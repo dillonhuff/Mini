@@ -7,7 +7,7 @@ module CGen(CTopLevelItem,
             CExpr,
             cExprSt, cBlockSt,
             CType,
-            cAssign, cAdd, cSub, cMul, cFuncall, cOr, cIfThenElse,
+            cAssign, cAdd, cSub, cMul, cFuncall, cOr, cLEQ, cIfThenElse, cFor,
             cIntLit, cFloatLit, cDoubleLit,
             cVar, cArrAcc, cReturn, cSizeOf,
             getReferencedType,
@@ -23,7 +23,7 @@ data CTopLevelItem a
 cInclude str = CInclude str
 cFuncDecl retType name fParams body = CFuncDecl $ CFunc retType name fParams body
 
-instance Pretty (CTopLevelItem a) where
+instance Show a => Pretty (CTopLevelItem a) where
   prettyPrint indL (CInclude name) = indent indL $ "#include " ++ name
   prettyPrint indL (CFuncDecl cFunc) = prettyPrint indL cFunc
 
@@ -31,7 +31,7 @@ data CFunc a
   = CFunc CType String [(CType, String)] (CBlock a)
     deriving (Eq, Ord, Show)
 
-instance Pretty (CFunc a) where
+instance Show a => Pretty (CFunc a) where
   prettyPrint indL (CFunc tp name formalParams blk) = show tp ++ " " ++ name ++ "(" ++ fParamsStr ++ ")" ++ prettyPrint indL blk
     where
       fParamsStr = L.concat $ L.intersperse ", " $ L.map (\(tp, n) -> show tp ++ " " ++ n) formalParams
@@ -68,7 +68,7 @@ data CBlock a
 
 cBlock = CBlock
 
-instance Pretty (CBlock a) where
+instance Show a => Pretty (CBlock a) where
   prettyPrint indL (CBlock decls stmts) =
     indent indL "{\n" ++
     (L.concatMap (\(tp, n) -> indent (indL + 1) $ show tp ++ " " ++ n ++ ";\n") decls) ++
@@ -80,21 +80,19 @@ data CStmt a
   | CIfThenElse CExpr (CBlock a) (CBlock a) a
   | CBlockStmt (CBlock a) a
   | CExprSt CExpr a
-  | CAssign CExpr CExpr a
   | CReturn CExpr a
   | CBlockSt (CBlock a) a
     deriving (Eq, Ord, Show)
 
+cFor init end inc body a = CFor init end inc body a
 cIfThenElse e l r a = CIfThenElse e l r a
 cReturn e a = CReturn e a
 cExprSt e a = CExprSt e a
 cBlockSt d st a = CBlockSt (CBlock d st) a
 
-instance Pretty (CStmt a) where
+instance Show a => Pretty (CStmt a) where
   prettyPrint indL (CFor st end inc blk ann) =
-    indent indL $ "for () {}"
-  prettyPrint indL (CAssign e1 e2 ann) =
-    indent indL $ show e1 ++ " = " ++ show e2 ++ ";\n"
+    indent indL $ "for (" ++ show st ++ "; " ++ show end ++ "; " ++ show inc ++ ")\n" ++ prettyPrint indL blk
   prettyPrint indL (CReturn e ann) =
     indent indL $ "return " ++ show e ++ ";\n"
   prettyPrint indL (CExprSt e ann) =
@@ -104,7 +102,7 @@ instance Pretty (CStmt a) where
   prettyPrint indL (CIfThenElse e l r ann) =
     indent indL $ "if (" ++ show e ++ ")\n" ++ prettyPrint indL l ++ (indent indL "else\n") ++ prettyPrint indL r
 
-cAssign = CAssign
+
 
 data CExpr
   = CIntLit Int
@@ -113,6 +111,7 @@ data CExpr
   | CVar String
   | CBinop CBinop CExpr CExpr
   | CFuncall String [CExpr]
+  | CAssign CExpr CExpr
   | CSizeOf CType
     deriving (Eq, Ord)
 
@@ -126,9 +125,11 @@ showExpr (CIntLit i) = show i
 showExpr (CDoubleLit d) = show d
 showExpr (CFloatLit f) = show f
 showExpr (CSizeOf tp) = "sizeof(" ++ show tp ++ ")"
+showExpr (CAssign l r) = show l ++ " = " ++ show r
 showExpr (CFuncall n args) =
   n ++ "(" ++ (L.concat $ L.intersperse ", " $ L.map show args) ++ ")"
-  
+
+cAssign = CAssign
 cIntLit = CIntLit
 cFloatLit = CFloatLit
 cDoubleLit = CDoubleLit
@@ -138,6 +139,7 @@ cAdd e1 e2 = CBinop Plus e1 e2
 cSub e1 e2 = CBinop Minus e1 e2
 cMul e1 e2 = CBinop Times e1 e2
 cOr e1 e2 = CBinop Or e1 e2
+cLEQ e1 e2 = CBinop LEQ e1 e2
 cSizeOf tp = CSizeOf tp
 cFuncall n args = CFuncall n args
 
@@ -146,6 +148,7 @@ data CBinop
   | Minus
   | Times
   | Or
+  | LEQ
   | ArrAcc
     deriving (Eq, Ord)
 
@@ -154,6 +157,7 @@ instance Show CBinop where
   show Minus = "-"
   show Times = "*"
   show Or = "||"
+  show LEQ = "<="
 
 class Pretty a where
   prettyPrint :: Int -> a -> String
