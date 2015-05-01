@@ -1,7 +1,10 @@
 module Syntax(Operation,
+              applyToOpBlock,
               toCFunc,
               toCType,
+              transformBlock,
               Statement,
+              transformStatementIExprs,
               Type,
               operation,
               getOpName,
@@ -23,6 +26,9 @@ import SymbolTable
 data Operation a
   = Operation String MiniSymtab (Block a)
     deriving (Eq, Ord, Show)
+
+applyToOpBlock :: (Block a -> Block a) -> Operation a -> Operation a
+applyToOpBlock f (Operation n st b) = Operation n st (f b)
 
 toCFunc :: Operation a -> CTopLevelItem a
 toCFunc op = cFuncDecl cVoid (getOpName op) cArgs cBlock
@@ -59,6 +65,9 @@ data Block a
 
 block = Block
 
+transformBlock :: (Statement a -> Statement a) -> Block a -> Block a
+transformBlock f (Block stmts) = block $ L.map (transformStatement f) stmts
+
 data Statement a
   = BOp Binop String String String a
   | Load String String IExpr a
@@ -83,6 +92,13 @@ minus = BOp Minus
 times = BOp Times
 for n start end inc b ann = For n start end inc b ann
 
+transformStatement :: (Statement a -> Statement a) -> Statement a -> Statement a
+transformStatement f (For v s i e blk ann) = f (For v s i e (transformBlock f blk) ann)
+transformStatement f s = f s
+
+transformStatementIExprs :: (IExpr -> IExpr) -> Statement a -> Statement a
+transformStatementIExprs f (For v s i e blk ann) = For v (f s) (f i) (f e) blk ann
+transformStatementIExprs f s = s
 
 data Binop
   = Plus
