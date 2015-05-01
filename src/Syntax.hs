@@ -10,7 +10,7 @@ module Syntax(Operation,
               getBufferType,
               Block,
               block,
-              load, store, plus, for,
+              load, store, plus, minus, times, for,
               sReg, buffer) where
 
 import Data.List as L
@@ -69,15 +69,18 @@ data Statement a
 toCStmt (For n start inc end (Block bodyStatements) ann) =
   cFor (cAssign (cVar n) (iExprToCExpr start))
        (cLEQ (cVar n) (iExprToCExpr end))
-       (cAssign (cVar n) (cAdd (cVar n) (iExprToCExpr end)))
+       (cAssign (cVar n) (cAdd (cVar n) (iExprToCExpr inc)))
        (cBlock [] $ L.map toCStmt bodyStatements) ann
 toCStmt (Load n1 n2 iExpr ann) = cExprSt (cAssign (cVar n1) (cArrAcc (cVar n2) (iExprToCExpr iExpr))) ann
 toCStmt (BOp Plus s1 s2 s3 ann) = cExprSt (cAssign (cVar s1) (cAdd (cVar s2) (cVar s3))) ann
+toCStmt (BOp Minus s1 s2 s3 ann) = cExprSt (cAssign (cVar s1) (cSub (cVar s2) (cVar s3))) ann
 toCStmt (Store s1 iExpr s2 ann) = cExprSt (cAssign (cArrAcc (cVar s1) (iExprToCExpr iExpr)) (cVar s2)) ann
 
 load = Load
 store = Store
 plus = BOp Plus
+minus = BOp Minus
+times = BOp Times
 for n start end inc b ann = For n start end inc b ann
 
 

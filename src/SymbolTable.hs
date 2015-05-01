@@ -4,7 +4,8 @@ module SymbolTable(MOpSymtab,
                    MOpSymInfo,
                    mOpSymInfo,
                    getMOpSymInfo,
-                   numRows, numCols, rowStride, colStride,
+                   getNumRows, getNumCols, getRowStride, getColStride,
+                   accessExpr,
                    Layout, layout,
                    EntryType, doubleFloat, singleFloat,
                    MiniSymtab,
@@ -45,6 +46,11 @@ getMOpSymInfo symName f (MOpSymtab symMap) =
   case M.lookup symName symMap of
     Just info -> f info
     Nothing -> error $ "Symbol " ++ symName ++ " not found in " ++ show symMap
+
+getNumRows n st = getMOpSymInfo n numRows st
+getNumCols n st = getMOpSymInfo n numCols st
+getRowStride n st = getMOpSymInfo n rowStride st
+getColStride n st = getMOpSymInfo n colStride st
 
 data MOpSymInfo
   = MOpSymInfo Scope EntryType Layout

@@ -120,7 +120,7 @@ instance Show CExpr where
   
 showExpr (CVar n) = n
 showExpr (CBinop ArrAcc l r) = show l ++ "[" ++ show r ++ "]"
-showExpr (CBinop op l r) = show l ++ " " ++ show op ++ " " ++ show r
+showExpr (CBinop op l r) = "(" ++ show l ++ " " ++ show op ++ " " ++ show r ++ ")"
 showExpr (CIntLit i) = show i
 showExpr (CDoubleLit d) = show d
 showExpr (CFloatLit f) = show f

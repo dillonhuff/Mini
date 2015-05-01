@@ -12,6 +12,7 @@ import TestHarness
 
 testConvertToMini = do
   testConvert "matrix_add" maddSC maddOp
+  testConvert "matrix_sub" msubSC msubOp
 
 testConvert :: String -> Operation String -> MOp -> IO ()
 testConvert opName scImpl op =
@@ -25,6 +26,9 @@ testConvert opName scImpl op =
 maddOp =
   mOp "one_matrix_add" maddOpSym [madd "a" "b" "c"]
 
+msubOp =
+  mOp "one_matrix_subtract" maddOpSym [msub "a" "b" "c"]
+
 argLayout = layout (iConst 8) (iConst 4) (iConst 1) (iConst 8)
 
 maddOpSym = mOpSymtab [("a", mOpSymInfo arg doubleFloat argLayout),
@@ -33,18 +37,34 @@ maddOpSym = mOpSymtab [("a", mOpSymInfo arg doubleFloat argLayout),
 
 maddSC =
   operation "madd_manual_sc" maddSym $
-            block [] --for "i" (iConst 0) (iConst 7) (iConst 1)
-{-                   (block [for "j" (iConst 0) (iConst 3) (iConst 1) $
-                               (block $ load "a_r" "a" (iSum (iTerm 1 "i") (iTerm 8 "j"))
-                                        load "b_r" "b" (iSum (iTerm 8 "i") (iTerm 1 "j"))
-                                        load "c_r" "c" (iSum (iTerm 1 "i") (iTerm 8 "j"))
-                                        plus "c_r" "a_r" "b_r"
-                                        store "c" (iSum (iTerm 1 "i") (iTerm 8 "j")) "c_r"]) ""]-}
+            block [for "i" (iConst 0) (iConst 1) (iConst 7) (block [innerFor]) ""]
+
+innerFor = for "j" (iConst 0) (iConst 1) (iConst 3) (block maddBodyStmts) ""
+
+maddBodyStmts =
+  [load "a_r" "a" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "",
+   load "b_r" "b" (iAdd (iMul (iConst 8) (iVar "i")) (iMul (iConst 1) (iVar "j"))) "",
+   plus "b_r" "a_r" "b_r" "",
+   store "c" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "b_r" ""]
 
 maddSym =
   miniSymtab [("a", symInfo (buffer double) arg),
               ("b", symInfo (buffer double) arg),
               ("c", symInfo (buffer double) arg),
-              ("a_reg", symInfo (sReg double) local),
-              ("b_reg", symInfo (sReg double) local),
-              ("c_reg", symInfo (sReg double) local)]
+              ("a_r", symInfo (sReg double) local),
+              ("b_r", symInfo (sReg double) local),
+              ("i", symInfo index local),
+              ("j", symInfo index local)]
+
+msubSC =
+  operation "madd_manual_sc" maddSym $
+            block [for "i" (iConst 0) (iConst 1) (iConst 7) (block [innerForSub]) ""]
+
+innerForSub = for "j" (iConst 0) (iConst 1) (iConst 3) (block msubBodyStmts) ""
+
+msubBodyStmts =
+  [load "a_r" "a" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "",
+   load "b_r" "b" (iAdd (iMul (iConst 8) (iVar "i")) (iMul (iConst 1) (iVar "j"))) "",
+   minus "b_r" "a_r" "b_r" "",
+   store "c" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "b_r" ""]
+
