@@ -28,7 +28,7 @@ parseTimingResults str =
       scLines = L.takeWhile (\l -> l /= scTimingSeparator) strLines in
   M.fromList $ parseSCResults scLines
 
-scTimingSeparator = "#"
+scTimingSeparator = "#TIMING_RESULTS"
 
 parseSCResults :: [String] -> [(String, EvaluationResult)]
 parseSCResults [] = []
@@ -100,24 +100,53 @@ testBlockStmts :: a -> Operation a -> CStmt a
 testBlockStmts dummyAnn imp =
   cBlockSt varDecls blkCode dummyAnn
   where
-    varDecls = L.map (\(name, tp) -> (toCType tp, name)) $ getOpArguments imp
+    bufDecls = L.map (\(name, tp) -> (toCType tp, name)) $ getOpArguments imp
+    timeVarDecls = [(cULongLong, "start"), (cULongLong, "end"), (cULongLong, "total_cycles"), (cULongLong, "lvar"),
+                    (cULongLong, "num_runs"), (cDouble, "avg_cycles_per_run")]
+    varDecls = bufDecls ++ timeVarDecls
     blkCode = testBlockCode dummyAnn imp
 
 testBlockCode :: a -> Operation a -> [CStmt a]
 testBlockCode dummyAnn imp =
   setupCode dummyAnn imp ++
   timingLoops dummyAnn imp ++
-  fileIOCode ++
+  fileIOCode dummyAnn imp ++
   bufferFreeingCode dummyAnn imp
 
-setupCode dummyAnn imp = bufferAllocationCode dummyAnn imp
-timingLoops dummyAnn imp = []
-fileIOCode = []
+setupCode dummyAnn imp =
+  [cExprSt (cFuncall "fprintf" [cVar "df", cVar ("\"" ++ scTimingSeparator ++ "\"")]) dummyAnn] ++
+  (bufferAllocationCode dummyAnn imp) ++
+  setArgsToRandValues dummyAnn imp
+timingLoops dummyAnn imp = countRunsWhile dummyAnn imp ++ timeForRuns dummyAnn imp
+fileIOCode dummyAnn imp =
+  [cExprSt (cAssign (cVar "avg_cycles_per_run") (cDiv (cSub (cVar "end") (cVar "start")) (cCast cDouble (cVar "num_runs")))) dummyAnn,
+   cExprSt (cFuncall "fprintf" [cVar "df", cVar ("\"" ++ getOpName imp ++ "\\n\"")]) dummyAnn,
+   cExprSt (cFuncall "fprintf" [cVar "df", cVar "\"%f\\n\"", cVar "avg_cycles_per_run"]) dummyAnn]
+  
 bufferFreeingCode dummyAnn imp= bufferDeallocs
   where
     buffersToDealloc = L.map (\(name, _) -> name) $ getOpArguments imp
     bufferDeallocs = L.map (\n -> cExprSt (cFuncall "free" [cVar n]) dummyAnn) buffersToDealloc
 
+countRunsWhile dummyAnn imp =
+  [cExprSt (cAssign (cVar "num_runs") (cIntLit 0)) dummyAnn,
+   cExprSt (cAssign (cVar "total_cycles") (cIntLit 0)) dummyAnn,
+   cWhile (cLEQ (cVar "total_cycles") (cIntLit minCycleCount)) (whileTimeBlock dummyAnn imp) dummyAnn]
+
+minCycleCount = 100000000
+
+whileTimeBlock dummyAnn imp = cBlock []
+  [cExprSt (cAssign (cVar "start") (cFuncall "rdtsc" [])) dummyAnn,
+   cExprSt (cFuncall (getOpName imp) (L.map (\(n, _) -> cVar n) $ getOpArguments imp)) dummyAnn,
+   cExprSt (cAssign (cVar "end") (cFuncall "rdtsc" [])) dummyAnn,
+   cExprSt (cAssign (cVar "total_cycles") (cAdd (cVar "total_cycles") (cSub (cVar "end") (cVar "start")))) dummyAnn,
+   cExprSt (cAssign (cVar "num_runs") (cAdd (cVar "num_runs") (cIntLit 1))) dummyAnn]
+
+timeForRuns dummyAnn imp =
+  [cExprSt (cAssign (cVar "start") (cFuncall "rdtsc" [])) dummyAnn,
+   cFor (cAssign (cVar "lvar") (cIntLit 0)) (cLEQ (cVar "lvar") (cVar "num_runs")) (cAssign (cVar "lvar") (cAdd (cVar "lvar") (cIntLit 1)))
+        (cBlock [] [cExprSt (cFuncall (getOpName imp) (L.map (\(n, _) -> cVar n) $ getOpArguments imp)) dummyAnn]) dummyAnn,
+   cExprSt (cAssign (cVar "end") (cFuncall "rdtsc" [])) dummyAnn]
 
 bufferAllocationCode dummyAnn imp = allocStmts
     where

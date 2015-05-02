@@ -1,13 +1,13 @@
 module CGen(CTopLevelItem,
             cFuncDecl, cInclude,
-            cInt, cFloat, cDouble, cFILE, cVoid, cPtr,
+            cInt, cFloat, cDouble, cFILE, cVoid, cPtr, cULongLong,
             CBlock,
             cBlock,
             CStmt,
             CExpr,
             cExprSt, cBlockSt,
             CType,
-            cAssign, cAdd, cSub, cMul, cFuncall, cOr, cLEQ, cIfThenElse, cFor,
+            cAssign, cCast, cAdd, cSub, cMul, cDiv, cFuncall, cOr, cLEQ, cIfThenElse, cFor, cWhile,
             cIntLit, cFloatLit, cDoubleLit,
             cVar, cArrAcc, cReturn, cSizeOf,
             getReferencedType,
@@ -39,6 +39,7 @@ instance Show a => Pretty (CFunc a) where
 data CType
   = CInt
   | CFloat
+  | CULongLong
   | CDouble
   | CFILE
   | CPtr CType
@@ -47,6 +48,7 @@ data CType
 
 instance Show CType where
   show CInt = "int"
+  show CULongLong = "unsigned long long"
   show CFloat = "float"
   show CDouble = "double"
   show CFILE = "FILE"
@@ -55,6 +57,7 @@ instance Show CType where
 
 getReferencedType (CPtr tp) = tp
 
+cULongLong = CULongLong
 cInt = CInt
 cFloat = CFloat
 cDouble = CDouble
@@ -77,6 +80,7 @@ instance Show a => Pretty (CBlock a) where
 
 data CStmt a
   = CFor CExpr CExpr CExpr (CBlock a) a
+  | CWhile CExpr (CBlock a) a
   | CIfThenElse CExpr (CBlock a) (CBlock a) a
   | CBlockStmt (CBlock a) a
   | CExprSt CExpr a
@@ -84,6 +88,7 @@ data CStmt a
   | CBlockSt (CBlock a) a
     deriving (Eq, Ord, Show)
 
+cWhile test body a = CWhile test body a
 cFor init end inc body a = CFor init end inc body a
 cIfThenElse e l r a = CIfThenElse e l r a
 cReturn e a = CReturn e a
@@ -93,6 +98,8 @@ cBlockSt d st a = CBlockSt (CBlock d st) a
 instance Show a => Pretty (CStmt a) where
   prettyPrint indL (CFor st end inc blk ann) =
     indent indL $ "for (" ++ show st ++ "; " ++ show end ++ "; " ++ show inc ++ ")\n" ++ prettyPrint indL blk
+  prettyPrint indL (CWhile test body ann) =
+    indent indL $ "while (" ++ show test ++ ")\n" ++ prettyPrint indL body
   prettyPrint indL (CReturn e ann) =
     indent indL $ "return " ++ show e ++ ";\n"
   prettyPrint indL (CExprSt e ann) =
@@ -113,11 +120,13 @@ data CExpr
   | CFuncall String [CExpr]
   | CAssign CExpr CExpr
   | CSizeOf CType
+  | CCast CType CExpr
     deriving (Eq, Ord)
 
 instance Show CExpr where
   show = showExpr
-  
+
+showExpr (CCast t e) = "((" ++ show t ++ ")" ++ show e ++ ")"
 showExpr (CVar n) = n
 showExpr (CBinop ArrAcc l r) = show l ++ "[" ++ show r ++ "]"
 showExpr (CBinop op l r) = "(" ++ show l ++ " " ++ show op ++ " " ++ show r ++ ")"
@@ -129,6 +138,7 @@ showExpr (CAssign l r) = show l ++ " = " ++ show r
 showExpr (CFuncall n args) =
   n ++ "(" ++ (L.concat $ L.intersperse ", " $ L.map show args) ++ ")"
 
+cCast t e = CCast t e
 cAssign = CAssign
 cIntLit = CIntLit
 cFloatLit = CFloatLit
@@ -138,6 +148,7 @@ cArrAcc v e = CBinop ArrAcc v e
 cAdd e1 e2 = CBinop Plus e1 e2
 cSub e1 e2 = CBinop Minus e1 e2
 cMul e1 e2 = CBinop Times e1 e2
+cDiv e1 e2 = CBinop Div e1 e2
 cOr e1 e2 = CBinop Or e1 e2
 cLEQ e1 e2 = CBinop LEQ e1 e2
 cSizeOf tp = CSizeOf tp
@@ -147,12 +158,14 @@ data CBinop
   = Plus
   | Minus
   | Times
+  | Div
   | Or
   | LEQ
   | ArrAcc
     deriving (Eq, Ord)
 
 instance Show CBinop where
+  show Div = "/"
   show Plus = "+"
   show Minus = "-"
   show Times = "*"
