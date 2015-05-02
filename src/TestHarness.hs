@@ -162,7 +162,7 @@ whileTimeBlock dummyAnn imp = cBlock []
 
 timeForRuns dummyAnn imp =
   [cExprSt (cAssign (cVar "start") (cFuncall "rdtsc" [])) dummyAnn,
-   cFor (cAssign (cVar "lvar") (cIntLit 0)) (cLEQ (cVar "lvar") (cVar "num_runs")) (cAssign (cVar "lvar") (cAdd (cVar "lvar") (cIntLit 1)))
+   cFor (cAssign (cVar "lvar") (cIntLit 1)) (cLEQ (cVar "lvar") (cVar "num_runs")) (cAssign (cVar "lvar") (cAdd (cVar "lvar") (cIntLit 1)))
         (cBlock [] [cExprSt (cFuncall (getOpName imp) (L.map (\(n, _) -> cVar n) $ getOpArguments imp)) dummyAnn]) dummyAnn,
    cExprSt (cAssign (cVar "end") (cFuncall "rdtsc" [])) dummyAnn]
 
