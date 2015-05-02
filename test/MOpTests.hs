@@ -18,6 +18,7 @@ testConvertToMini = do
   testConvert "matrix_trans" mtransSC mtransOp
   testConvert "matrix_set" msetSC msetOp
   testConvert "matrix_smul" msmulSC msmulOp
+  testConvert "matrix_multiply" mmmulSC mmmulOp
 
 testConvert :: String -> Operation String -> MOp -> IO ()
 testConvert opName scImpl op =
@@ -27,6 +28,14 @@ testConvert opName scImpl op =
     case L.and $ L.map (\(n, evalRes) -> passedSanityCheck evalRes) $ M.toList rtRes of
       True -> putStrLn "test passed"
       False -> putStrLn $ opName ++ " test FAILED"
+
+mmmulOp =
+  mOp "one_matrix_multiply" mmmulOpSym [mmul "a" "b" "c"]
+
+mmmulOpSym =
+  mOpSymtab [("a", mOpSymInfo arg singleFloat (layout (iConst 32) (iConst 31) (iConst 1) (iConst 32))),
+             ("b", mOpSymInfo arg singleFloat (layout (iConst 31) (iConst 33) (iConst 1) (iConst 31))),
+             ("c", mOpSymInfo arg singleFloat (layout (iConst 32) (iConst 33) (iConst 1) (iConst 32)))]
 
 msmulOp =
   mOp "one_matrix_smul" msmulOpSym [msmul "alpha" "b" "c"]
@@ -145,3 +154,32 @@ smulSym =
               ("b_r", symInfo (sReg single) local),
               ("i", symInfo index local),
               ("j", symInfo index local)]
+
+mmmulSC =
+  operation "matrix_multiply_sc" mmulSym $
+            block $ [for "i" (iConst 0) (iConst 1) (iConst 31) (block [cMMulFor]) ""]
+
+cMMulFor =
+  for "j" (iConst 0) (iConst 1) (iConst 32) (block [innerMMulFor]) ""
+
+innerMMulFor =
+  for "k" (iConst 0) (iConst 1) (iConst 30) (block mmulBody) ""
+
+mmulBody =
+    [load "a_r" "a" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 32) (iVar "k"))) "",
+     load "b_r" "b" (iAdd (iMul (iConst 1) (iVar "k")) (iMul (iConst 31) (iVar "j"))) "",
+     load "c_r" "c" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 32) (iVar "j"))) "",
+     times "b_r" "a_r" "b_r" "",
+     plus "c_r" "b_r" "c_r" "",
+     store "c" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 32) (iVar "j"))) "c_r" ""]
+
+mmulSym =
+  miniSymtab [("a", symInfo (buffer single $ iConst (31*32)) arg),
+              ("b", symInfo (buffer single $ iConst (31*33)) arg),
+              ("c", symInfo (buffer single $ iConst (32*33)) arg),
+              ("a_r", symInfo (sReg single) local),
+              ("b_r", symInfo (sReg single) local),
+              ("c_r", symInfo (sReg single) local),
+              ("i", symInfo index local),
+              ("j", symInfo index local),
+              ("k", symInfo index local)]

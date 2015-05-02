@@ -1,6 +1,6 @@
 module MOpSyntax(MOp,
                  mOp,
-                 madd, msub, mtrans, mset, msmul,
+                 madd, msub, mtrans, mset, msmul, mmul,
                  mOpFloat, mOpDouble,
                  convertToMini) where
 
@@ -25,6 +25,7 @@ data MInstr
   | MUnop MUOp String String
     deriving (Eq, Ord, Show)
 
+mmul a b c = MBinop MMMul a b c
 madd a b c = MBinop MAdd a b c
 msub a b c = MBinop MSub a b c
 msmul a b c = MBinop MSMul a b c
@@ -35,6 +36,7 @@ data MBOp
   = MAdd
   | MSub
   | MSMul
+  | MMMul
     deriving (Eq, Ord, Show)
 
 data MUOp
@@ -144,6 +146,7 @@ genMiniCode (i:is) = do
   genMiniCode is
 
 genMiniStForInstr :: MInstr -> State MiniCodeGenState ()
+genMiniStForInstr (MBinop MMMul a b c) = genMMMulSt a b c
 genMiniStForInstr (MBinop MAdd a b c) = genMAddSt a b c
 genMiniStForInstr (MBinop MSub a b c) = genMSubSt a b c
 genMiniStForInstr (MBinop MSMul a b c) = genMSMulSt a b c
@@ -172,6 +175,10 @@ genMSMulSt a b c = do
   msmulSt <- msmulStTemplate a b c
   addSt msmulSt
 
+genMMMulSt a b c = do
+  mmmulSt <- mmmulStTemplate a b c
+  addSt mmmulSt
+
 maddStTemplate :: String -> String -> String -> State MiniCodeGenState (Statement String)
 maddStTemplate a b c = iterateOverMatTemplate a (maddBodyTemplate a b c)
 
@@ -182,6 +189,8 @@ mtransStTemplate a b = iterateOverMatTemplate a (mtransBodyTemplate a b)
 msetStTemplate a l = iterateOverMatTemplate a (msetBodyTemplate a l)
 
 msmulStTemplate a b c = iterateOverMatTemplate b (msmulBodyTemplate a b c)
+
+mmmulStTemplate a b c = iterateOverMatTemplate c (mmmulBodyTemplate a b c)
 
 maddBodyTemplate :: String -> String -> String -> String -> String -> State MiniCodeGenState (Block String)
 maddBodyTemplate a b c rowInd colInd = do
@@ -214,6 +223,16 @@ msmulBodyTemplate a b c rowInd colInd = do
   stc <- storeFromRegister c rowInd colInd bReg
   l <- freshLabel
   return $ block [lda, ldb, times bReg aReg bReg l, stc]
+
+mmmulBodyTemplate a b c rowInd colInd = do
+  (kInd, aColLoop) <- loopOverCols a
+  (aReg, lda) <- loadToRegister a rowInd kInd
+  (bReg, ldb) <- loadToRegister b kInd colInd
+  (cReg, ldc) <- loadToRegister c rowInd colInd
+  stc <- storeFromRegister c rowInd colInd cReg
+  l1 <- freshLabel
+  l2 <- freshLabel
+  return $ block $ [aColLoop $ block [lda, ldb, ldc, times bReg aReg bReg l1, plus cReg bReg cReg l2, stc]]
 
 iterateOverMatTemplate :: String -> (String -> String -> State MiniCodeGenState (Block String)) -> State MiniCodeGenState (Statement String)
 iterateOverMatTemplate matName loopBodyTemplate = do
