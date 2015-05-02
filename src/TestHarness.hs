@@ -164,7 +164,8 @@ timeForRuns dummyAnn imp =
   [cExprSt (cAssign (cVar "start") (cFuncall "rdtsc" [])) dummyAnn,
    cFor (cAssign (cVar "lvar") (cIntLit 1)) (cLEQ (cVar "lvar") (cVar "num_runs")) (cAssign (cVar "lvar") (cAdd (cVar "lvar") (cIntLit 1)))
         (cBlock [] [cExprSt (cFuncall (getOpName imp) (L.map (\(n, _) -> cVar n) $ getOpArguments imp)) dummyAnn]) dummyAnn,
-   cExprSt (cAssign (cVar "end") (cFuncall "rdtsc" [])) dummyAnn]
+   cExprSt (cAssign (cVar "end") (cFuncall "rdtsc" [])) dummyAnn] ++
+  (L.map (\(n, _) -> cExprSt (cFuncall "print_first_byte" [cVar n]) dummyAnn) $ getOpArguments imp)
 
 bufferAllocationCode dummyAnn imp = allocStmts
     where

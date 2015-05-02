@@ -43,4 +43,9 @@ unsigned long long rdtsc()
    return ((unsigned long long)a) | (((unsigned long long)d) << 32);
 }
 
+void print_first_byte(void* p) {
+  unsigned char* c = (unsigned char*) p;
+  printf("%c\n", c[0]);
+}
+
 #endif
