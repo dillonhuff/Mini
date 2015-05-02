@@ -8,8 +8,9 @@ module Syntax(toCType,
               Block,
               toCBlock,
               block,
-              load, store, plus, minus, times, for,
-              sReg, buffer) where
+              load, loadConst, store, plus, minus, times, for,
+              sReg, buffer,
+              doubleLit, floatLit, getLitType) where
 
 import Data.List as L
 import Data.Map as M
@@ -42,6 +43,7 @@ transformBlock f (Block stmts) = block $ L.map (transformStatement f) stmts
 data Statement a
   = BOp Binop String String String a
   | Load String String IExpr a
+  | LoadConst String Lit a
   | Store String IExpr String a
   | For String IExpr IExpr IExpr (Block a) a
     deriving (Eq, Ord, Show)
@@ -51,11 +53,14 @@ toCStmt (For n start inc end (Block bodyStatements) ann) =
        (cLEQ (cVar n) (iExprToCExpr end))
        (cAssign (cVar n) (cAdd (cVar n) (iExprToCExpr inc)))
        (cBlock [] $ L.map toCStmt bodyStatements) ann
+toCStmt (LoadConst n lit ann) = cExprSt (cAssign (cVar n) (miniLitToCLit lit)) ann
 toCStmt (Load n1 n2 iExpr ann) = cExprSt (cAssign (cVar n1) (cArrAcc (cVar n2) (iExprToCExpr iExpr))) ann
 toCStmt (BOp Plus s1 s2 s3 ann) = cExprSt (cAssign (cVar s1) (cAdd (cVar s2) (cVar s3))) ann
 toCStmt (BOp Minus s1 s2 s3 ann) = cExprSt (cAssign (cVar s1) (cSub (cVar s2) (cVar s3))) ann
+toCStmt (BOp Times s1 s2 s3 ann) = cExprSt (cAssign (cVar s1) (cMul (cVar s2) (cVar s3))) ann
 toCStmt (Store s1 iExpr s2 ann) = cExprSt (cAssign (cArrAcc (cVar s1) (iExprToCExpr iExpr)) (cVar s2)) ann
 
+loadConst n l = LoadConst n l
 load = Load
 store = Store
 plus = BOp Plus
@@ -82,3 +87,16 @@ instance Show Binop where
   show Minus = "-"
   show Times = "*"
 
+data Lit
+  = DoubleLit Double
+  | FloatLit Float
+    deriving (Eq, Ord, Show)
+
+doubleLit d = DoubleLit d
+floatLit f = FloatLit f
+
+getLitType (DoubleLit _) = double
+getLitType (FloatLit _) = single
+
+miniLitToCLit (DoubleLit d) = cDoubleLit d
+miniLitToCLit (FloatLit f) = cFloatLit f

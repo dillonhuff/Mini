@@ -21,6 +21,23 @@ int test_buffer_diff_double(double* left, double* right, unsigned int len) {
   return 0;
 }
 
+void rand_floats(float* buf, int n) {
+  int i;
+  for (i = 0; i < n; i++) {
+    buf[i] = rand() % 10;
+  }
+}
+
+int test_buffer_diff_float(float* left, float* right, unsigned int len) {
+  int i;
+  for (i = 0; i < len; i++) {
+    if (left[i] - right[i] != 0.0) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 void print_mat_double(double* a,
 		      unsigned int a_nr, unsigned int a_nc,
 		      unsigned int a_rs, unsigned int a_cs) {
