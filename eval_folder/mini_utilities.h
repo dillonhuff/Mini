@@ -2,6 +2,7 @@
 #define MINI_UTILITIES
 
 #include <math.h>
+#include <stdio.h>
 
 void rand_doubles(double* buf, int n) {
   int i;
@@ -18,5 +19,17 @@ int test_buffer_diff_double(double* left, double* right, unsigned int len) {
     }
   }
   return 0;
+}
+
+void print_mat_double(double* a,
+		      unsigned int a_nr, unsigned int a_nc,
+		      unsigned int a_rs, unsigned int a_cs) {
+  unsigned int i, j;
+  for (i = 0; i < a_nr; i++) {
+    for (j = 0; j < a_nc; j++) {
+      printf("%f ", a[i*a_rs + j*a_cs]);
+    }
+    printf("\n");
+  }
 }
 #endif

@@ -31,12 +31,20 @@ timeImplementations dummyAnn opName sanityCheckImpl impls =
 runCTestCode :: String -> String -> IO ()
 runCTestCode opName testStr = do
   writeFile (cFileName opName) testStr
-  putStrLn $ "Compile string: " ++ compileString opName
+  runCommandStrict $ compileString opName
+  runCommandStrict $ runString opName
+{-  putStrLn $ "Compile string: " ++ compileString opName
   compCommand <- runCommand $ compileString opName
   waitForProcess compCommand
   putStrLn $ "Run string: " ++ runString opName
   execCommand <- runCommand $ runString opName
-  waitForProcess execCommand
+  waitForProcess execCommand-}
+  return ()
+
+runCommandStrict str = do
+  putStrLn $ str
+  cmdHandle <- runCommand str
+  waitForProcess cmdHandle
   return ()
 
 readResultFile :: String -> IO (Map String EvaluationResult)

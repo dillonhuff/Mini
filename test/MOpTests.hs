@@ -44,7 +44,7 @@ innerFor = for "j" (iConst 0) (iConst 1) (iConst 3) (block maddBodyStmts) ""
 
 maddBodyStmts =
   [load "a_r" "a" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "",
-   load "b_r" "b" (iAdd (iMul (iConst 8) (iVar "i")) (iMul (iConst 1) (iVar "j"))) "",
+   load "b_r" "b" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "",
    plus "b_r" "a_r" "b_r" "",
    store "c" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "b_r" ""]
 
@@ -65,7 +65,7 @@ innerForSub = for "j" (iConst 0) (iConst 1) (iConst 3) (block msubBodyStmts) ""
 
 msubBodyStmts =
   [load "a_r" "a" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "",
-   load "b_r" "b" (iAdd (iMul (iConst 8) (iVar "i")) (iMul (iConst 1) (iVar "j"))) "",
+   load "b_r" "b" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "",
    minus "b_r" "a_r" "b_r" "",
    store "c" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "b_r" ""]
 
