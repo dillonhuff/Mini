@@ -18,7 +18,7 @@ cTestHarness dummyAnn opName (Just scImp) implsToTime =
   L.concatMap (\decl -> (prettyPrint 0 decl) ++ "\n") $
   prelude (scImp:implsToTime) ++
   [sanityCheckFunc dummyAnn scImp implsToTime,
-   timingFunc implsToTime,
+   timingFunc dummyAnn implsToTime,
    mainFunc dummyAnn (dataFileName opName)]
 cTestHarness _ _ _ _ = error "Are you sure you don't want to do a sanity check?"
 
@@ -89,10 +89,46 @@ allocSCBufferStmts dummyAnn scImp = allocStmts
     allArgBufs = argBufCDeclsWSize ++ refBufCDeclsWSize ++ testBufCDeclsWSize
     allocStmts = L.map (\((tp, n), sz) -> cExprSt (cAssign (cVar n) (cFuncall "malloc" [cMul (cSizeOf tp) sz])) dummyAnn) allArgBufs
 
-timingFunc :: [Operation a] -> CTopLevelItem a
-timingFunc [] = error $ "no implementations to time in timingFunc"
-timingFunc implsToTime =
-  cFuncDecl cVoid "time_impls" [(cPtr cFILE, "df")] $ cBlock [] []
+timingFunc :: a -> [Operation a] -> CTopLevelItem a
+timingFunc _ [] = error $ "no implementations to time in timingFunc"
+timingFunc dummyAnn implsToTime =
+  cFuncDecl cVoid "time_impls" [(cPtr cFILE, "df")] $ cBlock [] testBlocks
+  where
+    testBlocks = L.map (testBlockStmts dummyAnn) implsToTime
+
+testBlockStmts :: a -> Operation a -> CStmt a
+testBlockStmts dummyAnn imp =
+  cBlockSt varDecls blkCode dummyAnn
+  where
+    varDecls = L.map (\(name, tp) -> (toCType tp, name)) $ getOpArguments imp
+    blkCode = testBlockCode dummyAnn imp
+
+testBlockCode :: a -> Operation a -> [CStmt a]
+testBlockCode dummyAnn imp =
+  setupCode dummyAnn imp ++
+  timingLoops dummyAnn imp ++
+  fileIOCode ++
+  bufferFreeingCode dummyAnn imp
+
+setupCode dummyAnn imp = bufferAllocationCode dummyAnn imp
+timingLoops dummyAnn imp = []
+fileIOCode = []
+bufferFreeingCode dummyAnn imp= bufferDeallocs
+  where
+    buffersToDealloc = L.map (\(name, _) -> name) $ getOpArguments imp
+    bufferDeallocs = L.map (\n -> cExprSt (cFuncall "free" [cVar n]) dummyAnn) buffersToDealloc
+
+
+bufferAllocationCode dummyAnn imp = allocStmts
+    where
+      argBufs = getOpArguments imp
+      argBufNames = L.map fst argBufs
+      argBufSizes = L.map (\x -> getBufferSize x imp) argBufNames
+      argBufCSizes = L.map (\s -> iExprToCExpr s) argBufSizes
+      argBufCDecls = L.map (\(n, tp) -> (getReferencedType $ toCType tp, n)) argBufs
+      argBufCDeclsWSize = L.zip argBufCDecls argBufCSizes
+      allocStmts = L.map (\((tp, n), sz) -> cExprSt (cAssign (cVar n) (cFuncall "malloc" [cMul (cSizeOf tp) sz])) dummyAnn) argBufCDeclsWSize
+
 
 referenceImplSetup :: a -> Operation a -> [CStmt a]
 referenceImplSetup dummyAnn scImp = setArgsToRand ++ copyArgsToRefs ++ [callSCImp]
