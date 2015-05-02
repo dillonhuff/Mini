@@ -20,7 +20,8 @@ hfOpSCReport :: (Operation a, EvaluationResult) -> String
 hfOpSCReport (op, res) =
   sectionTitle (getOpName op) ++
   hfSanityCheckRes res ++
-  hfOptimizationsAppliedList op
+  hfOptimizationsAppliedList op ++
+  hfAvgCyclesPerRun res
 
 hfSanityCheckRes res =
   case passedSanityCheck res of
@@ -29,4 +30,8 @@ hfSanityCheckRes res =
 
 hfOptimizationsAppliedList op =
   "Optimizations applied:\n" ++
-  (L.concatMap (\n -> "\t" ++ show n)  $ getOptimizationsApplied op)
+  (L.concatMap (\n -> "\t" ++ show n)  $ getOptimizationsApplied op) ++
+  "\n"
+
+hfAvgCyclesPerRun op =
+  "Avg. cycles per run: " ++ (show $ avgCyclesPerRun op)

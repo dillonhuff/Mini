@@ -24,15 +24,33 @@ cTestHarness _ _ _ _ = error "Are you sure you don't want to do a sanity check?"
 
 parseTimingResults :: String -> Map String EvaluationResult
 parseTimingResults str =
+  let (scLines, rtLines) = splitResultsIntoSanityCheckAndTimeSections str
+      scResults = parseSCResults scLines
+      rtResults = parseRTResults rtLines in
+  M.fromList $ mergeResults scResults rtResults
+
+splitResultsIntoSanityCheckAndTimeSections str =
   let strLines = L.lines str
-      scLines = L.takeWhile (\l -> l /= scTimingSeparator) strLines in
-  M.fromList $ parseSCResults scLines
+      scLines = L.takeWhile (\l -> l /= scTimingSeparator) strLines
+      rtLines = L.drop 1 (L.dropWhile (\l -> l /= scTimingSeparator) strLines) in
+  (scLines, rtLines)
 
 scTimingSeparator = "#TIMING_RESULTS"
 
-parseSCResults :: [String] -> [(String, EvaluationResult)]
+mergeResults :: [(String, Bool)] -> [(String, Double)] -> [(String, EvaluationResult)]
+mergeResults [] _ = []
+mergeResults ((n, b):scRest) rtRes =
+  case L.lookup n rtRes of
+    Just t -> (n, evaluationResult t b) : (mergeResults scRest rtRes)
+    Nothing -> error $ "Could not find " ++ n ++ " in " ++ show rtRes
+
+parseRTResults :: [String] -> [(String, Double)]
+parseRTResults [] = []
+parseRTResults (n:avgCyclesPerRun:rest) = (n, read avgCyclesPerRun) : (parseRTResults rest)
+
+parseSCResults :: [String] -> [(String, Bool)]
 parseSCResults [] = []
-parseSCResults (n:passFail:rest) = (n, evaluationResult [] $ if passFail == "passed" then True else False):(parseSCResults rest)
+parseSCResults (n:passFail:rest) = (n, if passFail == "passed" then True else False):(parseSCResults rest)
 parseSCResults other = error $ "parseSCResults failed with " ++ show other
 
 prelude :: [Operation a] -> [CTopLevelItem a]
@@ -114,7 +132,7 @@ testBlockCode dummyAnn imp =
   bufferFreeingCode dummyAnn imp
 
 setupCode dummyAnn imp =
-  [cExprSt (cFuncall "fprintf" [cVar "df", cVar ("\"" ++ scTimingSeparator ++ "\"")]) dummyAnn] ++
+  [cExprSt (cFuncall "fprintf" [cVar "df", cVar ("\"" ++ scTimingSeparator ++ "\\n\"")]) dummyAnn] ++
   (bufferAllocationCode dummyAnn imp) ++
   setArgsToRandValues dummyAnn imp
 timingLoops dummyAnn imp = countRunsWhile dummyAnn imp ++ timeForRuns dummyAnn imp

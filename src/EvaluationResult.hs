@@ -1,13 +1,14 @@
 module EvaluationResult(EvaluationResult,
                         evaluationResult,
+                        avgCyclesPerRun,
                         passedSanityCheck) where
 
 
 data EvaluationResult
-  = EvaluationResult [Int] Bool
+  = EvaluationResult Double Bool
     deriving (Eq, Ord, Show)
 
-evaluationResult = EvaluationResult
+evaluationResult a b = EvaluationResult a b
 
 passedSanityCheck (EvaluationResult _ b) = b
-
+avgCyclesPerRun (EvaluationResult a _) = a
