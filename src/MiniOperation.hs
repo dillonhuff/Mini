@@ -1,7 +1,7 @@
 
 module MiniOperation(Operation,
                      operation,
-                     getOpName, getOpArguments, getBufferSize,
+                     getOpName, getOpArguments, getBufferSize, getOptimizationsApplied,
                      toCFunc,
                      applyToOpBlock,
                      Optimization,
@@ -44,6 +44,7 @@ operation n st blk = Operation n [] st blk
 
 getOpName (Operation n _ _ _) = n
 getOpArguments (Operation _ _ st _) = arguments st
+getOptimizationsApplied (Operation _ opts _ _) = opts
 getOpBlock (Operation _ _ _ b) = b
 getOpLocalVars (Operation _ _ st _) = localVars st
 

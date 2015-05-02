@@ -3,6 +3,7 @@ module MOpTests() where
 import Data.List as L
 import Data.Map as M
 
+import EvaluationResult
 import IndexExpression
 import MiniOperation
 import MOpSyntax

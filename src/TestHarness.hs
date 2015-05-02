@@ -1,24 +1,15 @@
 module TestHarness(cTestHarness,
-                   parseTimingResults,
-                   EvaluationResult,
-                   passedSanityCheck) where
+                   parseTimingResults) where
 
 import Data.List as L
 import Data.Map as M
 
 import CGen
+import EvaluationResult
 import IndexExpression
 import MiniOperation
 import Syntax
 import SystemSettings
-
-data EvaluationResult
-  = EvaluationResult [Int] Bool
-    deriving (Eq, Ord, Show)
-
-evaluationResult = EvaluationResult
-
-passedSanityCheck (EvaluationResult _ b) = b
 
 cTestHarness :: (Show a) => a -> String -> Maybe (Operation a) -> [Operation a] -> String
 cTestHarness dummyAnn opName (Just scImp) implsToTime = 

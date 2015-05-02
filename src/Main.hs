@@ -24,5 +24,5 @@ testImpl = operation "testOp" stSym $ block [load "c_reg" "c" (iConst 1) "",
 
 stSym = miniSymtab [("b_reg", symInfo (sReg double) local),
                 ("c_reg", symInfo (sReg double) local),
-                ("b", symInfo (buffer double) arg),
-                ("c", symInfo (buffer double) arg)]
+                ("b", symInfo (buffer double (iConst 4)) arg),
+                ("c", symInfo (buffer double (iConst 4)) arg)]

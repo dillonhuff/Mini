@@ -6,6 +6,7 @@ import Data.Map as M
 import System.IO.Strict as S
 import System.Process
 
+import EvaluationResult
 import MiniOperation
 import Syntax
 import SystemSettings
@@ -33,12 +34,6 @@ runCTestCode opName testStr = do
   writeFile (cFileName opName) testStr
   runCommandStrict $ compileString opName
   runCommandStrict $ runString opName
-{-  putStrLn $ "Compile string: " ++ compileString opName
-  compCommand <- runCommand $ compileString opName
-  waitForProcess compCommand
-  putStrLn $ "Run string: " ++ runString opName
-  execCommand <- runCommand $ runString opName
-  waitForProcess execCommand-}
   return ()
 
 runCommandStrict str = do
