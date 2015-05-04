@@ -12,6 +12,7 @@ import Token
 
 allParserTests = do
   testFunction (lexAndParseOperation "noname.lspc") opCases
+  testFunction (lexAndParseStatement "noname.lspc") stCases
 
 opCases =
   L.map (\(x, y) -> (x, Right [y]))
@@ -26,7 +27,13 @@ opCases =
                              ("c", mOpSymInfo arg singleFloat (layout (iConst 12) (iConst 32) (iConst 32) (iConst 1)))]
     [dMatAsg "c" (dMatrixAdd (dMatName "a") (dMatName "b"))] dummyPos)]
 
+stCases =
+  L.map (\(x, y) -> (x, Right y))
+  [("c = a + b;", dMatAsg "c" (dMatrixAdd (dMatName "a") (dMatName "b"))),
+   ("c = a - b;", dMatAsg "c" (dMatrixSub (dMatName "a") (dMatName "b"))),
+   ("c = a * b;", dMatAsg "c" (dMatrixMul (dMatName "a") (dMatName "b"))),
+   ("y = alpha*x + y;", dMatAsg "y" (dMatrixAdd (dMatrixMul (dMatName "alpha") (dMatName "x")) (dMatName "y"))),
+   ("x = b';", dMatAsg "x" (dMatrixTrans (dMatName "b")))]
 
 lexAndParseOperation fName str = (lexString fName str) >>= (parseOperation fName)
-
-
+lexAndParseStatement fName str = (lexString fName str) >>= (parseStatement fName)

@@ -1,4 +1,5 @@
-module Parser(parseOperation) where
+module Parser(parseOperation,
+              parseStatement) where
 
 import Text.Parsec.Expr
 import Text.Parsec.Prim
@@ -11,6 +12,11 @@ import Token
 
 parseOperation :: String -> [Token] -> Either String [MatrixOperation]
 parseOperation sourceFileName toks = case parse (many pOperation) sourceFileName toks of
+  Left err -> Left $ show err
+  Right matOp -> Right matOp
+
+parseStatement :: String -> [Token] -> Either String MatrixStmt
+parseStatement sourceFileName toks = case parse pMatStatement sourceFileName toks of
   Left err -> Left $ show err
   Right matOp -> Right matOp
 
@@ -62,14 +68,35 @@ pMatStatement = do
   return $ matAsg name ex pos
 
 table =
-  [[matAddOp]]
+  [[matTransOp],
+   [matMulOp],
+   [matAddOp, matSubOp]]
 
+matTransOp = Postfix pMatTransOp
+matMulOp = Infix pMatMulOp AssocLeft
 matAddOp = Infix pMatAddOp AssocLeft
+matSubOp = Infix pMatSubOp AssocLeft
 
+pMatTransOp = do
+  pos <- getPosition
+  pResWithNameTok "'"
+  return $ (\n -> matrixTrans n pos)
+
+pMatMulOp = do
+  pos <- getPosition
+  pResWithNameTok "*"
+  return $ (\l r -> matrixMul l r pos)
+  
 pMatAddOp = do
   pos <- getPosition
   pResWithNameTok "+"
   return $ (\l r -> matrixAdd l r pos)
+
+pMatSubOp = do
+  pos <- getPosition
+  pResWithNameTok "-"
+  return $ (\l r -> matrixSub l r pos)
+
 term = pMatName
 
 pMatExpr = buildExpressionParser table term

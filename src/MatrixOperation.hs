@@ -2,9 +2,9 @@ module MatrixOperation(MatrixOperation,
                        matAsg,
                        dMatAsg,
                        matrixOperation,
-                       matName, matrixAdd,
-                       dMatName,
-                       dMatrixAdd) where
+                       MatrixStmt,
+                       matName, matrixAdd, matrixSub, matrixMul, matrixTrans,
+                       dMatName, dMatrixAdd, dMatrixSub, dMatrixMul, dMatrixTrans) where
 
 import Text.Parsec.Pos
 
@@ -33,23 +33,29 @@ dMatAsg n e = MStmt n e dummyPos
 
 data MExpr
   = MatBinop MatBOp MExpr MExpr SourcePos
-  | MatUnup MatUOp MExpr SourcePos
+  | MatUnop MatUOp MExpr SourcePos
   | VarName String SourcePos
     deriving (Ord, Show)
 
 instance Eq MExpr where
   (==) (MatBinop b1 l1 r1 _) (MatBinop b2 l2 r2 _) = b1 == b2 && l1 == l2 && r1 == r2
+  (==) (MatUnop u1 n1 _) (MatUnop u2 n2 _) = u1 == u2 && n1 == n2
   (==) (VarName n1 _) (VarName n2 _) = n1 == n2
 
 dMatName str = VarName str dummyPos
 dMatrixAdd a b = MatBinop MatAdd a b dummyPos
+dMatrixSub a b = MatBinop MatSub a b dummyPos
+dMatrixMul a b = MatBinop MatMul a b dummyPos
+dMatrixTrans b = MatUnop MatTrans b dummyPos
 
+matrixMul a b p = MatBinop MatMul a b p
+matrixSub a b p = MatBinop MatSub a b p
 matrixAdd a b p = MatBinop MatAdd a b p
+matrixTrans b p = MatUnop MatTrans b p
 matName s p = VarName s p
 
 data MatBOp
   = MatMul
-  | SMul
   | MatAdd
   | MatSub
     deriving (Eq, Ord, Show)
