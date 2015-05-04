@@ -1,6 +1,7 @@
 module SymbolTable(MOpSymtab,
                    mOpSymtab,
                    mOpSymtabToMiniSymtab,
+                   addMOpEntry,
                    MOpSymInfo,
                    mOpSymInfo,
                    getMOpSymInfo,
@@ -32,6 +33,8 @@ data MOpSymtab
     deriving (Eq, Ord, Show)
 
 mOpSymtab l = MOpSymtab $ M.fromList l
+
+addMOpEntry string inf (MOpSymtab m) = MOpSymtab $ M.insert string inf m
 
 mOpSymtabToMiniSymtab :: MOpSymtab -> MiniSymtab
 mOpSymtabToMiniSymtab (MOpSymtab symMap) =

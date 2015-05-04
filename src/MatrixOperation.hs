@@ -8,10 +8,12 @@ module MatrixOperation(MatrixOperation,
                        matName, matrixAdd, matrixSub, matrixMul, matrixTrans,
                        dMatName, dMatrixAdd, dMatrixSub, dMatrixMul, dMatrixTrans) where
 
+import Control.Lens
 import Control.Monad
 import Control.Monad.State.Lazy
 import Text.Parsec.Pos
 
+import MOpCodeGen
 import MOpSyntax
 import SymbolTable
 import Token
@@ -29,26 +31,26 @@ matrixOperation name symt stmts sp = MatrixOperation name (mOpSymtab symt) stmts
 dMatrixOperation name symt stmts = matrixOperation name symt stmts dummyPos
 
 matrixOperationToMOp (MatrixOperation name sym stmts _) =
-  let initMOp = mOp name sym []
+  let initMOp = mOpCodeGen (mOp name sym [])
       instrState = matrixStmtsToMInstrs stmts in
-  execState instrState initMOp
+  view mcgMOp $ execState instrState initMOp
 
-addInstr :: MInstr -> State MOp ()
+addInstr :: MInstr -> State MOpCodeGen ()
 addInstr instr = do
-  op <- get
-  put $ addMInstr instr op
+  cg <- get
+  put $ over (mcgMOp . mOpInstrs) (\is -> is ++ [instr]) cg
   return ()
 
-matrixStmtsToMInstrs :: [MatrixStmt] -> State MOp ()
+matrixStmtsToMInstrs :: [MatrixStmt] -> State MOpCodeGen ()
 matrixStmtsToMInstrs [] = return ()
 matrixStmtsToMInstrs (st:stmts) = do
   matrixStToMInstrs st
   matrixStmtsToMInstrs stmts
 
-matrixStToMInstrs :: MatrixStmt -> State MOp ()
+matrixStToMInstrs :: MatrixStmt -> State MOpCodeGen ()
 matrixStToMInstrs (MStmt n expr _) = do
   (eRes, eInfo) <- matrixExprToMInstrs expr
-  addInstr $ masg n eRes
+  addInstr $ masg eRes n
 
 data MatrixStmt
   = MStmt String MExpr SourcePos
@@ -71,16 +73,37 @@ instance Eq MExpr where
   (==) (MatUnop u1 n1 _) (MatUnop u2 n2 _) = u1 == u2 && n1 == n2
   (==) (VarName n1 _) (VarName n2 _) = n1 == n2
 
-addTmpToSymtab :: MOpSymInfo -> State MOp String
-addTmpToSymtab symInf = error "addTmpToSymtab not implemented yet"
+freshTempVar = do
+  cg <- get
+  let name = "tmp" ++ (show $ view mcgNextInt cg) in
+    do
+      put $ over mcgNextInt (+1) cg
+      return name
 
-matrixExprToMInstrs :: MExpr -> State MOp (String, MOpSymInfo)
+addTmpToSymtab :: MOpSymInfo -> State MOpCodeGen String
+addTmpToSymtab symInf = do
+  cg <- get
+  nextName <- freshTempVar
+  put $ over (mcgMOp . mOpSymT) (\s -> addMOpEntry nextName symInf s) cg
+  return nextName
+
+matrixExprToMInstrs :: MExpr -> State MOpCodeGen (String, MOpSymInfo)
+matrixExprToMInstrs (VarName n _) = do
+  cg <- get
+  return (n, getMOpSymInfo n id (view (mcgMOp . mOpSymT) cg))
 matrixExprToMInstrs (MatBinop MatAdd a b _) = do
   (aName, aInfo) <- matrixExprToMInstrs a
   (bName, bInfo) <- matrixExprToMInstrs b
   op <- get
   newName <- addTmpToSymtab aInfo
   addInstr $ madd aName bName newName
+  return (newName, aInfo)
+matrixExprToMInstrs (MatBinop MatSub a b _) = do
+  (aName, aInfo) <- matrixExprToMInstrs a
+  (bName, bInfo) <- matrixExprToMInstrs b
+  op <- get
+  newName <- addTmpToSymtab aInfo
+  addInstr $ msub aName bName newName
   return (newName, aInfo)
 
 dMatrixAdd a b = MatBinop MatAdd a b dummyPos
