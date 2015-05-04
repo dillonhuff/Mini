@@ -27,7 +27,12 @@ keywordCases =
    ("}", dres "}"),
    ("(", dres "("),
    (")", dres ")"),
-   (",", dres ",")]
+   (",", dres ","),
+   ("=", dres "="),
+   (";", dres ";"),
+   ("+", dres "+"),
+   ("-", dres "-"),
+   ("*", dres "*")]
 
 identCases =
   L.map (\(x, y) -> (x, Right [y]))

@@ -52,6 +52,11 @@ pResWord = do
          <|> string "("
          <|> string ")"
          <|> string ","
+         <|> string "="
+         <|> string ";"
+         <|> string "+"
+         <|> string "-"
+         <|> string "*"
   return $ res resStr pos
 
 pLit = do

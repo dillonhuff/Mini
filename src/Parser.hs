@@ -1,7 +1,8 @@
 module Parser(parseOperation) where
 
-import Text.ParserCombinators.Parsec
+import Text.Parsec.Expr
 import Text.Parsec.Prim
+import Text.ParserCombinators.Parsec
 
 import IndexExpression
 import MatrixOperation
@@ -21,8 +22,9 @@ pOperation = do
   args <- pArgList
   pResWithNameTok ")"
   pResWithNameTok "{"
+  ops <- pMatStatements
   pResWithNameTok "}"
-  return $ matrixOperation name args [] position
+  return $ matrixOperation name args ops position
 
 pArgList = sepBy pFormalParam (pResWithNameTok ",")
 
@@ -40,7 +42,7 @@ pEntryType = do
   outN <- pResWithNameTok "double" <|> pResWithNameTok "float"
   case resName outN of
     "double" -> return doubleFloat
-    "single" -> return singleFloat
+    "float" -> return singleFloat
 
 pLayout = do
   nr <- pIntLit
@@ -48,6 +50,33 @@ pLayout = do
   rs <- pIntLit
   cs <- pIntLit
   return $ layout (iConst nr) (iConst nc) (iConst rs) (iConst cs)
+
+pMatStatements = many pMatStatement
+
+pMatStatement = do
+  pos <- getPosition
+  (name, pos) <- pIdent
+  pResWithNameTok "="
+  ex <- pMatExpr
+  pResWithNameTok ";"
+  return $ matAsg name ex pos
+
+table =
+  [[matAddOp]]
+
+matAddOp = Infix pMatAddOp AssocLeft
+
+pMatAddOp = do
+  pos <- getPosition
+  pResWithNameTok "+"
+  return $ (\l r -> matrixAdd l r pos)
+term = pMatName
+
+pMatExpr = buildExpressionParser table term
+
+pMatName = do
+  (n, pos) <- pIdent
+  return $ matName n pos
 
 pIntLit :: Monad m => ParsecT [Token] u m Int
 pIntLit = do
