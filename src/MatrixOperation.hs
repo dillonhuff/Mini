@@ -47,7 +47,7 @@ matrixStmtsToMInstrs (st:stmts) = do
 
 matrixStToMInstrs :: MatrixStmt -> State MOp ()
 matrixStToMInstrs (MStmt n expr _) = do
-  eRes <- matrixExprToMInstrs expr
+  (eRes, eInfo) <- matrixExprToMInstrs expr
   addInstr $ masg n eRes
 
 data MatrixStmt
@@ -71,8 +71,17 @@ instance Eq MExpr where
   (==) (MatUnop u1 n1 _) (MatUnop u2 n2 _) = u1 == u2 && n1 == n2
   (==) (VarName n1 _) (VarName n2 _) = n1 == n2
 
-matrixExprToMInstrs :: MExpr -> State MOp String
-matrixExprToMInstrs e = error "matrixExprToMInstrs not implemented"
+addTmpToSymtab :: MOpSymInfo -> State MOp String
+addTmpToSymtab symInf = error "addTmpToSymtab not implemented yet"
+
+matrixExprToMInstrs :: MExpr -> State MOp (String, MOpSymInfo)
+matrixExprToMInstrs (MatBinop MatAdd a b _) = do
+  (aName, aInfo) <- matrixExprToMInstrs a
+  (bName, bInfo) <- matrixExprToMInstrs b
+  op <- get
+  newName <- addTmpToSymtab aInfo
+  addInstr $ madd aName bName newName
+  return (newName, aInfo)
 
 dMatrixAdd a b = MatBinop MatAdd a b dummyPos
 dMatrixSub a b = MatBinop MatSub a b dummyPos
