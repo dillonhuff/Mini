@@ -1,27 +1,39 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module MOpSyntax(MOp,
                  mOp,
+                 mOpName, mOpSymT, mOpInstrs,
                  addMInstr,
                  MInstr,
                  madd, msub, mtrans, mset, msmul, mmul, masg,
                  mOpFloat, mOpDouble,
                  convertToMini) where
 
+import Control.Lens as N
+import Control.Lens.TH
 import Control.Monad.State.Lazy
 import Data.Map as M
 
 import IndexExpression
+import MiniCodeGenState
 import MiniOperation
-import SymbolTable
+import SymbolTable as Sym
 import Syntax
 
 data MOp
-  = MOp String MOpSymtab [MInstr]
-    deriving (Eq, Ord, Show)
+  = MOp {
+    _mOpName :: String,
+    _mOpSymT :: MOpSymtab,
+    _mOpInstrs :: [MInstr]
+    } deriving (Eq, Ord, Show)
+
+
 
 mOp name symtab instrs = MOp name symtab instrs
 
 addMInstr :: MInstr -> MOp -> MOp
 addMInstr i (MOp n st instrs) = MOp n st (instrs ++ [i])
+
 
 data MInstr
   = MBinop MBOp String String String
@@ -65,40 +77,32 @@ convertToMini (MOp n mSt instrs) = operation n finalMiniSt $ block finalStmts
   where
     initS = initialMiniCodeGenState mSt
     finalS = execState (genMiniCode instrs) initS
-    finalMiniSt = getMiniSymtab finalS
-    finalStmts = miniStmts finalS
+    finalMiniSt = view cgsMiniSymtab finalS
+    finalStmts = view cgsStmts finalS
 
-data MiniCodeGenState =
-  MiniCodeGenState {
-    getMiniSymtab :: MiniSymtab,
-    getMOpSymtab :: MOpSymtab,
-    miniStmts :: [Statement String],
-    nextInt :: Int
-    } deriving (Eq, Ord, Show)
+getBufferTypeFromSymtab name cgs =
+  getBufferType name $ view cgsMiniSymtab cgs
 
-getBufferTypeFromSymtab name (MiniCodeGenState s _ _ _) =
-  getBufferType name s
-
-addStatement st (MiniCodeGenState s ms sts i) = MiniCodeGenState s ms (st:sts) i
+addStatement st cgs = over cgsStmts (\sts -> st:sts) cgs
 
 freshInt :: MiniCodeGenState -> (Int, MiniCodeGenState)
-freshInt (MiniCodeGenState s ms msts i) = (i, MiniCodeGenState s ms msts (i+1))
+freshInt cgs = (view cgsNextInt cgs, over cgsNextInt (+1) cgs)
 
-addIndexVar varName (MiniCodeGenState s ms msts i) =
-  MiniCodeGenState (addEntry varName (symInfo index local) s) ms msts i
+addIndexVar varName cgs =
+  over cgsMiniSymtab (\st -> addEntry varName (symInfo Sym.index local) st) cgs
 
-addRegister name tp (MiniCodeGenState s ms msts i) =
-  MiniCodeGenState (addEntry name (symInfo tp local) s) ms msts i
+addRegister name tp cgs =
+  over cgsMiniSymtab (\st -> addEntry name (symInfo tp local) st) cgs
 
 currentMOpSymtab :: State MiniCodeGenState MOpSymtab
 currentMOpSymtab = do
-  (MiniCodeGenState _ ms _ _) <- get
-  return ms
+  cgs <- get
+  return $ view cgsMOpSymtab cgs
 
 currentMiniSymtab :: State MiniCodeGenState MiniSymtab
 currentMiniSymtab = do
-  (MiniCodeGenState s _ _ _) <- get
-  return s
+  cgs <- get
+  return $ view cgsMiniSymtab cgs
 
 freshName :: String -> State MiniCodeGenState String
 freshName prefix = do
@@ -143,7 +147,7 @@ addSt st = do
   put $ addStatement st codeState
 
 initialMiniCodeGenState :: MOpSymtab -> MiniCodeGenState
-initialMiniCodeGenState mSt = MiniCodeGenState (mOpSymtabToMiniSymtab mSt) mSt [] 0
+initialMiniCodeGenState mSt = miniCodeGenState (mOpSymtabToMiniSymtab mSt) mSt [] 0
 
 genMiniCode :: [MInstr] -> State MiniCodeGenState ()
 genMiniCode [] = return ()
@@ -275,3 +279,6 @@ loopOverRows matName = do
   let n = getNumRows matName mst in
     return (i, \body -> for i (iConst 0) (iConst 1) (iAdd n (iConst (-1))) body l)
   
+
+makeLenses ''MOp
+
