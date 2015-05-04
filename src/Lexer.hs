@@ -17,7 +17,7 @@ languageDef =
              Tok.commentLine     = "//",
              Tok.identStart      = letter,
              Tok.identLetter     = alphaNum,
-             Tok.reservedNames   = [ "architecture", "operation", "C", "matrix", "gen", "output", "r", "rw"],
+             Tok.reservedNames   = [ "architecture", "operation", "C", "matrix", "gen", "output", "r", "rw", "double", "float"],
              Tok.reservedOpNames = ["+", "-", "*", "/", "==", "<", ">", "<=", ">=", "||", "&&", "~"] }
 
 lexer = Tok.makeTokenParser languageDef
@@ -25,7 +25,7 @@ lexer = Tok.makeTokenParser languageDef
 pTok :: Parser Token
 pTok = pVarOrRes
 
-pVarOrRes = (try pIdentifier) <|> pResWord
+pVarOrRes = (try pIdentifier) <|> pResWord <|> pLit
 
 pIdentifier = do
   pos <- getPosition
@@ -45,9 +45,16 @@ pResWord = do
          <|> string "C"
          <|> string "matrix"
          <|> string "gen"
+         <|> string "double"
+         <|> string "float"
          <|> string "{"
          <|> string "}"
          <|> string "("
          <|> string ")"
          <|> string ","
   return $ res resStr pos
+
+pLit = do
+  pos <- getPosition
+  digs <- many1 digit
+  return $ intLit (read digs) pos

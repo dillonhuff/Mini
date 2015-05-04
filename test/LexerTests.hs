@@ -9,6 +9,7 @@ import Token
 allLexerTests = do
   testFunction (lexString "nofile.lspc") keywordCases
   testFunction (lexString "nofile.lspc") identCases
+  testFunction (lexString "nofile.lspc") litCases
 
 keywordCases =
   L.map (\(x, y) -> (x, Right [y]))
@@ -20,6 +21,8 @@ keywordCases =
    ("rw", dres "rw"),
    ("r", dres "r"),
    ("gen", dres "gen"),
+   ("double", dres "double"),
+   ("float", dres "float"),
    ("{", dres "{"),
    ("}", dres "}"),
    ("(", dres "("),
@@ -33,3 +36,6 @@ identCases =
    ("casey12", dident "casey12"),
    ("ROGERTHAT", dident "ROGERTHAT")]
   
+litCases =
+  L.map (\(x, y) -> (x, Right [y]))
+  [("12", dIntLit 12)]
