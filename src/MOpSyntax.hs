@@ -1,6 +1,6 @@
 module MOpSyntax(MOp,
                  mOp,
-                 madd, msub, mtrans, mset, msmul, mmul,
+                 madd, msub, mtrans, mset, msmul, mmul, masg,
                  mOpFloat, mOpDouble,
                  convertToMini) where
 
@@ -18,7 +18,6 @@ data MOp
 
 mOp name symtab instrs = MOp name symtab instrs
 
-
 data MInstr
   = MBinop MBOp String String String
   | MSet String MOpLit
@@ -30,6 +29,7 @@ madd a b c = MBinop MAdd a b c
 msub a b c = MBinop MSub a b c
 msmul a b c = MBinop MSMul a b c
 mtrans a b = MUnop MTrans a b
+masg a b = MUnop MAsg a b
 mset a c = MSet a c
 
 data MBOp
@@ -41,6 +41,7 @@ data MBOp
 
 data MUOp
   = MTrans
+  | MAsg
     deriving (Eq, Ord, Show)
 
 data MOpLit
@@ -151,6 +152,7 @@ genMiniStForInstr (MBinop MAdd a b c) = genMAddSt a b c
 genMiniStForInstr (MBinop MSub a b c) = genMSubSt a b c
 genMiniStForInstr (MBinop MSMul a b c) = genMSMulSt a b c
 genMiniStForInstr (MUnop MTrans a b) = genMTransSt a b
+genMiniStForInstr (MUnop MAsg a b) = genMAsgSt a b
 genMiniStForInstr (MSet a l) = genMSetSt a l
 
 genMAddSt :: String -> String -> String -> State MiniCodeGenState ()
@@ -166,6 +168,10 @@ genMSubSt a b c = do
 genMTransSt a b = do
   mtransSt <- mtransStTemplate a b
   addSt mtransSt
+
+genMAsgSt a b = do
+  masgSt <- masgStTemplate a b
+  addSt masgSt
 
 genMSetSt a l = do
   msetSt <- msetStTemplate a l
@@ -185,6 +191,8 @@ maddStTemplate a b c = iterateOverMatTemplate a (maddBodyTemplate a b c)
 msubStTemplate a b c = iterateOverMatTemplate a (msubBodyTemplate a b c)
 
 mtransStTemplate a b = iterateOverMatTemplate a (mtransBodyTemplate a b)
+
+masgStTemplate a b = iterateOverMatTemplate a (masgBodyTemplate a b)
 
 msetStTemplate a l = iterateOverMatTemplate a (msetBodyTemplate a l)
 
@@ -210,6 +218,11 @@ msubBodyTemplate a b c rowInd colInd = do
 mtransBodyTemplate a b rowInd colInd = do
   (aReg, lda) <- loadToRegister a rowInd colInd
   stb <- storeFromRegister b colInd rowInd aReg
+  return $ block [lda, stb]
+
+masgBodyTemplate a b rowInd colInd = do
+  (aReg, lda) <- loadToRegister a rowInd colInd
+  stb <- storeFromRegister b rowInd colInd aReg
   return $ block [lda, stb]
 
 msetBodyTemplate a l rowInd colInd = do

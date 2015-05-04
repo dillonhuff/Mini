@@ -19,6 +19,7 @@ testConvertToMini = do
   testConvert "matrix_set" msetSC msetOp
   testConvert "matrix_smul" msmulSC msmulOp
   testConvert "matrix_multiply" mmmulSC mmmulOp
+  testConvert "matrix_assign" masgSC masgOp
 
 testConvert :: String -> Operation String -> MOp -> IO ()
 testConvert opName scImpl op =
@@ -28,6 +29,12 @@ testConvert opName scImpl op =
     case L.and $ L.map (\(n, evalRes) -> passedSanityCheck evalRes) $ M.toList rtRes of
       True -> putStrLn "test passed"
       False -> putStrLn $ opName ++ " test FAILED"
+
+masgOp =
+  mOp "one_matrix_assign" masgOpSym [masg "a" "b"]
+
+masgOpSym = mOpSymtab [("a", mOpSymInfo arg doubleFloat argLayout),
+                     ("b", mOpSymInfo arg doubleFloat argLayout)]
 
 mmmulOp =
   mOp "one_matrix_multiply" mmmulOpSym [mmul "a" "b" "c"]
@@ -183,3 +190,20 @@ mmulSym =
               ("i", symInfo index local),
               ("j", symInfo index local),
               ("k", symInfo index local)]
+
+masgSC =
+  operation "masg_manual_sc" masgSym $
+            block [for "i" (iConst 0) (iConst 1) (iConst 7) (block [innerAsgFor]) ""]
+
+innerAsgFor = for "j" (iConst 0) (iConst 1) (iConst 3) (block masgBodyStatements) ""
+
+masgBodyStatements =
+  [load "a_r" "a" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "",
+   store "c" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "a_r" ""]
+
+masgSym =
+  miniSymtab [("a", symInfo (buffer double $ iConst 24) arg),
+              ("c", symInfo (buffer double $ iConst 24) arg),
+              ("a_r", symInfo (sReg double) local),
+              ("i", symInfo index local),
+              ("j", symInfo index local)]
