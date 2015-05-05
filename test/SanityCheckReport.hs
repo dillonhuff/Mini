@@ -18,7 +18,7 @@ showTimeOps = do
       reportStr = L.concatMap (\(opName, resMap) -> hfSanityCheckReport opName resMap) resWNames in
     putStrLn reportStr
 
-timeOps = timeOperationsWithOptimizations "" "multi_op_sc" (L.map convertToMini operations) optimizations
+timeOps = timeOperationsWithOptimizationsFixedSizes "" "multi_op_sc" (L.map convertToMini operations) optimizations
 
 operations =
   [mOp "one_matrix_subtract_RS_3_17" (maddOpSymRS 3 17) [msub "a" "b" "c"],

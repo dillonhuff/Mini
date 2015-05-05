@@ -28,7 +28,7 @@ testConvert :: String -> Operation String -> MOp -> IO ()
 testConvert opName scImpl op =
   let resOp = convertToMini op in
   do
-    rtRes <- timeImplementations "" opName (Just scImpl) [resOp]
+    rtRes <- timeImplementationsFixedSizes "" opName (Just scImpl) [resOp]
     case L.and $ L.map (\(n, evalRes) -> passedSanityCheck evalRes) $ M.toList rtRes of
       True -> putStrLn "test passed"
       False -> putStrLn $ opName ++ " test FAILED"
