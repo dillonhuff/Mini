@@ -1,4 +1,4 @@
-module MOpTests() where
+module MOpTests(allMOpTests) where
 
 import Data.List as L
 import Data.Map as M
@@ -11,6 +11,9 @@ import RuntimeEvaluation
 import SymbolTable
 import Syntax
 import TestHarness
+
+allMOpTests = do
+  testConvertToMini
 
 testConvertToMini = do
   testConvert "matrix_add" maddSC maddOp

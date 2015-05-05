@@ -1,4 +1,4 @@
-module MatrixOperationTests() where
+module MatrixOperationTests(allMatrixOperationTests) where
 
 import IndexExpression
 import MatrixOperation

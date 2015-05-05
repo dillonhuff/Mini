@@ -1,4 +1,4 @@
-module IndexExpressionTests() where
+module IndexExpressionTests(allIndexExpressionTests) where
 
 import IndexExpression
 import TestUtils
