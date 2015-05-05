@@ -17,7 +17,7 @@ languageDef =
              Tok.commentLine     = "//",
              Tok.identStart      = letter,
              Tok.identLetter     = alphaNum,
-             Tok.reservedNames   = [ "architecture", "operation", "C", "matrix", "gen", "output", "r", "rw", "double", "float"],
+             Tok.reservedNames   = [ "architecture", "operation", "LangC", "matrix", "gen", "output", "r", "rw", "double", "float"],
              Tok.reservedOpNames = ["+", "-", "*", "/", "==", "<", ">", "<=", ">=", "||", "&&", "~"] }
 
 lexer = Tok.makeTokenParser languageDef
@@ -42,7 +42,7 @@ pResWord = do
          <|> try (string "rw")
          <|> string "r"
          <|> string "output"
-         <|> string "C"
+         <|> string "LangC"
          <|> string "matrix"
          <|> string "gen"
          <|> string "double"

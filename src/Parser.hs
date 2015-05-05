@@ -97,13 +97,20 @@ pMatSubOp = do
   pResWithNameTok "-"
   return $ (\l r -> matrixSub l r pos)
 
-term = pMatName
+pTerm = pMatName
+      <|> pParens pMatExpr
 
-pMatExpr = buildExpressionParser table term
+pMatExpr = buildExpressionParser table pTerm
 
 pMatName = do
   (n, pos) <- pIdent
   return $ matName n pos
+
+pParens pOther = do
+  pResWithNameTok "("
+  ot <- pOther
+  pResWithNameTok ")"
+  return ot
 
 pIntLit :: Monad m => ParsecT [Token] u m Int
 pIntLit = do

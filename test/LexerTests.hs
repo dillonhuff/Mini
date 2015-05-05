@@ -17,7 +17,7 @@ keywordCases =
    ("output", dres "output"),
    ("operation", dres "operation"),
    ("matrix", dres "matrix"),
-   ("C", dres "C"),
+   ("LangC", dres "LangC"),
    ("rw", dres "rw"),
    ("r", dres "r"),
    ("gen", dres "gen"),

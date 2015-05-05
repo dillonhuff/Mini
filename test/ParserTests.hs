@@ -33,7 +33,9 @@ stCases =
    ("c = a - b;", dMatAsg "c" (dMatrixSub (dMatName "a") (dMatName "b"))),
    ("c = a * b;", dMatAsg "c" (dMatrixMul (dMatName "a") (dMatName "b"))),
    ("y = alpha*x + y;", dMatAsg "y" (dMatrixAdd (dMatrixMul (dMatName "alpha") (dMatName "x")) (dMatName "y"))),
-   ("x = b';", dMatAsg "x" (dMatrixTrans (dMatName "b")))]
+   ("x = b';", dMatAsg "x" (dMatrixTrans (dMatName "b"))),
+   ("K = A*(B + C);", dMatAsg "K" (dMatrixMul (dMatName "A") (dMatrixAdd (dMatName "B") (dMatName "C")))),
+   ("x = (beta + (alpha + omega));", dMatAsg "x" (dMatrixAdd (dMatName "beta") (dMatrixAdd (dMatName "alpha") (dMatName "omega"))))]
 
 lexAndParseOperation fName str = (lexString fName str) >>= (parseOperation fName)
 lexAndParseStatement fName str = (lexString fName str) >>= (parseStatement fName)
