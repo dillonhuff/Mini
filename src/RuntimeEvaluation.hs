@@ -27,7 +27,7 @@ timeImplementationsFixedSizes dummyAnn opName sanityCheckImpl impls =
 
 timeImplementations :: (Ord a, Show a) => Map String Int -> a -> String -> Maybe (Operation a) -> [Operation a] -> IO (Map (Operation a) EvaluationResult)
 timeImplementations indexVals dummyAnn opName sanityCheckImpl impls =
-  let testCode = cTestHarness dummyAnn opName sanityCheckImpl impls in
+  let testCode = cTestHarness dummyAnn indexVals opName sanityCheckImpl impls in
   do
     runCTestCode opName testCode
     opNameToEvalResultMap <- readResultFile opName

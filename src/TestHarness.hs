@@ -8,19 +8,19 @@ import CGen
 import EvaluationResult
 import IndexExpression
 import MiniOperation
+import SymbolTable
 import Syntax
 import SystemSettings
 
-cTestHarness :: (Show a) => a -> String -> Maybe (Operation a) -> [Operation a] -> String
-cTestHarness dummyAnn opName (Just scImp) implsToTime = 
-  let opNames = L.map getOpName implsToTime
-      args = getOpArguments scImp in
+cTestHarness :: (Show a) => a -> Map String Int -> String -> Maybe (Operation a) -> [Operation a] -> String
+cTestHarness dummyAnn indexVals opName (Just scImp) implsToTime = 
+  let opNames = L.map getOpName implsToTime in
   L.concatMap (\decl -> (prettyPrint 0 decl) ++ "\n") $
   prelude (scImp:implsToTime) ++
-  [sanityCheckFunc dummyAnn scImp implsToTime,
-   timingFunc dummyAnn implsToTime,
+  [sanityCheckFunc dummyAnn indexVals scImp implsToTime,
+   timingFunc dummyAnn indexVals implsToTime,
    mainFunc dummyAnn (dataFileName opName)]
-cTestHarness _ _ _ _ = error "Are you sure you don't want to do a sanity check?"
+cTestHarness _ _ _ _ _ = error "Are you sure you don't want to do a sanity check?"
 
 parseTimingResults :: String -> Map String EvaluationResult
 parseTimingResults str =
@@ -69,34 +69,43 @@ mainFunc dummyAnn dataFileName =
                     cExprSt (cFuncall "fclose" [cVar "data_file"]) dummyAnn,
                     cReturn (cIntLit 0) dummyAnn]
 
-sanityCheckFunc :: a -> Operation a -> [Operation a] -> CTopLevelItem a
-sanityCheckFunc dummyAnn scImp implsToCheck =
-  cFuncDecl cVoid "sanity_check_impls" [(cPtr cFILE, "df")] $ cBlock argumentBufferDecls (scStatements dummyAnn scImp implsToCheck)
+sanityCheckFunc :: a -> Map String Int -> Operation a -> [Operation a] -> CTopLevelItem a
+sanityCheckFunc dummyAnn indexVals scImp implsToCheck =
+  cFuncDecl cVoid "sanity_check_impls" [(cPtr cFILE, "df")] $ cBlock argDecls (scStatements dummyAnn indexVals scImp implsToCheck)
   where
     argumentBufferDecls = scBufferDecls scImp
+    indexDecls = L.map (\(name, tp) -> (toCType tp, name)) $ getIndexArgs scImp
+    argDecls = indexDecls ++ argumentBufferDecls
 
 scBufferDecls :: Operation a -> [(CType, String)]
 scBufferDecls scImp = argumentBufferDecls
   where
-    args = getOpArguments scImp
+    args = getBufferArgs scImp
     savedBufferDecls = L.map (\(name, tp) -> (toCType tp, name)) args
     refBufferDecls = L.map (\(cType, n) -> (cType, n ++ "_ref")) savedBufferDecls
     testBufferDecls = L.map (\(cType, n) -> (cType, n ++ "_test")) savedBufferDecls
     argumentBufferDecls = savedBufferDecls ++ refBufferDecls ++ testBufferDecls
 
-scStatements :: a -> Operation a -> [Operation a] -> [CStmt a]
-scStatements dummyAnn scImp implsToCheck = bufferAllocs ++ refImplSetup ++ refImplTestImplComparisons ++ bufferDeallocs
+scStatements :: a -> Map String Int -> Operation a -> [Operation a] -> [CStmt a]
+scStatements dummyAnn indexVals scImp implsToCheck = indexAssigns ++ bufferAllocs ++ refImplSetup ++ refImplTestImplComparisons ++ bufferDeallocs
   where
+    indexAssigns = L.map (\(name, _) -> indexAssignSt dummyAnn name indexVals) $ getIndexArgs scImp
     bufferAllocs = allocSCBufferStmts dummyAnn scImp
     buffersToDealloc = L.map snd $ scBufferDecls scImp
     bufferDeallocs = L.map (\n -> cExprSt (cFuncall "free" [cVar n]) dummyAnn) buffersToDealloc
     refImplSetup = referenceImplSetup dummyAnn scImp
     refImplTestImplComparisons = referenceImplTestImplComparisons dummyAnn scImp implsToCheck
 
+indexAssignSt :: a -> String -> Map String Int -> CStmt a
+indexAssignSt dummyAnn varName indexVals =
+  case M.lookup varName indexVals of
+    Just val -> cExprSt (cAssign (cVar varName) (cIntLit val)) dummyAnn
+    Nothing -> error $ varName ++ " does not exist in index value list " ++ show indexVals
+
 allocSCBufferStmts :: a -> Operation a -> [CStmt a]
 allocSCBufferStmts dummyAnn scImp = allocStmts
   where
-    argBufs = getOpArguments scImp
+    argBufs = getBufferArgs scImp
     argBufNames = L.map fst argBufs
     argBufSizes = L.map (\x -> getBufferSize x scImp) argBufNames
     argBufCSizes = L.map (\s -> iExprToCExpr s) argBufSizes
@@ -107,25 +116,27 @@ allocSCBufferStmts dummyAnn scImp = allocStmts
     allArgBufs = argBufCDeclsWSize ++ refBufCDeclsWSize ++ testBufCDeclsWSize
     allocStmts = L.map (\((tp, n), sz) -> cExprSt (cAssign (cVar n) (cFuncall "malloc" [cMul (cSizeOf tp) sz])) dummyAnn) allArgBufs
 
-timingFunc :: a -> [Operation a] -> CTopLevelItem a
-timingFunc _ [] = error $ "no implementations to time in timingFunc"
-timingFunc dummyAnn implsToTime =
+timingFunc :: a -> Map String Int -> [Operation a] -> CTopLevelItem a
+timingFunc _ _ [] = error $ "no implementations to time in timingFunc"
+timingFunc dummyAnn indexVals implsToTime =
   cFuncDecl cVoid "time_impls" [(cPtr cFILE, "df")] $ cBlock [] testBlocks
   where
-    testBlocks = L.map (testBlockStmts dummyAnn) implsToTime
+    testBlocks = L.map (testBlockStmts dummyAnn indexVals) implsToTime
 
-testBlockStmts :: a -> Operation a -> CStmt a
-testBlockStmts dummyAnn imp =
+testBlockStmts :: a -> Map String Int -> Operation a -> CStmt a
+testBlockStmts dummyAnn indexVals imp =
   cBlockSt varDecls blkCode dummyAnn
   where
-    bufDecls = L.map (\(name, tp) -> (toCType tp, name)) $ getOpArguments imp
+    indexDecls = L.map (\(name, tp) -> (toCType tp, name)) $ getIndexArgs imp
+    bufDecls = L.map (\(name, tp) -> (toCType tp, name)) $ getBufferArgs imp
     timeVarDecls = [(cULongLong, "start"), (cULongLong, "end"), (cULongLong, "total_cycles"), (cULongLong, "lvar"),
                     (cULongLong, "num_runs"), (cDouble, "avg_cycles_per_run")]
-    varDecls = bufDecls ++ timeVarDecls
-    blkCode = testBlockCode dummyAnn imp
+    varDecls = bufDecls ++ timeVarDecls ++ indexDecls
+    blkCode = testBlockCode dummyAnn indexVals imp
 
-testBlockCode :: a -> Operation a -> [CStmt a]
-testBlockCode dummyAnn imp =
+testBlockCode :: a -> Map String Int -> Operation a -> [CStmt a]
+testBlockCode dummyAnn indexVals imp =
+  (L.map (\(name, _) -> indexAssignSt dummyAnn name indexVals) $ getIndexArgs imp) ++
   setupCode dummyAnn imp ++
   timingLoops dummyAnn imp ++
   fileIOCode dummyAnn imp ++
@@ -143,7 +154,7 @@ fileIOCode dummyAnn imp =
   
 bufferFreeingCode dummyAnn imp= bufferDeallocs
   where
-    buffersToDealloc = L.map (\(name, _) -> name) $ getOpArguments imp
+    buffersToDealloc = L.map (\(name, _) -> name) $ getBufferArgs imp
     bufferDeallocs = L.map (\n -> cExprSt (cFuncall "free" [cVar n]) dummyAnn) buffersToDealloc
 
 countRunsWhile dummyAnn imp =
@@ -165,11 +176,11 @@ timeForRuns dummyAnn imp =
    cFor (cAssign (cVar "lvar") (cIntLit 1)) (cLEQ (cVar "lvar") (cVar "num_runs")) (cAssign (cVar "lvar") (cAdd (cVar "lvar") (cIntLit 1)))
         (cBlock [] [cExprSt (cFuncall (getOpName imp) (L.map (\(n, _) -> cVar n) $ getOpArguments imp)) dummyAnn]) dummyAnn,
    cExprSt (cAssign (cVar "end") (cFuncall "rdtsc" [])) dummyAnn] ++
-  (L.map (\(n, _) -> cExprSt (cFuncall "print_first_byte" [cVar n]) dummyAnn) $ getOpArguments imp)
+  (L.map (\(n, _) -> cExprSt (cFuncall "print_first_byte" [cVar n]) dummyAnn) $ getBufferArgs imp)
 
 bufferAllocationCode dummyAnn imp = allocStmts
     where
-      argBufs = getOpArguments imp
+      argBufs = getBufferArgs imp
       argBufNames = L.map fst argBufs
       argBufSizes = L.map (\x -> getBufferSize x imp) argBufNames
       argBufCSizes = L.map (\s -> iExprToCExpr s) argBufSizes
@@ -183,18 +194,22 @@ referenceImplSetup dummyAnn scImp = setArgsToRand ++ copyArgsToRefs ++ [callSCIm
   where
     setArgsToRand = setArgsToRandValues dummyAnn scImp
     copyArgsToRefs = copyArgsTo dummyAnn "_ref" scImp
-    callSCImp = cExprSt (cFuncall (getOpName scImp) $ L.map (\(n, tp) -> cVar (n ++ "_ref")) $ getOpArguments scImp) dummyAnn
+    callSCImp = callWithBufferSuffix dummyAnn "_ref" scImp
+
+callWithBufferSuffix dummyAnn suffix imp =
+  let args = L.map (\(n, tp) -> cVar (if isBuffer tp then n ++ "_ref" else n)) $ getOpArguments imp in
+  cExprSt (cFuncall (getOpName imp) args) dummyAnn
 
 copyArgsTo :: a -> String -> Operation a -> [CStmt a]
 copyArgsTo dummyAnn suffix scImp = copyArgStmts
   where
-    args = getOpArguments scImp
+    args = getBufferArgs scImp
     copyArgStmts = L.map (\(n, tp) -> cExprSt (cFuncall "memcpy" [cVar (n ++ suffix), cVar n, cMul (cSizeOf $ getReferencedType $ toCType tp) (iExprToCExpr $ getBufferSize n scImp)]) dummyAnn) args
 
 setArgsToRandValues :: a -> Operation a -> [CStmt a]
 setArgsToRandValues dummyAnn scImp = randValStmts
   where
-    args = getOpArguments scImp
+    args = getBufferArgs scImp
     argsWSizes = L.map (\(n, tp) -> ((n, toCType tp), iExprToCExpr $ getBufferSize n scImp)) args
     randValStmts = L.map (setArgToRandValuesCode dummyAnn) argsWSizes
 
@@ -214,12 +229,11 @@ referenceImplTestImplComparisons dummyAnn scImp implsToCheck = compareStmts
 compareImpls :: a -> Operation a -> Operation a -> CStmt a
 compareImpls dummyAnn scImp imp = cmpBlk
   where
-    args = getOpArguments scImp
+    args = getBufferArgs scImp
     decls = L.map (\(n, tp) -> (cInt, n ++ "_sc_res")) args
     copyStmts = copyArgsTo dummyAnn "_test" scImp
-    testArgs = L.map (\(n, tp) -> cVar (n ++ "_test")) args
     writeOpName = cExprSt (cFuncall "fprintf" [cVar "df", cVar ("\"" ++ getOpName imp ++ "\\n\"")]) dummyAnn
-    blkStmts = copyStmts ++ [cExprSt (cFuncall (getOpName imp) testArgs) dummyAnn, writeOpName] ++ scResultCode dummyAnn args scImp
+    blkStmts = copyStmts ++ [callWithBufferSuffix dummyAnn "_test" imp, writeOpName] ++ scResultCode dummyAnn args scImp
     cmpBlk = cBlockSt decls blkStmts dummyAnn
 
 scResultCode :: a -> [(String, Type)] -> Operation a -> [CStmt a]

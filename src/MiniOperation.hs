@@ -1,7 +1,8 @@
 
 module MiniOperation(Operation,
                      operation,
-                     getOpName, getOpArguments, getBufferSize, getOptimizationsApplied,
+                     getOpName, getBufferSize, getOptimizationsApplied,
+                     getIndexArgs, getBufferArgs, getOpArguments,
                      toCFunc,
                      applyToOpBlock,
                      Optimization,
@@ -44,6 +45,8 @@ operation n st blk = Operation n [] st blk
 
 getOpName (Operation n _ _ _) = n
 getOpArguments (Operation _ _ st _) = arguments st
+getIndexArgs op = L.filter (\(n, tp) -> isIndex tp) $ getOpArguments op
+getBufferArgs op = L.filter (\(n, tp) -> isBuffer tp) $ getOpArguments op
 getOptimizationsApplied (Operation _ opts _ _) = opts
 getOpBlock (Operation _ _ _ b) = b
 getOpLocalVars (Operation _ _ st _) = localVars st

@@ -18,7 +18,7 @@ module SymbolTable(MOpSymtab,
                    localVars,
                    symInfo,
                    local, arg,
-                   bufferSize,
+                   bufferSize, isIndex, isBuffer,
                    Type,
                    toCType) where
 
@@ -147,6 +147,8 @@ bufferSize (SymbolInfo t _) = bufSize t
 symIsArg :: SymbolInfo -> Bool
 symIsArg info = isArg $ scope info
 
+symIsIndex info = isIndex $ symType info
+
 symIsLocalVar info = isLocalVar $ scope info
 
 data Type
@@ -171,3 +173,9 @@ index = Index
 
 bufType (Buffer t _) = t
 bufSize (Buffer _ sz) = sz
+
+isIndex Index = True
+isIndex _ = False
+
+isBuffer (Buffer _ _) = True
+isBuffer _ = False
