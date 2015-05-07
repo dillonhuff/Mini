@@ -9,6 +9,7 @@ import Token
 
 allMatrixOperationTests = do
   testFunction matrixOperationToMOp matOpToMOpCases
+  testFunction (\e -> simplifySymtab e simpleSt) simpleStCases
 
 matOpToMOpCases =
   [(dMatrixOperation "nothing" [] [], mOp "nothing" (mOpSymtab []) []),
@@ -34,3 +35,26 @@ matOpToMOpCases =
                             ("tmp0", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124)))])
                             [madd "A" "B" "tmp0",
                              masg "tmp0" "C"])]
+
+simpleStCases =
+  [(dMatName "A", simpleSt),
+   (dMatrixAdd (dMatName "A") (dMatName "B"), addSt),
+   (dMatrixSub (dMatName "A") (dMatName "B"), addSt),
+   (dMatrixMul (dMatName "A") (dMatName "B"), mulSt),
+   (dScalarMul (dMatName "alpha") (dMatName "B"), simpleSt),
+   (dMatrixTrans (dMatName "A"), simpleSt)]
+
+mulSt =
+  mOpSymtab [("A", mOpSymInfo arg singleFloat $ layout (iVar "k") (iVar "l") (iVar "ars") (iVar "acs")),
+             ("B", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "brs") (iVar "bcs")),
+             ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]
+
+addSt =
+  mOpSymtab [("A", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "ars") (iVar "acs")),
+             ("B", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "brs") (iVar "bcs")),
+             ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]             
+
+simpleSt =
+  mOpSymtab [("A", mOpSymInfo arg singleFloat $ layout (iVar "k") (iVar "j") (iVar "ars") (iVar "acs")),
+             ("B", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "brs") (iVar "bcs")),
+             ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]

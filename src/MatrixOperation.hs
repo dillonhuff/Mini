@@ -6,7 +6,8 @@ module MatrixOperation(MatrixOperation,
                        matrixOperationToMOp,
                        MatrixStmt,
                        matName, matrixAdd, matrixSub, matrixMul, matrixTrans, scalarMul,
-                       dMatName, dMatrixAdd, dMatrixSub, dMatrixMul, dMatrixTrans, dScalarMul) where
+                       dMatName, dMatrixAdd, dMatrixSub, dMatrixMul, dMatrixTrans, dScalarMul,
+                       simplifySymtab) where
 
 import Control.Lens
 import Control.Monad
@@ -73,6 +74,41 @@ instance Eq MExpr where
   (==) (MatUnop u1 n1 _) (MatUnop u2 n2 _) = u1 == u2 && n1 == n2
   (==) (VarName n1 _) (VarName n2 _) = n1 == n2
 
+simplifySymtab :: MExpr -> MOpSymtab -> MOpSymtab
+simplifySymtab e st = execState (simplifyStWithExpr e) st
+
+simplifyStWithExpr :: MExpr -> State MOpSymtab Layout
+simplifyStWithExpr (VarName n _) = do
+  st <- get
+  return $ getMOpSymInfo n getLayout st
+simplifyStWithExpr (MatUnop u a _) = do
+  aL <- simplifyStWithExpr a
+  simplifyLayoutsUOp u aL
+simplifyStWithExpr (MatBinop b l r _) = do
+  leftL <- simplifyStWithExpr l
+  rightL <- simplifyStWithExpr r
+  simplifyLayoutsBOp b leftL rightL
+
+simplifyLayoutsUOp :: MatUOp -> Layout -> State MOpSymtab Layout
+simplifyLayoutsUOp MatTrans l = do
+  return $ layout (view nc l) (view nr l) (view cs l) (view rs l)
+
+simplifyLayoutsBOp :: MatBOp -> Layout -> Layout -> State MOpSymtab Layout
+simplifyLayoutsBOp MatMul leftL rightL = do
+  l1 <- doSubstitution (view nc leftL) (view nr rightL) leftL
+  return l1
+simplifyLayoutsBOp ScalMul _ rightL = do
+  return rightL
+simplifyLayoutsBOp b leftL rightL = do
+  l1 <- doSubstitution (view nr leftL) (view nr rightL) leftL
+  l2 <- doSubstitution (view nc leftL) (view nc rightL) l1
+  return l2
+
+doSubstitution l r oldLayout = do
+  st <- get
+  put $ subInStLayouts l r st
+  return $ subInLayout l r oldLayout
+  
 freshTempVar = do
   cg <- get
   let name = "tmp" ++ (show $ view mcgNextInt cg) in
@@ -130,3 +166,4 @@ data MatBOp
 data MatUOp
   = MatTrans
     deriving (Eq, Ord, Show)
+

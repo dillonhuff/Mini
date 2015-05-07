@@ -1,7 +1,8 @@
 module IndexExpression(IExpr,
                        evaluateIExprConstants,
                        iAdd, iMul, iConst, iVar, iSub,
-                       iExprToCExpr) where
+                       iExprToCExpr,
+                       subIExpr) where
 
 import CGen
 
@@ -17,6 +18,17 @@ iAdd l r = IAdd l r
 iMul l r = IMul l r
 iConst i = IConst i
 iVar n = IVar n
+
+subIExpr target result i =
+  case i == target of
+    True -> result
+    False -> subInSubIExprs target result i
+
+subInSubIExprs target result (IMul l r) =
+  IMul (subIExpr target result l) (subIExpr target result r)
+subInSubIExprs target result (IAdd l r) =
+  IAdd (subIExpr target result l) (subIExpr target result r)
+subInSubIExprs _ _ i = i
 
 isConstant (IConst n) = True
 isConstant _ = False

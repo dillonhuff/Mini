@@ -1,13 +1,18 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module SymbolTable(MOpSymtab,
                    mOpSymtab,
                    mOpSymtabToMiniSymtab,
                    addMOpEntry,
+                   subInStLayouts,
                    MOpSymInfo,
+                   symScope, symEntryType, symLayout,
                    mOpSymInfo,
                    getMOpSymInfo,
-                   getNumRows, getNumCols, getRowStride, getColStride,
+                   getNumRows, getNumCols, getRowStride, getColStride, getLayout,
                    accessExpr,
-                   Layout, layout,
+                   Layout, layout, nr, nc, rs, cs,
+                   subInLayout,
                    EntryType, doubleFloat, singleFloat,
                    MiniSymtab,
                    miniSymtab,
@@ -22,6 +27,8 @@ module SymbolTable(MOpSymtab,
                    Type,
                    toCType) where
 
+import Control.Lens hiding (index)
+import Control.Lens.TH
 import Data.List as L
 import Data.Map as M
 
@@ -35,6 +42,9 @@ data MOpSymtab
 mOpSymtab l = MOpSymtab $ M.fromList l
 
 addMOpEntry string inf (MOpSymtab m) = MOpSymtab $ M.insert string inf m
+
+subInStLayouts target result (MOpSymtab m) =
+  MOpSymtab $ M.map (\inf -> subLayoutInfo target result inf) m
 
 mOpSymtabToMiniSymtab :: MOpSymtab -> MiniSymtab
 mOpSymtabToMiniSymtab (MOpSymtab symMap) =
@@ -58,11 +68,18 @@ getRowStride n st = getMOpSymInfo n rowStride st
 getColStride n st = getMOpSymInfo n colStride st
 
 data MOpSymInfo
-  = MOpSymInfo Scope EntryType Layout
-    deriving (Eq, Ord, Show)
+  = MOpSymInfo {
+    _symScope :: Scope,
+    _symEntryType :: EntryType,
+    _symLayout :: Layout
+    } deriving (Eq, Ord, Show)
+
+subLayoutInfo :: IExpr -> IExpr -> MOpSymInfo -> MOpSymInfo
+subLayoutInfo target result (MOpSymInfo s t l) = MOpSymInfo s t $ subInLayout target result l
 
 mOpSymInfo = MOpSymInfo
 
+getLayout (MOpSymInfo _ _ l) = l
 numRows (MOpSymInfo _ _ (Layout nr _ _ _)) = nr
 numCols (MOpSymInfo _ _ (Layout _ nc _ _)) = nc
 rowStride (MOpSymInfo _ _ (Layout _ _ rs _)) = rs
@@ -82,11 +99,18 @@ entryTypeToBufferType DoubleFloat = Buffer DoublePrecision
 entryTypeToBufferType SingleFloat = Buffer SinglePrecision
 
 data Layout
-  = Layout IExpr IExpr IExpr IExpr
-    deriving (Eq, Ord, Show)
+  = Layout {
+    _nr :: IExpr,
+    _nc :: IExpr,
+    _rs :: IExpr,
+    _cs :: IExpr
+    } deriving (Eq, Ord, Show)
 
 layout nRows nCols rowStride colStride = Layout nRows nCols rowStride colStride
 
+subInLayout target result (Layout r c rst cst) =
+  Layout (subIExpr target result r) (subIExpr target result c) (subIExpr target result rst) (subIExpr target result cst)
+  
 layoutSizeIExpr (Layout nr nc rs cs) =
   (iAdd ind0Size (iConst 1))
   where
@@ -179,3 +203,6 @@ isIndex _ = False
 
 isBuffer (Buffer _ _) = True
 isBuffer _ = False
+
+makeLenses ''Layout
+makeLenses ''MOpSymInfo
