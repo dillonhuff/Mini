@@ -5,8 +5,8 @@ module MatrixOperation(MatrixOperation,
                        matrixOperation,
                        matrixOperationToMOp,
                        MatrixStmt,
-                       matName, matrixAdd, matrixSub, matrixMul, matrixTrans,
-                       dMatName, dMatrixAdd, dMatrixSub, dMatrixMul, dMatrixTrans) where
+                       matName, matrixAdd, matrixSub, matrixMul, matrixTrans, scalarMul,
+                       dMatName, dMatrixAdd, dMatrixSub, dMatrixMul, dMatrixTrans, dScalarMul) where
 
 import Control.Lens
 import Control.Monad
@@ -109,10 +109,12 @@ matrixExprToMInstrs (MatBinop MatSub a b _) = do
 dMatrixAdd a b = MatBinop MatAdd a b dummyPos
 dMatrixSub a b = MatBinop MatSub a b dummyPos
 dMatrixMul a b = MatBinop MatMul a b dummyPos
+dScalarMul a b = scalarMul a b dummyPos
 dMatrixTrans b = MatUnop MatTrans b dummyPos
 dMatName str = VarName str dummyPos
 
 matrixMul a b p = MatBinop MatMul a b p
+scalarMul a b p = MatBinop ScalMul a b p
 matrixSub a b p = MatBinop MatSub a b p
 matrixAdd a b p = MatBinop MatAdd a b p
 matrixTrans b p = MatUnop MatTrans b p
@@ -122,6 +124,7 @@ data MatBOp
   = MatMul
   | MatAdd
   | MatSub
+  | ScalMul
     deriving (Eq, Ord, Show)
 
 data MatUOp

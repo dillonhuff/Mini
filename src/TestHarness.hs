@@ -197,7 +197,7 @@ referenceImplSetup dummyAnn scImp = setArgsToRand ++ copyArgsToRefs ++ [callSCIm
     callSCImp = callWithBufferSuffix dummyAnn "_ref" scImp
 
 callWithBufferSuffix dummyAnn suffix imp =
-  let args = L.map (\(n, tp) -> cVar (if isBuffer tp then n ++ "_ref" else n)) $ getOpArguments imp in
+  let args = L.map (\(n, tp) -> cVar (if isBuffer tp then n ++ suffix else n)) $ getOpArguments imp in
   cExprSt (cFuncall (getOpName imp) args) dummyAnn
 
 copyArgsTo :: a -> String -> Operation a -> [CStmt a]

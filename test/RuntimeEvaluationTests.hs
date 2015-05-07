@@ -37,10 +37,10 @@ testGenSizeSymtab =
               ("a_r", symInfo (sReg double) local)]
 
 masgLoops =
-  for "i" (iConst 0) (iConst 1) (iVar "a_nrows") (block [innerFor]) ""
+  for "i" (iConst 0) (iConst 1) (iSub (iVar "a_nrows") (iConst 1)) (block [innerFor]) ""
 
 innerFor =
-  for "j" (iConst 0) (iConst 1) (iVar "a_ncols") (block masgBodyStmts) ""
+  for "j" (iConst 0) (iConst 1) (iSub (iVar "a_ncols") (iConst 1)) (block masgBodyStmts) ""
 
 masgBodyStmts =
   [load "a_r" "a" (iAdd (iMul (iVar "a_rs") (iVar "i")) (iMul (iVar "a_cs") (iVar "j"))) "",

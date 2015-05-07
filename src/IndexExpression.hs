@@ -1,6 +1,6 @@
 module IndexExpression(IExpr,
                        evaluateIExprConstants,
-                       iAdd, iMul, iConst, iVar,
+                       iAdd, iMul, iConst, iVar, iSub,
                        iExprToCExpr) where
 
 import CGen
@@ -12,6 +12,7 @@ data IExpr
   | IAdd IExpr IExpr
     deriving (Eq, Ord)
 
+iSub l r = iAdd l (iMul (iConst (-1)) r)
 iAdd l r = IAdd l r
 iMul l r = IMul l r
 iConst i = IConst i

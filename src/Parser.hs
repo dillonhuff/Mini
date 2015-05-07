@@ -1,5 +1,6 @@
 module Parser(parseOperation,
-              parseStatement) where
+              parseStatement,
+              parseFormalParam) where
 
 import Text.Parsec.Expr
 import Text.Parsec.Prim
@@ -10,6 +11,11 @@ import MatrixOperation
 import SymbolTable
 import Token
 
+parser :: Parsec [Token] () a -> String -> [Token] -> Either String a
+parser p srcName toks = case parse p srcName toks of
+  Left err -> Left $ show err
+  Right res -> Right $ res
+
 parseOperation :: String -> [Token] -> Either String [MatrixOperation]
 parseOperation sourceFileName toks = case parse (many pOperation) sourceFileName toks of
   Left err -> Left $ show err
@@ -19,6 +25,8 @@ parseStatement :: String -> [Token] -> Either String MatrixStmt
 parseStatement sourceFileName toks = case parse pMatStatement sourceFileName toks of
   Left err -> Left $ show err
   Right matOp -> Right matOp
+
+parseFormalParam srcName toks = parser pFormalParam srcName toks
 
 pOperation = do
   position <- getPosition
@@ -40,7 +48,7 @@ pFormalParam = do
   dataType <- pEntryType
   matLayout <- pLayout
   (name, pos) <- pIdent
-  return $ (name, mOpSymInfo arg dataType matLayout)
+  return $ (name, mOpSymInfo arg dataType (matLayout name))
 
 pReadMod = (pResWithNameTok "output") <|> (pResWithNameTok "r") <|> (pResWithNameTok "rw")
 
@@ -51,11 +59,26 @@ pEntryType = do
     "float" -> return singleFloat
 
 pLayout = do
-  nr <- pIntLit
-  nc <- pIntLit
-  rs <- pIntLit
-  cs <- pIntLit
-  return $ layout (iConst nr) (iConst nc) (iConst rs) (iConst cs)
+  nr <- pDim
+  nc <- pDim
+  rs <- pDim
+  cs <- pDim
+  return $ layoutForMat nr nc rs cs
+
+layoutForMat nr nc rs cs name =
+  layout (lr nr "_nrows") (lr nc "_ncols") (lr rs "_rs") (lr cs "_cs")
+  where
+    lr i suffix = if i == iVar "gen" then (iVar (name ++ suffix)) else i
+
+pDim = pGen <|> pConstDim
+
+pGen = do
+  pResWithNameTok "gen"
+  return $ iVar "gen"
+
+pConstDim = do
+  val <- pIntLit
+  return $ iConst val
 
 pMatStatements = many pMatStatement
 
@@ -69,11 +92,12 @@ pMatStatement = do
 
 table =
   [[matTransOp],
-   [matMulOp],
+   [matMulOp, scalMulOp],
    [matAddOp, matSubOp]]
 
 matTransOp = Postfix pMatTransOp
 matMulOp = Infix pMatMulOp AssocLeft
+scalMulOp = Infix pScalMulOp AssocLeft
 matAddOp = Infix pMatAddOp AssocLeft
 matSubOp = Infix pMatSubOp AssocLeft
 
@@ -81,6 +105,11 @@ pMatTransOp = do
   pos <- getPosition
   pResWithNameTok "'"
   return $ (\n -> matrixTrans n pos)
+
+pScalMulOp = do
+  pos <- getPosition
+  pResWithNameTok ".*"
+  return $ (\l r -> scalarMul l r pos)
 
 pMatMulOp = do
   pos <- getPosition

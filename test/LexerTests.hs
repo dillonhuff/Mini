@@ -33,6 +33,7 @@ keywordCases =
    ("+", dres "+"),
    ("-", dres "-"),
    ("*", dres "*"),
+   (".*", dres ".*"),
    ("'", dres "'")]
 
 identCases =

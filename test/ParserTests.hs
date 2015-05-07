@@ -13,6 +13,7 @@ import Token
 allParserTests = do
   testFunction (lexAndParseOperation "noname.lspc") opCases
   testFunction (lexAndParseStatement "noname.lspc") stCases
+  testFunction (lexAndParseFormalParam "noname.lspc") formalParamCases
 
 opCases =
   L.map (\(x, y) -> (x, Right [y]))
@@ -35,7 +36,14 @@ stCases =
    ("y = alpha*x + y;", dMatAsg "y" (dMatrixAdd (dMatrixMul (dMatName "alpha") (dMatName "x")) (dMatName "y"))),
    ("x = b';", dMatAsg "x" (dMatrixTrans (dMatName "b"))),
    ("K = A*(B + C);", dMatAsg "K" (dMatrixMul (dMatName "A") (dMatrixAdd (dMatName "B") (dMatName "C")))),
-   ("x = (beta + (alpha + omega));", dMatAsg "x" (dMatrixAdd (dMatName "beta") (dMatrixAdd (dMatName "alpha") (dMatName "omega"))))]
+   ("x = (beta + (alpha + omega));", dMatAsg "x" (dMatrixAdd (dMatName "beta") (dMatrixAdd (dMatName "alpha") (dMatName "omega")))),
+   ("A = alpha .* A;", dMatAsg "A" (dScalarMul (dMatName "alpha") (dMatName "A")))]
+
+formalParamCases =
+  L.map (\(x, y) -> (x, Right y))
+  [("r matrix double 1 1 1 1 c", ("c", mOpSymInfo arg doubleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))),
+   ("r matrix float gen gen gen gen a", ("a", mOpSymInfo arg singleFloat $ layout (iVar "a_nrows") (iVar "a_ncols") (iVar "a_rs") (iVar "a_cs")))]
 
 lexAndParseOperation fName str = (lexString fName str) >>= (parseOperation fName)
 lexAndParseStatement fName str = (lexString fName str) >>= (parseStatement fName)
+lexAndParseFormalParam fName str = (lexString fName str) >>= (parseFormalParam fName)
