@@ -3,13 +3,14 @@
 module SymbolTable(MOpSymtab,
                    mOpSymtab,
                    mOpSymtabToMiniSymtab,
+                   containsSymbol,
                    addMOpEntry,
                    subInStLayouts,
                    MOpSymInfo,
                    symScope, symEntryType, symLayout,
                    mOpSymInfo,
                    getMOpSymInfo,
-                   getNumRows, getNumCols, getRowStride, getColStride, getLayout,
+                   getNumRows, getNumCols, getRowStride, getColStride, getLayout, getEntryType,
                    accessExpr,
                    Layout, layout, nr, nc, rs, cs,
                    subInLayout,
@@ -43,6 +44,11 @@ mOpSymtab l = MOpSymtab $ M.fromList l
 
 addMOpEntry string inf (MOpSymtab m) = MOpSymtab $ M.insert string inf m
 
+containsSymbol n (MOpSymtab m) =
+  case M.lookup n m of
+    Just _ -> True
+    _ -> False
+
 subInStLayouts target result (MOpSymtab m) =
   MOpSymtab $ M.map (\inf -> subLayoutInfo target result inf) m
 
@@ -62,6 +68,7 @@ getMOpSymInfo symName f (MOpSymtab symMap) =
     Just info -> f info
     Nothing -> error $ "Symbol " ++ symName ++ " not found in " ++ show symMap
 
+getEntryType n st = getMOpSymInfo n entryType st
 getNumRows n st = getMOpSymInfo n numRows st
 getNumCols n st = getMOpSymInfo n numCols st
 getRowStride n st = getMOpSymInfo n rowStride st
@@ -79,6 +86,7 @@ subLayoutInfo target result (MOpSymInfo s t l) = MOpSymInfo s t $ subInLayout ta
 
 mOpSymInfo = MOpSymInfo
 
+entryType (MOpSymInfo _ t _) = t
 getLayout (MOpSymInfo _ _ l) = l
 numRows (MOpSymInfo _ _ (Layout nr _ _ _)) = nr
 numCols (MOpSymInfo _ _ (Layout _ nc _ _)) = nc

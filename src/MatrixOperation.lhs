@@ -1,3 +1,36 @@
+\documentclass{article}
+
+%include lhs2TeX.fmt
+
+\begin{document}
+
+\title{Matrix Operation}
+\author{Dillon Huff}
+\maketitle
+
+\section {Purpose}
+
+This module describes the syntax of the language produced by the
+Parser module. It is very close to the written syntax of the library
+specifications that Mini is intended to process. The three major functions
+of this stage are:
+
+\begin{itemize}
+
+\item Check that the operation specification is well formed
+
+\item Resolve ambiguities that are allowed in the specification language
+syntax e.g. the user does not have to declare or specify layouts for temporary
+variables.
+
+\item Translate the MatrixOperation into an MOp for further processing and
+optimization
+
+\end{itemize}
+
+\section {Module front matter}
+
+\begin{code}
 module MatrixOperation(MatrixOperation,
                        matAsg,
                        dMatAsg,
@@ -20,6 +53,9 @@ import MOpSyntax
 import SymbolTable
 import Token
 
+\end{code}
+
+\begin{code}
 data MatrixOperation
   = MatrixOperation String MOpSymtab [MatrixStmt] SourcePos
     deriving (Ord, Show)
@@ -183,3 +219,6 @@ data MatUOp
   = MatTrans
     deriving (Eq, Ord, Show)
 
+\end{code}
+
+\end{document}
