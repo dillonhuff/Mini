@@ -1,36 +1,3 @@
-\documentclass{article}
-
-%include lhs2TeX.fmt
-
-\begin{document}
-
-\title{Matrix Operation}
-\author{Dillon Huff}
-\maketitle
-
-\section {Purpose}
-
-This module describes the syntax of the language produced by the
-Parser module. It is very close to the written syntax of the library
-specifications that Mini is intended to process. The three major purposes
-of this stage are to
-
-\begin{itemize}
-
-\item check that the operation specification is well formed
-
-\item resolve ambiguities that are allowed in the specification language
-syntax e.g. the user does not have to declare or specify layouts for temporary
-variables.
-
-\item translate the MatrixOperation into an MOp for further processing and
-optimization
-
-\end{itemize}
-
-\section {Module front matter}
-
-\begin{code}
 module MatrixOperation(MatrixOperation,
                        typeCheckMatrixOperation,
                        matAsg,
@@ -55,17 +22,6 @@ import MOpCodeGen
 import MOpSyntax
 import SymbolTable
 import Token
-
-\end{code}
-
-\section {Core data structures}
-
-The top level data structure MatrixOperation represents a single operation
-in a library specification. Note that as usual data construction functions
-that are prefixed with the letter d are constructors for dummy data items
-used in testing.
-
-\begin{code}
 
 data MatrixOperation
   = MatrixOperation String MOpSymtab [MatrixStmt] SourcePos
@@ -127,11 +83,6 @@ data MatUOp
   = MatTrans
     deriving (Eq, Ord, Show)
 
-\end{code}
-
-\section {Conversion to MOp}
-
-\begin{code}
 matrixOperationToMOp (MatrixOperation name sym stmts _) =
   let initMOp = mOpCodeGen (mOp name sym [])
       instrState = matrixStmtsToMInstrs stmts in
@@ -187,11 +138,6 @@ matrixExprToMInstrs (MatBinop MatSub a b _) = do
   addInstr $ msub aName bName newName
   return (newName, aInfo)
 
-\end{code}
-
-\section{Type checking and temporary variable resolution}
-
-\begin{code}
 typeCheckMatrixOperation :: MatrixOperation -> MatrixOperation
 typeCheckMatrixOperation (MatrixOperation name symtab stmts p) =
   MatrixOperation name (typeCheckStmts stmts symtab) stmts p
@@ -258,6 +204,3 @@ doSubstitution l r oldLayout = do
   put $ subInStLayouts l r st
   return $ subInLayout l r oldLayout
   
-\end{code}
-
-\end{document}

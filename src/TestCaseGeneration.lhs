@@ -57,16 +57,11 @@ and vice versa
 
 \section{Module front matter}
 
-This module uses TemplateHaskell to generate lenses
-for record data structures.
-
 \bigbreak
 \begin{code}
-{-# LANGUAGE TemplateHaskell #-}
 module TestCaseGeneration(genRowAndColMajorExamples) where
 
 import Control.Lens hiding (Const, const)
-import Control.Lens.TH
 import Control.Monad.Random
 import Data.List as L
 import Data.Map as M

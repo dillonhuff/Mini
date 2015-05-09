@@ -16,27 +16,19 @@ matOpToMOpCases =
   [(dMatrixOperation "nothing" [] [], mOp "nothing" (mOpSymtab []) []),
    (dMatrixOperation "arg" [("A", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124)))] [],
     mOp "arg" (mOpSymtab [("A", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124)))]) []),
-   (dMatrixOperation "oneOp" [("A", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
-                              ("B", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
-                              ("C", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124)))]
-                             [dMatAsg "C" (dMatrixSub (dMatName "A") (dMatName "B"))],
-    mOp "oneOp" (mOpSymtab [("A", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
-                            ("B", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
-                            ("C", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
-                            ("tmp0", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124)))])
-                            [msub "A" "B" "tmp0",
-                             masg "tmp0" "C"]),
-   (dMatrixOperation "oneOp" [("A", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
-                              ("B", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
-                              ("C", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124)))]
-                             [dMatAsg "C" (dMatrixAdd (dMatName "A") (dMatName "B"))],
-    mOp "oneOp" (mOpSymtab [("A", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
-                            ("B", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
-                            ("C", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
-                            ("tmp0", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124)))])
-                            [madd "A" "B" "tmp0",
-                             masg "tmp0" "C"])]
+   (dMatrixOperation "oneOp" symList [dMatAsg "C" (dMatrixSub (dMatName "A") (dMatName "B"))],
+    mOp "oneOp" allConstSt [msub "A" "B" "tmp0", masg "tmp0" "C"]),
+   (dMatrixOperation "oneOp" symList [dMatAsg "C" (dMatrixAdd (dMatName "A") (dMatName "B"))],
+    mOp "oneOp" allConstSt [madd "A" "B" "tmp0", masg "tmp0" "C"])]
 
+allConstSt =
+  mOpSymtab symList
+
+symList = [("A", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
+           ("B", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
+           ("C", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
+           ("tmp0", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124)))]
+  
 simpleStCases =
   [(dMatName "A", simpleSt),
    (dMatrixAdd (dMatName "A") (dMatName "B"), addSt),
@@ -48,31 +40,50 @@ simpleStCases =
 mulSt =
   mOpSymtab [("A", mOpSymInfo arg singleFloat $ layout (iVar "k") (iVar "l") (iVar "ars") (iVar "acs")),
              ("B", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "brs") (iVar "bcs")),
+             ("C", mOpSymInfo arg singleFloat $ layout (iVar "p") (iVar "q") (iVar "crs") (iVar "ccs")),             
              ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]
 
 addSt =
   mOpSymtab [("A", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "ars") (iVar "acs")),
              ("B", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "brs") (iVar "bcs")),
+             ("C", mOpSymInfo arg singleFloat $ layout (iVar "p") (iVar "q") (iVar "crs") (iVar "ccs")),             
              ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]             
 
 simpleSt =
   mOpSymtab [("A", mOpSymInfo arg singleFloat $ layout (iVar "k") (iVar "j") (iVar "ars") (iVar "acs")),
              ("B", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "brs") (iVar "bcs")),
+             ("C", mOpSymInfo arg singleFloat $ layout (iVar "p") (iVar "q") (iVar "crs") (iVar "ccs")),
              ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]
 
 simpleStmtCases =
   [(dMatAsg "A" (dMatName "B"), simpleSt),
    (dMatAsg "T" (dMatName "A"), asgSt),
-   (dMatAsg "T" (dMatrixMul (dMatName "A") (dMatName "B")), asgMulSt)]
+   (dMatAsg "T" (dMatrixMul (dMatName "A") (dMatName "B")), asgMulSt),
+   (dMatAsg "A" (dMatrixAdd (dMatName "A") (dMatName "B")), asgAddSt),
+   (dMatAsg "C" (dMatrixAdd (dMatName "A") (dMatName "B")), asgAddAssignSt)]
 
 asgSt =
   mOpSymtab [("A", mOpSymInfo arg singleFloat $ layout (iVar "k") (iVar "j") (iVar "ars") (iVar "acs")),
              ("B", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "brs") (iVar "bcs")),
+             ("C", mOpSymInfo arg singleFloat $ layout (iVar "p") (iVar "q") (iVar "crs") (iVar "ccs")),
              ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1)),
              ("T", mOpSymInfo local singleFloat $ layout (iVar "k") (iVar "j") (iVar "ars") (iVar "acs"))]
 
 asgMulSt =
   mOpSymtab [("A", mOpSymInfo arg singleFloat $ layout (iVar "k") (iVar "l") (iVar "ars") (iVar "acs")),
              ("B", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "brs") (iVar "bcs")),
+             ("C", mOpSymInfo arg singleFloat $ layout (iVar "p") (iVar "q") (iVar "crs") (iVar "ccs")),             
              ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1)),
              ("T", mOpSymInfo local singleFloat $ layout (iVar "k") (iVar "m") (iVar "ars") (iVar "acs"))]
+
+asgAddSt =
+  mOpSymtab [("A", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "ars") (iVar "acs")),
+             ("B", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "brs") (iVar "bcs")),
+             ("C", mOpSymInfo arg singleFloat $ layout (iVar "p") (iVar "q") (iVar "crs") (iVar "ccs")),             
+             ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]
+
+asgAddAssignSt =
+  mOpSymtab [("A", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "ars") (iVar "acs")),
+             ("B", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "brs") (iVar "bcs")),
+             ("C", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "crs") (iVar "ccs")),             
+             ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]
