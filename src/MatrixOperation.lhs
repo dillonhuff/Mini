@@ -12,18 +12,18 @@
 
 This module describes the syntax of the language produced by the
 Parser module. It is very close to the written syntax of the library
-specifications that Mini is intended to process. The three major functions
-of this stage are:
+specifications that Mini is intended to process. The three major purposes
+of this stage are to
 
 \begin{itemize}
 
-\item Check that the operation specification is well formed
+\item check that the operation specification is well formed
 
-\item Resolve ambiguities that are allowed in the specification language
+\item resolve ambiguities that are allowed in the specification language
 syntax e.g. the user does not have to declare or specify layouts for temporary
 variables.
 
-\item Translate the MatrixOperation into an MOp for further processing and
+\item translate the MatrixOperation into an MOp for further processing and
 optimization
 
 \end{itemize}
@@ -55,7 +55,15 @@ import Token
 
 \end{code}
 
+\section {Core data structures}
+
+The top level data structure MatrixOperation represents a single operation
+in a library specification. Note that as usual data construction functions
+that are prefixed with the letter d are constructors for dummy data items
+used in testing.
+
 \begin{code}
+
 data MatrixOperation
   = MatrixOperation String MOpSymtab [MatrixStmt] SourcePos
     deriving (Ord, Show)
@@ -68,6 +76,57 @@ matrixOperation name symt stmts sp = MatrixOperation name (mOpSymtab symt) stmts
 
 dMatrixOperation name symt stmts = matrixOperation name symt stmts dummyPos
 
+data MatrixStmt
+  = MStmt String MExpr SourcePos
+    deriving (Ord, Show)
+
+instance Eq MatrixStmt where
+  (==) (MStmt n1 e1 _) (MStmt n2 e2 _) = n1 == n2 && e1 == e2
+
+matAsg n e p = MStmt n e p
+dMatAsg n e = MStmt n e dummyPos
+
+data MExpr
+  = MatBinop MatBOp MExpr MExpr SourcePos
+  | MatUnop MatUOp MExpr SourcePos
+  | VarName String SourcePos
+    deriving (Ord, Show)
+
+instance Eq MExpr where
+  (==) (MatBinop b1 l1 r1 _) (MatBinop b2 l2 r2 _) = b1 == b2 && l1 == l2 && r1 == r2
+  (==) (MatUnop u1 n1 _) (MatUnop u2 n2 _) = u1 == u2 && n1 == n2
+  (==) (VarName n1 _) (VarName n2 _) = n1 == n2
+
+dMatrixAdd a b = MatBinop MatAdd a b dummyPos
+dMatrixSub a b = MatBinop MatSub a b dummyPos
+dMatrixMul a b = MatBinop MatMul a b dummyPos
+dScalarMul a b = scalarMul a b dummyPos
+dMatrixTrans b = MatUnop MatTrans b dummyPos
+dMatName str = VarName str dummyPos
+
+matrixMul a b p = MatBinop MatMul a b p
+scalarMul a b p = MatBinop ScalMul a b p
+matrixSub a b p = MatBinop MatSub a b p
+matrixAdd a b p = MatBinop MatAdd a b p
+matrixTrans b p = MatUnop MatTrans b p
+matName s p = VarName s p
+
+data MatBOp
+  = MatMul
+  | MatAdd
+  | MatSub
+  | ScalMul
+    deriving (Eq, Ord, Show)
+
+data MatUOp
+  = MatTrans
+    deriving (Eq, Ord, Show)
+
+\end{code}
+
+\section {Conversion to MOp}
+
+\begin{code}
 matrixOperationToMOp (MatrixOperation name sym stmts _) =
   let initMOp = mOpCodeGen (mOp name sym [])
       instrState = matrixStmtsToMInstrs stmts in
@@ -90,16 +149,44 @@ matrixStToMInstrs (MStmt n expr _) = do
   (eRes, eInfo) <- matrixExprToMInstrs expr
   addInstr $ masg eRes n
 
-data MatrixStmt
-  = MStmt String MExpr SourcePos
-    deriving (Ord, Show)
+freshTempVar = do
+  cg <- get
+  let name = "tmp" ++ (show $ view mcgNextInt cg) in
+    do
+      put $ over mcgNextInt (+1) cg
+      return name
 
-instance Eq MatrixStmt where
-  (==) (MStmt n1 e1 _) (MStmt n2 e2 _) = n1 == n2 && e1 == e2
+addTmpToSymtab :: MOpSymInfo -> State MOpCodeGen String
+addTmpToSymtab symInf = do
+  cg <- get
+  nextName <- freshTempVar
+  put $ over (mcgMOp . mOpSymT) (\s -> addMOpEntry nextName symInf s) cg
+  return nextName
 
-matAsg n e p = MStmt n e p
-dMatAsg n e = MStmt n e dummyPos
+matrixExprToMInstrs :: MExpr -> State MOpCodeGen (String, MOpSymInfo)
+matrixExprToMInstrs (VarName n _) = do
+  cg <- get
+  return (n, getMOpSymInfo n id (view (mcgMOp . mOpSymT) cg))
+matrixExprToMInstrs (MatBinop MatAdd a b _) = do
+  (aName, aInfo) <- matrixExprToMInstrs a
+  (bName, bInfo) <- matrixExprToMInstrs b
+  op <- get
+  newName <- addTmpToSymtab aInfo
+  addInstr $ madd aName bName newName
+  return (newName, aInfo)
+matrixExprToMInstrs (MatBinop MatSub a b _) = do
+  (aName, aInfo) <- matrixExprToMInstrs a
+  (bName, bInfo) <- matrixExprToMInstrs b
+  op <- get
+  newName <- addTmpToSymtab aInfo
+  addInstr $ msub aName bName newName
+  return (newName, aInfo)
 
+\end{code}
+
+\section{Type checking and temporary variable resolution}
+
+\begin{code}
 typeCheckStmt :: MatrixStmt -> MOpSymtab -> MOpSymtab
 typeCheckStmt stmt st = execState (tcStmt stmt) st
 
@@ -113,16 +200,6 @@ tcStmt (MStmt n e _) = do
       put $ addMOpEntry n (mOpSymInfo local t l) st
       return ()
 
-data MExpr
-  = MatBinop MatBOp MExpr MExpr SourcePos
-  | MatUnop MatUOp MExpr SourcePos
-  | VarName String SourcePos
-    deriving (Ord, Show)
-
-instance Eq MExpr where
-  (==) (MatBinop b1 l1 r1 _) (MatBinop b2 l2 r2 _) = b1 == b2 && l1 == l2 && r1 == r2
-  (==) (MatUnop u1 n1 _) (MatUnop u2 n2 _) = u1 == u2 && n1 == n2
-  (==) (VarName n1 _) (VarName n2 _) = n1 == n2
 
 simplifySymtab :: MExpr -> MOpSymtab -> MOpSymtab
 simplifySymtab e st = execState (simplifyStWithExpr e) st
@@ -161,64 +238,6 @@ doSubstitution l r oldLayout = do
   put $ subInStLayouts l r st
   return $ subInLayout l r oldLayout
   
-freshTempVar = do
-  cg <- get
-  let name = "tmp" ++ (show $ view mcgNextInt cg) in
-    do
-      put $ over mcgNextInt (+1) cg
-      return name
-
-addTmpToSymtab :: MOpSymInfo -> State MOpCodeGen String
-addTmpToSymtab symInf = do
-  cg <- get
-  nextName <- freshTempVar
-  put $ over (mcgMOp . mOpSymT) (\s -> addMOpEntry nextName symInf s) cg
-  return nextName
-
-matrixExprToMInstrs :: MExpr -> State MOpCodeGen (String, MOpSymInfo)
-matrixExprToMInstrs (VarName n _) = do
-  cg <- get
-  return (n, getMOpSymInfo n id (view (mcgMOp . mOpSymT) cg))
-matrixExprToMInstrs (MatBinop MatAdd a b _) = do
-  (aName, aInfo) <- matrixExprToMInstrs a
-  (bName, bInfo) <- matrixExprToMInstrs b
-  op <- get
-  newName <- addTmpToSymtab aInfo
-  addInstr $ madd aName bName newName
-  return (newName, aInfo)
-matrixExprToMInstrs (MatBinop MatSub a b _) = do
-  (aName, aInfo) <- matrixExprToMInstrs a
-  (bName, bInfo) <- matrixExprToMInstrs b
-  op <- get
-  newName <- addTmpToSymtab aInfo
-  addInstr $ msub aName bName newName
-  return (newName, aInfo)
-
-dMatrixAdd a b = MatBinop MatAdd a b dummyPos
-dMatrixSub a b = MatBinop MatSub a b dummyPos
-dMatrixMul a b = MatBinop MatMul a b dummyPos
-dScalarMul a b = scalarMul a b dummyPos
-dMatrixTrans b = MatUnop MatTrans b dummyPos
-dMatName str = VarName str dummyPos
-
-matrixMul a b p = MatBinop MatMul a b p
-scalarMul a b p = MatBinop ScalMul a b p
-matrixSub a b p = MatBinop MatSub a b p
-matrixAdd a b p = MatBinop MatAdd a b p
-matrixTrans b p = MatUnop MatTrans b p
-matName s p = VarName s p
-
-data MatBOp
-  = MatMul
-  | MatAdd
-  | MatSub
-  | ScalMul
-    deriving (Eq, Ord, Show)
-
-data MatUOp
-  = MatTrans
-    deriving (Eq, Ord, Show)
-
 \end{code}
 
 \end{document}

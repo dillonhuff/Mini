@@ -47,7 +47,7 @@ really matter. This module makes the following assumptions:
 
 \begin{itemize}
 
-\item \textbf{simple indexing:} All dimension and stride lengths are either constant values e.g. $12$
+\item \textbf{simple lengths:} All dimension and stride lengths are either constant values e.g. $12$
 or single variables e.g. $n$. There are no dimensions or strides with lengths like $2*n + 3$
 
 \item \textbf{dimension-stride separation:} Any variable that is used as a dimension is not used as a stride
@@ -67,6 +67,7 @@ module TestCaseGeneration() where
 import Control.Lens hiding (Const, const)
 import Control.Lens.TH
 import Data.List as L
+import Data.Map as M
 
 import IndexExpression
 import SymbolTable
@@ -164,6 +165,40 @@ separateDimAndStrideVars layouts =
   case L.intersect allLayoutsDimVars allLayoutsStrideVars of
     [] -> Just (allLayoutsDimVars, allLayoutsStrideVars)
     _ -> Nothing
+
+allDimsAndStridesAreVars :: [RLayout] -> Bool
+allDimsAndStridesAreVars layouts =
+  L.and $ L.map isVarSize $ L.concatMap (\l -> dimensions l ++ strides l) layouts
+
+allStridesAreUnique :: [RLayout] -> Bool
+allStridesAreUnique layouts =
+  let allStrides = L.concatMap strides layouts in
+  (L.length $ L.nub allStrides) == L.length allStrides
+
+\end{code}
+
+\section{Stride to dimension map construction}
+
+When dimensions and strides are all variables, dimension and stride variables
+are separable, and all stride variables are unique it is possible to assign
+legal dimension and stride values by picking random natural numbers (not including
+zero) for dimensions and then for each matrix assigning the row
+stride for that matrix to be the number of columns or the columns stride to be the
+number of rows and then leaving the other stride as 1. In order to do this we need
+to have a map from the stride variables involved in a problem to the size variables
+that determine them.
+
+\begin{code}
+
+rowStrideToColSizeMap :: [RLayout] -> Map Size Size
+rowStrideToColSizeMap layouts =
+  let rowStrideColSizePairs = L.map (\l -> (view rrs l, view rnc l)) layouts in
+  M.fromList rowStrideColSizePairs
+
+colStrideToRowSizeMap :: [RLayout] -> Map Size Size
+colStrideToRowSizeMap layouts =
+  let colStrideToRowSizePairs = L.map (\l -> (view rcs l, view rnr l)) layouts in
+  M.fromList colStrideToRowSizePairs
 
 \end{code}
 
