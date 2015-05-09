@@ -156,6 +156,7 @@ tcStmt (MStmt n e _) = do
   case containsSymbol n st of
     True -> do
       doAssignmentSubstitutions (getMOpSymInfo n getLayout st) l
+      st2 <- get
       return ()
     False -> do
       put $ addMOpEntry n (mOpSymInfo local t l) st
@@ -184,23 +185,23 @@ simplifyLayoutsUOp MatTrans l = do
 
 simplifyLayoutsBOp :: MatBOp -> Layout -> Layout -> State MOpSymtab Layout
 simplifyLayoutsBOp MatMul leftL rightL = do
-  l1 <- doSubstitution (view nc leftL) (view nr rightL) leftL
-  return $ layout (view nr l1) (view nc rightL) (view rs l1) (view cs l1)
+  (newL, newR) <- doSubstitution (view nc leftL) (view nr rightL) leftL rightL
+  return $ layout (view nr newL) (view nc newR) (view rs newL) (view cs newL)
 simplifyLayoutsBOp ScalMul _ rightL = do
   return rightL
 simplifyLayoutsBOp b leftL rightL = do
-  l1 <- doSubstitution (view nr leftL) (view nr rightL) leftL
-  l2 <- doSubstitution (view nc leftL) (view nc rightL) l1
-  return l2
+  (newL, newR) <- doSubstitution (view nr leftL) (view nr rightL) leftL rightL
+  (resL, resR) <- doSubstitution (view nc leftL) (view nc rightL) newL newR
+  return resL
 
 doAssignmentSubstitutions :: Layout -> Layout -> State MOpSymtab Layout
 doAssignmentSubstitutions targetL resultL = do
-  newL <- doSubstitution (view nr targetL) (view nr resultL) targetL
-  resL <- doSubstitution (view nc newL) (view nc resultL) newL
-  return resL
+  (newT, newR) <- doSubstitution (view nr targetL) (view nr resultL) targetL resultL
+  (resT, resL) <- doSubstitution (view nc newT) (view nc newR) newT newR
+  return resT
 
-doSubstitution l r oldLayout = do
+doSubstitution l r layL layR = do
   st <- get
   put $ subInStLayouts l r st
-  return $ subInLayout l r oldLayout
+  return $ (subInLayout l r layL, subInLayout l r layR)
   

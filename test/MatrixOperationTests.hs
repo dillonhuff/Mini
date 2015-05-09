@@ -11,6 +11,7 @@ allMatrixOperationTests = do
   testFunction matrixOperationToMOp matOpToMOpCases
   testFunction (\e -> simplifySymtab e simpleSt) simpleStCases
   testFunction (\stmt -> typeCheckStmt stmt simpleSt) simpleStmtCases
+  testFunction (\stmt -> typeCheckStmt stmt complexSt) complexStmtCases
 
 matOpToMOpCases =
   [(dMatrixOperation "nothing" [] [], mOp "nothing" (mOpSymtab []) []),
@@ -56,11 +57,18 @@ simpleSt =
              ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]
 
 simpleStmtCases =
-  [(dMatAsg "A" (dMatName "B"), simpleSt),
+  [(dMatAsg "A" (dMatName "B"), aEqBSt),
    (dMatAsg "T" (dMatName "A"), asgSt),
    (dMatAsg "T" (dMatrixMul (dMatName "A") (dMatName "B")), asgMulSt),
    (dMatAsg "A" (dMatrixAdd (dMatName "A") (dMatName "B")), asgAddSt),
-   (dMatAsg "C" (dMatrixAdd (dMatName "A") (dMatName "B")), asgAddAssignSt)]
+   (dMatAsg "C" (dMatrixAdd (dMatName "A") (dMatName "B")), asgAddAssignSt),
+   (dMatAsg "C" (dMatrixMul (dMatName "A") (dMatName "B")), asgMulAssignSt)]
+
+aEqBSt =
+  mOpSymtab  [("A", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "ars") (iVar "acs")),
+             ("B", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "brs") (iVar "bcs")),
+             ("C", mOpSymInfo arg singleFloat $ layout (iVar "p") (iVar "q") (iVar "crs") (iVar "ccs")),
+             ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]
 
 asgSt =
   mOpSymtab [("A", mOpSymInfo arg singleFloat $ layout (iVar "k") (iVar "j") (iVar "ars") (iVar "acs")),
@@ -87,3 +95,25 @@ asgAddAssignSt =
              ("B", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "brs") (iVar "bcs")),
              ("C", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "crs") (iVar "ccs")),             
              ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]
+
+asgMulAssignSt =
+  mOpSymtab [("A", mOpSymInfo arg singleFloat $ layout (iVar "k") (iVar "l") (iVar "ars") (iVar "acs")),
+             ("B", mOpSymInfo arg singleFloat $ layout (iVar "l") (iVar "m") (iVar "brs") (iVar "bcs")),
+             ("C", mOpSymInfo arg singleFloat $ layout (iVar "k") (iVar "m") (iVar "crs") (iVar "ccs")),
+             ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]
+
+complexStmtCases =
+  [(dMatAsg "A" (dMatrixMul (dMatName "P") (dMatName "Q")), dupCondSt)]
+
+complexSt =
+  mOpSymtab [("A", dSInf "A" (iVar "a") (iVar "b")),
+             ("P", dSInf "P" (iVar "c") (iVar "b")),
+             ("Q", dSInf "Q" (iVar "b") (iVar "a"))]
+
+dupCondSt =
+  mOpSymtab [("A", dSInf "A" (iVar "c") (iVar "c")),
+             ("P", dSInf "P" (iVar "c") (iVar "c")),
+             ("Q", dSInf "Q" (iVar "c") (iVar "c"))]
+
+
+dSInf n r c = mOpSymInfo arg doubleFloat $ layout r c (iVar (n ++ "_rs")) (iVar (n ++ "_cs"))

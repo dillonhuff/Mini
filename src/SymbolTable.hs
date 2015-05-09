@@ -39,7 +39,10 @@ import IndexExpression
 
 data MOpSymtab
   = MOpSymtab (Map String MOpSymInfo)
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+
+instance Show MOpSymtab where
+  show (MOpSymtab m) = L.concat $ L.intersperse "\n" $ L.map show $ M.toList m
 
 mOpSymtab l = MOpSymtab $ M.fromList l
 
