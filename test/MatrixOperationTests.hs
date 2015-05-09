@@ -25,10 +25,10 @@ matOpToMOpCases =
 allConstSt =
   mOpSymtab symList
 
-symList = [("A", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
-           ("B", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
-           ("C", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124))),
-           ("tmp0", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124)))]
+symList = [("A", scSInf (iConst 17) (iConst 17) (iConst 1) (iConst 124)),
+           ("B", scSInf (iConst 17) (iConst 17) (iConst 1) (iConst 124)),
+           ("C", scSInf (iConst 17) (iConst 17) (iConst 1) (iConst 124)),
+           ("tmp0", scSInf (iConst 17) (iConst 17) (iConst 1) (iConst 124))]
   
 simpleStCases =
   [(dMatName "A", simpleSt),
@@ -117,3 +117,5 @@ dupCondSt =
 
 
 dSInf n r c = mOpSymInfo arg doubleFloat $ layout r c (iVar (n ++ "_rs")) (iVar (n ++ "_cs"))
+
+scSInf r c rStride cStride = mOpSymInfo arg singleFloat $ layout r c rStride cStride
