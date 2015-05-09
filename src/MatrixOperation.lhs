@@ -32,11 +32,13 @@ optimization
 
 \begin{code}
 module MatrixOperation(MatrixOperation,
+                       typeCheckMatrixOperation,
                        matAsg,
                        dMatAsg,
                        dMatrixOperation,
                        matrixOperation,
                        matrixOperationToMOp,
+                       getMatrixOpSymtab,
                        MatrixStmt,
                        matName, matrixAdd, matrixSub, matrixMul, matrixTrans, scalarMul,
                        dMatName, dMatrixAdd, dMatrixSub, dMatrixMul, dMatrixTrans, dScalarMul,
@@ -46,6 +48,7 @@ module MatrixOperation(MatrixOperation,
 import Control.Lens
 import Control.Monad
 import Control.Monad.State.Lazy
+import Data.List as L
 import Text.Parsec.Pos
 
 import MOpCodeGen
@@ -75,6 +78,8 @@ instance Eq MatrixOperation where
 matrixOperation name symt stmts sp = MatrixOperation name (mOpSymtab symt) stmts sp
 
 dMatrixOperation name symt stmts = matrixOperation name symt stmts dummyPos
+
+getMatrixOpSymtab (MatrixOperation _ st _ _) = st
 
 data MatrixStmt
   = MStmt String MExpr SourcePos
@@ -187,6 +192,14 @@ matrixExprToMInstrs (MatBinop MatSub a b _) = do
 \section{Type checking and temporary variable resolution}
 
 \begin{code}
+typeCheckMatrixOperation :: MatrixOperation -> MatrixOperation
+typeCheckMatrixOperation (MatrixOperation name symtab stmts p) =
+  MatrixOperation name (typeCheckStmts stmts symtab) stmts p
+
+typeCheckStmts :: [MatrixStmt] -> MOpSymtab -> MOpSymtab
+typeCheckStmts stmts st =
+  L.foldl (\symTab stmt -> typeCheckStmt stmt symTab) st stmts
+
 typeCheckStmt :: MatrixStmt -> MOpSymtab -> MOpSymtab
 typeCheckStmt stmt st = execState (tcStmt stmt) st
 

@@ -60,9 +60,10 @@ and vice versa
 This module uses TemplateHaskell to generate lenses
 for record data structures.
 
+\bigbreak
 \begin{code}
 {-# LANGUAGE TemplateHaskell #-}
-module TestCaseGeneration() where
+module TestCaseGeneration(genRowAndColMajorExamples) where
 
 import Control.Lens hiding (Const, const)
 import Control.Lens.TH
@@ -74,85 +75,12 @@ import Data.Maybe
 import GenerateRandomValues
 import IndexExpression
 import MapUtils
+import RestrictedLayout
 import SymbolTable
 
 \end{code}
+\bigbreak
 
-\section{Core data structures}
-
-The Size ADT represents the size of a dimension or stride.
-
-\begin{code}
-
-data Size
-  = Const Int
-  | Var String
-    deriving (Eq, Ord, Show)
-
-con i = Const i
-var i = Var i
-
-isVarSize (Var _) = True
-isVarSize _ = False
-
-\end{code}
-
-The RLayout data structure represents the format of a matrix.
-It is analagous to the Layout data structure, but it restricts
-strides and dimensions to be either vars or constants, not any
-form allowed by IExpr.
-
-\begin{code}
-
-data RLayout
-  = RLayout {
-    _rnr :: Size,
-    _rnc :: Size,
-    _rrs :: Size,
-    _rcs :: Size
-    } deriving (Eq, Ord, Show)
-
-makeLenses ''RLayout
-
-rLayout numRows numCols rowStride colStride = RLayout numRows numCols rowStride colStride
-
-dimensions l = [view rnr l, view rnc l]
-strides l = [view rrs l, view rcs l]
-
-dimensionVars l = L.filter isVarSize $ dimensions l
-strideVars l = L.filter isVarSize $ strides l
-\end{code}
-
-\section{Conversion operations}
-
-The following code converts normal Layouts stored in
-the symtab into restricted form or fails if the conversion
-cannot be done.
-
-\begin{code}
-
-ieToSize :: IExpr -> Maybe Size
-ieToSize ie =
-  case isConst ie of
-    True -> Just $ con $ constVal ie
-    False -> case isVar ie of
-      True -> Just $ var $ varName ie
-      False -> Nothing
-
-layoutToRLayout :: Layout -> Maybe RLayout
-layoutToRLayout l = do
-  r <- ieToSize $ view nr l
-  c <- ieToSize $ view nc l
-  rStride <- ieToSize $ view rs l
-  cStride <- ieToSize $ view cs l
-  return $ rLayout r c rStride cStride
-
-mOpSymtabToRLayouts :: MOpSymtab -> Maybe [RLayout]
-mOpSymtabToRLayouts symTab =
-  let layouts = allLayouts symTab in
-  sequence $ L.map layoutToRLayout layouts
-
-\end{code}
 
 \section{Check compliance with special cases}
 
@@ -160,6 +88,7 @@ The following functions check whether a group of
 RLayouts fits one of the forms that the system can
 generate test cases for.
 
+\bigbreak
 \begin{code}
 
 dimAndStrideVarsAreSeparable :: [RLayout] -> Bool
@@ -192,6 +121,7 @@ generalSeparableProblemWithUniqueStrides layouts =
     False -> Nothing
 
 \end{code}
+\bigbreak
 
 \section{Test case generation for problems with general, separable sizes and unique strides}
 
@@ -204,6 +134,7 @@ number of rows and then leaving the other stride as 1. In order to do this we ne
 to have a map from the stride variables involved in a problem to the size variables
 that determine them.
 
+\bigbreak
 \begin{code}
 
 rowStrideToColSizeMap :: [RLayout] -> Map Size Size
@@ -217,9 +148,11 @@ colStrideToRowSizeMap layouts =
   M.fromList colStrideToRowSizePairs
 
 \end{code}
+\bigbreak
 
 Dimensions are given random values in a specified range.
 
+\bigbreak
 \begin{code}
 
 assignRandomValuesToDims lo hi layouts =
@@ -227,10 +160,12 @@ assignRandomValuesToDims lo hi layouts =
   assignRandomValuesInRange lo hi allDimVars
 
 \end{code}
+\bigbreak
 
 Depending on whether the matrices are supposed to be in row or column major order
 either all column strides are set to 1 or all row strides are set to 1.
 
+\bigbreak
 \begin{code}
 
 unitRowStrides layouts =
@@ -242,12 +177,14 @@ unitColStrides layouts =
   M.fromList $ L.zip colStrides $ L.replicate (length colStrides) 1
 
 \end{code}
+\bigbreak
 
 Creating row major or column major example dimensions and strides is a matter
 of separating row strides, column strides and dimensions and then assigning
 the appropriate stride to be ones, and the dimensions to be random values in a range.
 The other stride's values are determined by the dimension values.
 
+\bigbreak
 \begin{code}
 
 generateRowMajorTestCase lo hi layouts = do
@@ -255,16 +192,17 @@ generateRowMajorTestCase lo hi layouts = do
   let colStrides = unitColStrides layouts
       rowStridesToDims = rowStrideToColSizeMap layouts
       rowStrides = chain rowStridesToDims dimVals in
-    return $ M.union (M.union colStrides rowStrides) dimVals
+    return $ M.mapKeys sizeName $ M.union (M.union colStrides rowStrides) dimVals
 
 generateColMajorTestCase lo hi layouts = do
   dimVals <- assignRandomValuesToDims lo hi layouts
   let rowStrides = unitRowStrides layouts
       colStridesToDims = colStrideToRowSizeMap layouts
       colStrides = chain colStridesToDims dimVals in
-    return $ M.union (M.union colStrides rowStrides) dimVals
+    return $ M.mapKeys sizeName $ M.union (M.union colStrides rowStrides) dimVals
 
 \end{code}
+\bigbreak
 
 In practice the module needs to take in a symbol table, convert its entries into
 the restricted layout format, check that the dimensions
@@ -272,6 +210,7 @@ and strides are general and separable and that strides are unique and then gener
 a test case. In addition we want the final test case to simply be a map from String
 to Int so that other modules don't have to manipulate the restricted layout.
 
+\bigbreak
 \begin{code}
 
 genRowAndColMajorExamples lo hi st =
@@ -284,6 +223,6 @@ genSeparableLayouts st = do
   layouts <- mOpSymtabToRLayouts st
   generalSeparableProblemWithUniqueStrides layouts
 
-\end{code}
+\end{code}\bigbreak
 
 \end{document}

@@ -10,20 +10,28 @@ import MatrixOperation
 import MOpSyntax
 import MiniOperation
 import Parser
+import RunFrontEnd
 import RuntimeEvaluation
 import SymbolTable
 import Syntax
 
---fileName = "/Users/dillon/Haskell/Mini/ExampleLib.lspc"
+fileName = "/Users/dillon/Haskell/Mini/BLASLike.lspc"
+cResFileName = "/Users/dillon/Haskell/Mini/BLASLike.c"
 
 main :: IO ()
 main = do
-  (fileName:cResFileName:rest) <- getArgs
+--  (fileName:cResFileName:rest) <- getArgs
   fileContents <- readFile fileName
-  putStrLn $ libSpecToCString fileName fileContents
-  writeFile cResFileName (libSpecToCString fileName fileContents)
+  let frontEndRes = runFrontEnd fileName fileContents in
+    case frontEndRes of
+      Left err -> putStrLn err
+      Right res -> do
+        mOps <- res
+        putStrLn $ show mOps
+--  putStrLn $ libSpecToCString fileName fileContents
+--  writeFile cResFileName $ show (runFrontEnd fileName fileContents)
 
-libSpecToCString fileName libSpecStr =
+{-libSpecToCString fileName libSpecStr =
   let matOps = readLibSpec fileName libSpecStr in
   L.concatMap matrixOpToCString matOps
 
@@ -36,3 +44,4 @@ readLibSpec fileName libSpecStr =
 matrixOpToCString matOp =
   prettyPrint 0 $ toCFunc $ convertToMini $ matrixOperationToMOp matOp
 
+-}
