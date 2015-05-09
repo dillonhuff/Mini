@@ -2,6 +2,7 @@
 
 module SymbolTable(MOpSymtab,
                    mOpSymtab,
+                   allLayouts,
                    mOpSymtabToMiniSymtab,
                    containsSymbol,
                    addMOpEntry,
@@ -48,6 +49,8 @@ containsSymbol n (MOpSymtab m) =
   case M.lookup n m of
     Just _ -> True
     _ -> False
+
+
 
 subInStLayouts target result (MOpSymtab m) =
   MOpSymtab $ M.map (\inf -> subLayoutInfo target result inf) m
@@ -214,3 +217,5 @@ isBuffer _ = False
 
 makeLenses ''Layout
 makeLenses ''MOpSymInfo
+
+allLayouts (MOpSymtab m) = L.map (\inf -> view symLayout inf) $ L.map snd $ M.toList m

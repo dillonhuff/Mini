@@ -18,7 +18,7 @@ top of the MonadRandom library.
 
 \begin{code}
 
-module GenerateRandomNumbers(assignRandomValuesInRange) where
+module GenerateRandomValues(assignRandomValuesInRange) where
 
 import Control.Monad.Random
 import Data.List as L

@@ -66,11 +66,16 @@ module TestCaseGeneration() where
 
 import Control.Lens hiding (Const, const)
 import Control.Lens.TH
+import Control.Monad.Random
 import Data.List as L
 import Data.Map as M
+import Data.Maybe
 
+import GenerateRandomValues
 import IndexExpression
+import MapUtils
 import SymbolTable
+
 \end{code}
 
 \section{Core data structures}
@@ -142,6 +147,11 @@ layoutToRLayout l = do
   cStride <- ieToSize $ view cs l
   return $ rLayout r c rStride cStride
 
+mOpSymtabToRLayouts :: MOpSymtab -> Maybe [RLayout]
+mOpSymtabToRLayouts symTab =
+  let layouts = allLayouts symTab in
+  sequence $ L.map layoutToRLayout layouts
+
 \end{code}
 
 \section{Check compliance with special cases}
@@ -175,9 +185,15 @@ allStridesAreUnique layouts =
   let allStrides = L.concatMap strides layouts in
   (L.length $ L.nub allStrides) == L.length allStrides
 
+generalSeparableProblemWithUniqueStrides :: [RLayout] -> Maybe [RLayout]
+generalSeparableProblemWithUniqueStrides layouts =
+  case dimAndStrideVarsAreSeparable layouts && allDimsAndStridesAreVars layouts && allStridesAreUnique layouts of
+    True -> Just layouts
+    False -> Nothing
+
 \end{code}
 
-\section{Stride to dimension map construction}
+\section{Test case generation for problems with general, separable sizes and unique strides}
 
 When dimensions and strides are all variables, dimension and stride variables
 are separable, and all stride variables are unique it is possible to assign
@@ -199,6 +215,74 @@ colStrideToRowSizeMap :: [RLayout] -> Map Size Size
 colStrideToRowSizeMap layouts =
   let colStrideToRowSizePairs = L.map (\l -> (view rcs l, view rnr l)) layouts in
   M.fromList colStrideToRowSizePairs
+
+\end{code}
+
+Dimensions are given random values in a specified range.
+
+\begin{code}
+
+assignRandomValuesToDims lo hi layouts =
+  let allDimVars = L.concatMap dimensionVars layouts in
+  assignRandomValuesInRange lo hi allDimVars
+
+\end{code}
+
+Depending on whether the matrices are supposed to be in row or column major order
+either all column strides are set to 1 or all row strides are set to 1.
+
+\begin{code}
+
+unitRowStrides layouts =
+  let rowStrides = L.map (\l -> view rrs l) layouts in
+  M.fromList $ L.zip rowStrides $ L.replicate (length rowStrides) 1
+
+unitColStrides layouts =
+  let colStrides = L.map (\l -> view rcs l) layouts in
+  M.fromList $ L.zip colStrides $ L.replicate (length colStrides) 1
+
+\end{code}
+
+Creating row major or column major example dimensions and strides is a matter
+of separating row strides, column strides and dimensions and then assigning
+the appropriate stride to be ones, and the dimensions to be random values in a range.
+The other stride's values are determined by the dimension values.
+
+\begin{code}
+
+generateRowMajorTestCase lo hi layouts = do
+  dimVals <- assignRandomValuesToDims lo hi layouts
+  let colStrides = unitColStrides layouts
+      rowStridesToDims = rowStrideToColSizeMap layouts
+      rowStrides = chain rowStridesToDims dimVals in
+    return $ M.union (M.union colStrides rowStrides) dimVals
+
+generateColMajorTestCase lo hi layouts = do
+  dimVals <- assignRandomValuesToDims lo hi layouts
+  let rowStrides = unitRowStrides layouts
+      colStridesToDims = colStrideToRowSizeMap layouts
+      colStrides = chain colStridesToDims dimVals in
+    return $ M.union (M.union colStrides rowStrides) dimVals
+
+\end{code}
+
+In practice the module needs to take in a symbol table, convert its entries into
+the restricted layout format, check that the dimensions
+and strides are general and separable and that strides are unique and then generate
+a test case. In addition we want the final test case to simply be a map from String
+to Int so that other modules don't have to manipulate the restricted layout.
+
+\begin{code}
+
+genRowAndColMajorExamples lo hi st =
+  let layouts = genSeparableLayouts st in
+      case layouts of
+        Just ls -> sequence $ [generateColMajorTestCase lo hi ls, generateRowMajorTestCase lo hi ls]
+        Nothing -> return []
+  
+genSeparableLayouts st = do
+  layouts <- mOpSymtabToRLayouts st
+  generalSeparableProblemWithUniqueStrides layouts
 
 \end{code}
 
