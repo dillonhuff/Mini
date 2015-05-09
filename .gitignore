@@ -1,4 +1,13 @@
 *~
 eval_folder/*
 run_data/*
+dist/*
+*.aux
+*.log
+*.ptb
+*.o
+*.c
+*.tex
+*.pdf
+*.out
 *#
