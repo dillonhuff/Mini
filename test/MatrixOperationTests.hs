@@ -19,20 +19,29 @@ allMatrixOperationTests = do
 
 matOpToMOpCases =
   [(dMatrixOperation "nothing" [] [], mOp "nothing" (mOpSymtab []) []),
-   (dMatrixOperation "arg" [("A", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124)))] [],
-    mOp "arg" (mOpSymtab [("A", mOpSymInfo arg singleFloat (layout (iConst 17) (iConst 17) (iConst 1) (iConst 124)))]) []),
+   (dMatrixOperation "arg" symList [], mOp "arg" allConstSt []),
    (dMatrixOperation "oneOp" symList [dMatAsg "C" (dMatrixSub (dMatName "A") (dMatName "B"))],
     mOp "oneOp" allConstSt [msub "A" "B" "tmp0", masg "tmp0" "C"]),
    (dMatrixOperation "oneOp" symList [dMatAsg "C" (dMatrixAdd (dMatName "A") (dMatName "B"))],
-    mOp "oneOp" allConstSt [madd "A" "B" "tmp0", masg "tmp0" "C"])]
+    mOp "oneOp" allConstSt [madd "A" "B" "tmp0", masg "tmp0" "C"]),
+   (dMatrixOperation "oneSMul" symList [dMatAsg "A" (dScalarMul (dMatName "alpha") (dMatName "A"))],
+    mOp "oneSMul" allConstSt [msmul "alpha" "A" "tmp0", masg "tmp0" "A"]),
+   (dMatrixOperation "oneMMul" symList [dMatAsg "P" (dMatrixMul (dMatName "P") (dMatName "Q"))],
+    mOp "oneMMul" mmulSt [mset "tmp0" (mOpDouble 0.0), mmul "P" "Q" "tmp0", masg "tmp0" "P"])]
+
+mmulSt =
+  addMOpEntry "tmp0" (mOpSymInfo local singleFloat $ layout (iVar "m") (iVar "k") (iConst 1) (iVar "m")) $ mOpSymtab symList
 
 allConstSt =
-  mOpSymtab symList
+  addMOpEntry "tmp0" (scSInfLoc (iConst 17) (iConst 17) (iConst 1) (iConst 124)) $ mOpSymtab symList
 
 symList = [("A", scSInf (iConst 17) (iConst 17) (iConst 1) (iConst 124)),
            ("B", scSInf (iConst 17) (iConst 17) (iConst 1) (iConst 124)),
            ("C", scSInf (iConst 17) (iConst 17) (iConst 1) (iConst 124)),
-           ("tmp0", scSInf (iConst 17) (iConst 17) (iConst 1) (iConst 124))]
+           ("Q", sSInf "Q" (iVar "n") (iVar "k")),
+           ("P", sSInf "P" (iVar "m") (iVar "n")),           
+           ("alpha", scSInf (iConst 1) (iConst 1) (iConst 1) (iConst 1)),
+           ("tmp0", scSInfLoc (iConst 17) (iConst 17) (iConst 1) (iConst 124))]
   
 simpleStCases =
   L.map (\(x, y) -> (x, Right y))
@@ -138,5 +147,8 @@ simpleFailCases =
    (dMatAsg "A" (dMatrixMul (dMatrixTrans (dMatName "K")) (dMatName "L")), Left "fail")]
 
 dSInf n r c = mOpSymInfo arg doubleFloat $ layout r c (iVar (n ++ "_rs")) (iVar (n ++ "_cs"))
+sSInf n r c = mOpSymInfo arg singleFloat $ layout r c (iVar (n ++ "_rs")) (iVar (n ++ "_cs"))
 
 scSInf r c rStride cStride = mOpSymInfo arg singleFloat $ layout r c rStride cStride
+scSInfLoc r c rStride cStride = mOpSymInfo local singleFloat $ layout r c rStride cStride
+sSInfLoc n r c = mOpSymInfo local singleFloat $ layout r c (iVar (n ++ "_rs")) (iVar (n ++ "_cs"))

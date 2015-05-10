@@ -27,13 +27,10 @@ data MOp
     _mOpInstrs :: [MInstr]
     } deriving (Eq, Ord, Show)
 
-
-
 mOp name symtab instrs = MOp name symtab instrs
 
 addMInstr :: MInstr -> MOp -> MOp
 addMInstr i (MOp n st instrs) = MOp n st (instrs ++ [i])
-
 
 data MInstr
   = MBinop MBOp String String String

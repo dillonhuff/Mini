@@ -117,11 +117,10 @@ freshTempVar = do
       put $ over mcgNextInt (+1) cg
       return name
 
-addTmpToSymtab :: MOpSymInfo -> State MOpCodeGen String
-addTmpToSymtab symInf = do
+addTmpToSymtab entType l = do
   cg <- get
   nextName <- freshTempVar
-  put $ over (mcgMOp . mOpSymT) (\s -> addMOpEntry nextName symInf s) cg
+  put $ over (mcgMOp . mOpSymT) (\s -> addMOpEntry nextName (mOpSymInfo local entType l) s) cg
   return nextName
 
 matrixExprToMInstrs :: MExpr -> State MOpCodeGen (String, MOpSymInfo)
@@ -132,16 +131,35 @@ matrixExprToMInstrs (MatBinop MatAdd a b _) = do
   (aName, aInfo) <- matrixExprToMInstrs a
   (bName, bInfo) <- matrixExprToMInstrs b
   op <- get
-  newName <- addTmpToSymtab aInfo
+  newName <- addTmpToSymtab (view symEntryType aInfo) (view symLayout aInfo)
   addInstr $ madd aName bName newName
   return (newName, aInfo)
 matrixExprToMInstrs (MatBinop MatSub a b _) = do
   (aName, aInfo) <- matrixExprToMInstrs a
   (bName, bInfo) <- matrixExprToMInstrs b
   op <- get
-  newName <- addTmpToSymtab aInfo
+  newName <- addTmpToSymtab (view symEntryType aInfo) (view symLayout aInfo)
   addInstr $ msub aName bName newName
   return (newName, aInfo)
+matrixExprToMInstrs (MatBinop ScalMul a b _) = do
+  (aName, aInfo) <- matrixExprToMInstrs a
+  (bName, bInfo) <- matrixExprToMInstrs b
+  op <- get
+  newName <- addTmpToSymtab (view symEntryType bInfo) (view symLayout bInfo)
+  addInstr $ msmul aName bName newName
+  return (newName, aInfo)
+matrixExprToMInstrs (MatBinop MatMul a b _) = do
+  (aName, aInfo) <- matrixExprToMInstrs a
+  (bName, bInfo) <- matrixExprToMInstrs b
+  op <- get
+  newName <- addTmpToSymtab (view symEntryType aInfo) $ mmulLayout (view symLayout aInfo) (view symLayout bInfo)
+  addInstr $ mset newName (mOpDouble 0.0)
+  addInstr $ mmul aName bName newName
+  return (newName, aInfo)
+
+-- For now always generate column major results
+mmulLayout l r =
+  layout (view nr l) (view nc r) (iConst 1) (view nr l)
 
 typeCheckMatrixOperation :: MatrixOperation -> Either String MatrixOperation
 typeCheckMatrixOperation (MatrixOperation name symtab stmts p) = do
