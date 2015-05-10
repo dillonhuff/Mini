@@ -1,6 +1,9 @@
 module MatrixOperation(MatrixOperation,
                        typeCheckMatrixOperation,
                        matAsg,
+                       symProp,
+                       execTypeCheck,
+                       runTypeCheck,
                        dMatAsg,
                        dMatrixOperation,
                        matrixOperation,
@@ -14,10 +17,12 @@ module MatrixOperation(MatrixOperation,
 
 import Control.Lens
 import Control.Monad
+import Control.Monad.Except
 import Control.Monad.State.Lazy
 import Data.List as L
 import Text.Parsec.Pos
 
+import IndexExpression
 import MOpCodeGen
 import MOpSyntax
 import SymbolTable
@@ -138,18 +143,24 @@ matrixExprToMInstrs (MatBinop MatSub a b _) = do
   addInstr $ msub aName bName newName
   return (newName, aInfo)
 
-typeCheckMatrixOperation :: MatrixOperation -> MatrixOperation
-typeCheckMatrixOperation (MatrixOperation name symtab stmts p) =
-  MatrixOperation name (typeCheckStmts stmts symtab) stmts p
+typeCheckMatrixOperation :: MatrixOperation -> Either String MatrixOperation
+typeCheckMatrixOperation (MatrixOperation name symtab stmts p) = do
+  newSymtab <- typeCheckStmts stmts symtab
+  return $ MatrixOperation name newSymtab stmts p
 
-typeCheckStmts :: [MatrixStmt] -> MOpSymtab -> MOpSymtab
+typeCheckStmts :: [MatrixStmt] -> MOpSymtab -> Either String MOpSymtab
 typeCheckStmts stmts st =
-  L.foldl (\symTab stmt -> typeCheckStmt stmt symTab) st stmts
+  foldM (\symTab stmt -> typeCheckStmt stmt symTab) st stmts
 
-typeCheckStmt :: MatrixStmt -> MOpSymtab -> MOpSymtab
-typeCheckStmt stmt st = execState (tcStmt stmt) st
+typeCheckStmt :: MatrixStmt -> MOpSymtab -> Either String MOpSymtab
+typeCheckStmt stmt st = execTypeCheck (tcStmt stmt) st
 
-tcStmt :: MatrixStmt -> State MOpSymtab ()
+type TypeCheck a = StateT a (ExceptT String Identity)
+
+execTypeCheck a b = runIdentity $ runExceptT $ execStateT a b
+runTypeCheck a b = runStateT a b
+
+tcStmt :: MatrixStmt -> TypeCheck MOpSymtab ()
 tcStmt (MStmt n e _) = do
   (l, t) <- simplifyStWithExpr e
   st <- get
@@ -162,13 +173,22 @@ tcStmt (MStmt n e _) = do
       put $ addMOpEntry n (mOpSymInfo local t l) st
       return ()
 
-simplifySymtab :: MExpr -> MOpSymtab -> MOpSymtab
-simplifySymtab e st = execState (simplifyStWithExpr e) st
+simplifySymtab :: MExpr -> MOpSymtab -> Either String MOpSymtab
+simplifySymtab e st = execTypeCheck (simplifyStWithExpr e) st
 
-simplifyStWithExpr :: MExpr -> State MOpSymtab (Layout, EntryType)
+symProp :: String -> (MOpSymInfo -> a) -> TypeCheck MOpSymtab a
+symProp n f = do
+  st <- get
+  case getMOpSymInfoM n f st of
+    Just p -> return p
+    Nothing -> throwError $ "Symprop failed: Could not find " ++ n ++ " in " ++ show st
+
+simplifyStWithExpr :: MExpr -> TypeCheck MOpSymtab (Layout, EntryType)
 simplifyStWithExpr (VarName n _) = do
   st <- get
-  return $ (getMOpSymInfo n getLayout st, getEntryType n st)
+  layoutL <- symProp n getLayout
+  entL <- symProp n entryType
+  return (layoutL, entL)
 simplifyStWithExpr (MatUnop u a _) = do
   (aL, t) <- simplifyStWithExpr a
   resL <- simplifyLayoutsUOp u aL
@@ -179,11 +199,11 @@ simplifyStWithExpr (MatBinop b l r _) = do
   resL <- simplifyLayoutsBOp b leftL rightL
   return (resL, t)
 
-simplifyLayoutsUOp :: MatUOp -> Layout -> State MOpSymtab Layout
+simplifyLayoutsUOp :: MatUOp -> Layout -> TypeCheck MOpSymtab Layout
 simplifyLayoutsUOp MatTrans l = do
   return $ layout (view nc l) (view nr l) (view cs l) (view rs l)
 
-simplifyLayoutsBOp :: MatBOp -> Layout -> Layout -> State MOpSymtab Layout
+simplifyLayoutsBOp :: MatBOp -> Layout -> Layout -> TypeCheck MOpSymtab Layout
 simplifyLayoutsBOp MatMul leftL rightL = do
   (newL, newR) <- doSubstitution (view nc leftL) (view nr rightL) leftL rightL
   return $ layout (view nr newL) (view nc newR) (view rs newL) (view cs newL)
@@ -194,14 +214,18 @@ simplifyLayoutsBOp b leftL rightL = do
   (resL, resR) <- doSubstitution (view nc leftL) (view nc rightL) newL newR
   return resL
 
-doAssignmentSubstitutions :: Layout -> Layout -> State MOpSymtab Layout
+doAssignmentSubstitutions :: Layout -> Layout -> TypeCheck MOpSymtab Layout
 doAssignmentSubstitutions targetL resultL = do
   (newT, newR) <- doSubstitution (view nr targetL) (view nr resultL) targetL resultL
   (resT, resL) <- doSubstitution (view nc newT) (view nc newR) newT newR
   return resT
 
-doSubstitution l r layL layR = do
-  st <- get
-  put $ subInStLayouts l r st
-  return $ (subInLayout l r layL, subInLayout l r layR)
-  
+doSubstitution l r layL layR =
+  case bothVarsOrEqual l r of
+    True -> do
+      st <- get
+      put $ subInStLayouts l r st
+      return $ (subInLayout l r layL, subInLayout l r layR)
+    False -> throwError $ "Incompatible index values: " ++ show l ++ show r
+
+bothVarsOrEqual l r = (isVar l && isVar r) || (l == r)

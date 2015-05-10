@@ -1,5 +1,8 @@
 module MatrixOperationTests(allMatrixOperationTests) where
 
+import Control.Monad.Except
+import Data.List as L
+
 import IndexExpression
 import MatrixOperation
 import MOpSyntax
@@ -12,6 +15,7 @@ allMatrixOperationTests = do
   testFunction (\e -> simplifySymtab e simpleSt) simpleStCases
   testFunction (\stmt -> typeCheckStmt stmt simpleSt) simpleStmtCases
   testFunction (\stmt -> typeCheckStmt stmt complexSt) complexStmtCases
+  testFunction (\stmt -> typeCheckFailed stmt simpleFailSt) simpleFailCases
 
 matOpToMOpCases =
   [(dMatrixOperation "nothing" [] [], mOp "nothing" (mOpSymtab []) []),
@@ -31,6 +35,7 @@ symList = [("A", scSInf (iConst 17) (iConst 17) (iConst 1) (iConst 124)),
            ("tmp0", scSInf (iConst 17) (iConst 17) (iConst 1) (iConst 124))]
   
 simpleStCases =
+  L.map (\(x, y) -> (x, Right y))
   [(dMatName "A", simpleSt),
    (dMatrixAdd (dMatName "A") (dMatName "B"), addSt),
    (dMatrixSub (dMatName "A") (dMatName "B"), addSt),
@@ -57,6 +62,7 @@ simpleSt =
              ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]
 
 simpleStmtCases =
+  L.map (\(x, y) -> (x, Right y))
   [(dMatAsg "A" (dMatName "B"), aEqBSt),
    (dMatAsg "T" (dMatName "A"), asgSt),
    (dMatAsg "T" (dMatrixMul (dMatName "A") (dMatName "B")), asgMulSt),
@@ -103,6 +109,7 @@ asgMulAssignSt =
              ("alpha", mOpSymInfo arg singleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))]
 
 complexStmtCases =
+  L.map (\(x, y) -> (x, Right y))
   [(dMatAsg "A" (dMatrixMul (dMatName "P") (dMatName "Q")), dupCondSt)]
 
 complexSt =
@@ -115,6 +122,20 @@ dupCondSt =
              ("P", dSInf "P" (iVar "c") (iVar "c")),
              ("Q", dSInf "Q" (iVar "c") (iVar "c"))]
 
+typeCheckFailed stmt st =
+  case typeCheckStmt stmt st of
+    Left err -> Left "fail"
+    Right st -> Right st
+
+simpleFailSt =
+  mOpSymtab [("A", dSInf "A" (iVar "m") (iVar "n")),
+             ("K", dSInf "K" (iConst 12) (iVar "n")),
+             ("L", dSInf "L" (iConst 14) (iVar "n"))]
+
+simpleFailCases =
+  [(dMatAsg "A" (dMatName "X"), Left "fail"),
+   (dMatAsg "A" (dMatrixAdd (dMatName "K") (dMatName "L")), Left "fail"),
+   (dMatAsg "A" (dMatrixMul (dMatrixTrans (dMatName "K")) (dMatName "L")), Left "fail")]
 
 dSInf n r c = mOpSymInfo arg doubleFloat $ layout r c (iVar (n ++ "_rs")) (iVar (n ++ "_cs"))
 

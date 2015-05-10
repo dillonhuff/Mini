@@ -12,6 +12,9 @@ module SymbolTable(MOpSymtab,
                    mOpSymInfo,
                    getMOpSymInfo,
                    getNumRows, getNumCols, getRowStride, getColStride, getLayout, getEntryType,
+                   getMOpSymInfoM,
+                   entryType, numRows, numCols, rowStride, colStride,
+                   getNumRowsM, getNumColsM, getRowStrideM, getColStrideM, getEntryTypeM,
                    accessExpr,
                    Layout, layout, nr, nc, rs, cs,
                    subInLayout,
@@ -53,8 +56,6 @@ containsSymbol n (MOpSymtab m) =
     Just _ -> True
     _ -> False
 
-
-
 subInStLayouts target result (MOpSymtab m) =
   MOpSymtab $ M.map (\inf -> subLayoutInfo target result inf) m
 
@@ -79,6 +80,18 @@ getNumRows n st = getMOpSymInfo n numRows st
 getNumCols n st = getMOpSymInfo n numCols st
 getRowStride n st = getMOpSymInfo n rowStride st
 getColStride n st = getMOpSymInfo n colStride st
+
+getMOpSymInfoM :: String -> (MOpSymInfo -> a) -> MOpSymtab -> Maybe a
+getMOpSymInfoM symName f st@(MOpSymtab symMap) =
+  case M.lookup symName symMap of
+    Just info -> Just $ f info
+    Nothing -> Nothing
+
+getEntryTypeM n st = getMOpSymInfoM n entryType st
+getNumRowsM n st = getMOpSymInfoM n numRows st
+getNumColsM n st = getMOpSymInfoM n numCols st
+getRowStrideM n st = getMOpSymInfoM n rowStride st
+getColStrideM n st = getMOpSymInfoM n colStride st
 
 data MOpSymInfo
   = MOpSymInfo {
