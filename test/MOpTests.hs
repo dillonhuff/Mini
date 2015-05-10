@@ -37,7 +37,7 @@ masgOp =
   mOp "one_matrix_assign" masgOpSym [masg "a" "b"]
 
 masgOpSym = mOpSymtab [("a", mOpSymInfo arg doubleFloat argLayout),
-                     ("b", mOpSymInfo arg doubleFloat argLayout)]
+                       ("b", mOpSymInfo arg doubleFloat argLayout)]
 
 mmmulOp =
   mOp "one_matrix_multiply" mmmulOpSym [mmul "a" "b" "c"]
@@ -202,11 +202,11 @@ innerAsgFor = for "j" (iConst 0) (iConst 1) (iConst 3) (block masgBodyStatements
 
 masgBodyStatements =
   [load "a_r" "a" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "",
-   store "c" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "a_r" ""]
+   store "b" (iAdd (iMul (iConst 1) (iVar "i")) (iMul (iConst 8) (iVar "j"))) "a_r" ""]
 
 masgSym =
   miniSymtab [("a", symInfo (buffer double $ iConst 24) arg),
-              ("c", symInfo (buffer double $ iConst 24) arg),
+              ("b", symInfo (buffer double $ iConst 24) arg),
               ("a_r", symInfo (sReg double) local),
               ("i", symInfo index local),
               ("j", symInfo index local)]
