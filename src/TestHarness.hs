@@ -8,7 +8,7 @@ import CGen
 import EvaluationResult
 import IndexExpression
 import MiniOperation
-import SymbolTable
+import SymbolTable hiding (getBufferSize)
 import Syntax
 import SystemSettings
 
@@ -16,7 +16,7 @@ cTestHarness :: (Show a) => a -> Map String Int -> String -> Maybe (Operation a)
 cTestHarness dummyAnn indexVals opName (Just scImp) implsToTime = 
   let opNames = L.map getOpName implsToTime in
   L.concatMap (\decl -> (prettyPrint 0 decl) ++ "\n") $
-  prelude (scImp:implsToTime) ++
+  prelude dummyAnn (scImp:implsToTime) ++
   [sanityCheckFunc dummyAnn indexVals scImp implsToTime,
    timingFunc dummyAnn indexVals implsToTime,
    mainFunc dummyAnn (dataFileName opName)]
@@ -53,9 +53,9 @@ parseSCResults [] = []
 parseSCResults (n:passFail:rest) = (n, if passFail == "passed" then True else False):(parseSCResults rest)
 parseSCResults other = error $ "parseSCResults failed with " ++ show other
 
-prelude :: [Operation a] -> [CTopLevelItem a]
-prelude impls =
-  let cImplFuncs = L.map toCFunc impls
+prelude :: a -> [Operation a] -> [CTopLevelItem a]
+prelude dummyAnn impls =
+  let cImplFuncs = L.map (toCFunc dummyAnn) impls
       includes = [cInclude "<stdio.h>", cInclude "<stdlib.h>", cInclude "<string.h>", cInclude "\"mini_utilities.h\""] in
   includes ++ cImplFuncs
 

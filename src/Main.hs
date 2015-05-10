@@ -22,26 +22,17 @@ main :: IO ()
 main = do
 --  (fileName:cResFileName:rest) <- getArgs
   fileContents <- readFile fileName
-  let frontEndRes = runFrontEnd fileName fileContents in
-    case frontEndRes of
-      Left err -> putStrLn err
-      Right res -> do
-        mOps <- res
-        putStrLn $ show mOps
---  putStrLn $ libSpecToCString fileName fileContents
---  writeFile cResFileName $ show (runFrontEnd fileName fileContents)
+  frontEndRes <- runFrontEnd fileName fileContents
+  case frontEndRes of
+    Left err -> putStrLn err
+    Right res -> writeFile cResFileName (opCStrings res)
 
-{-libSpecToCString fileName libSpecStr =
-  let matOps = readLibSpec fileName libSpecStr in
-  L.concatMap matrixOpToCString matOps
+showOpCStrings opsAndTestCases =
+  putStrLn $ opCStrings opsAndTestCases
 
-readLibSpec fileName libSpecStr =
-  let libSpecParseRes = (lexString fileName libSpecStr) >>= (parseOperation fileName) in
-  case libSpecParseRes of
-    Left err -> error $ show err
-    Right res -> res
+opCStrings opsAndTestCases =
+  "#include <stdlib.h>\n" ++ (L.concat $ L.intersperse "\n" $ L.map (\(op, _) -> matrixOpToCString op) opsAndTestCases)
 
 matrixOpToCString matOp =
-  prettyPrint 0 $ toCFunc $ convertToMini $ matrixOperationToMOp matOp
+  prettyPrint 0 $ (toCFunc "") $ convertToMini $ matrixOperationToMOp matOp
 
--}

@@ -12,6 +12,7 @@ module MOpSyntax(MOp,
 import Control.Lens as N
 import Control.Lens.TH
 import Control.Monad.State.Lazy
+import Data.List as L
 import Data.Map as M
 
 import IndexExpression
@@ -73,7 +74,7 @@ convertToMini :: MOp -> Operation String
 convertToMini (MOp n mSt instrs) = operation n finalMiniSt $ block finalStmts
   where
     initS = initialMiniCodeGenState mSt
-    finalS = execState (genMiniCode instrs) initS
+    finalS = execState (genMiniCode $ L.reverse instrs) initS
     finalMiniSt = view cgsMiniSymtab finalS
     finalStmts = view cgsStmts finalS
 

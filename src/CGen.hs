@@ -56,6 +56,7 @@ instance Show CType where
   show CVoid = "void"
 
 getReferencedType (CPtr tp) = tp
+getReferencedType other = error $ "trying to get referenced type of " ++ show other
 
 cULongLong = CULongLong
 cInt = CInt

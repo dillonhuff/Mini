@@ -22,7 +22,8 @@ module SymbolTable(MOpSymtab,
                    MiniSymtab,
                    miniSymtab,
                    getMiniSymInfo,
-                   getBufferType,
+                   getBufferType, getBufferSize,
+                   getTmpBuffers,
                    addEntry,
                    arguments, sReg, buffer, double, single, index,
                    localVars,
@@ -61,7 +62,15 @@ subInStLayouts target result (MOpSymtab m) =
 
 mOpSymtabToMiniSymtab :: MOpSymtab -> MiniSymtab
 mOpSymtabToMiniSymtab (MOpSymtab symMap) =
-  miniSymtab $ M.toList $ M.map mOpSymInfoToMiniSymInfo symMap
+  miniSymtab $ (M.toList $ M.map mOpSymInfoToMiniSymInfo symMap) ++ indexVars
+  where
+    indexVars = indexVarsFromMOpSyms $ M.toList symMap
+
+indexVarsFromMOpSyms :: [(String, MOpSymInfo)] -> [(String, SymbolInfo)]
+indexVarsFromMOpSyms mOpSyms =
+  L.map (\n -> (varName n, symInfo index arg)) $ L.filter isVar $ L.nub $ L.concatMap (\(n, inf) -> allLayoutParams inf) mOpSyms
+
+allLayoutParams (MOpSymInfo _ _ (Layout a b c d)) = [a, b, c, d]
 
 accessExpr :: String -> String -> String -> MOpSymtab -> IExpr
 accessExpr symName row col (MOpSymtab symMap) =
@@ -177,12 +186,18 @@ getBufferType n (MiniSymtab symMap) =
     Just info -> bufferType info
     Nothing -> error $ "Could not find symbol " ++ n ++ " in " ++ show symMap
 
+getBufferSize n st = getMiniSymInfo n bufferSize st
+
 arguments :: MiniSymtab -> [(String, Type)]
 arguments (MiniSymtab m) =
   L.map (\(n, inf) -> (n, symType inf)) $ L.filter (\(n, inf) -> symIsArg inf) $ M.toList m
 
 localVars (MiniSymtab m) =
   L.map (\(n, inf) -> (n, symType inf)) $ L.filter (\(n, inf) -> symIsLocalVar inf) $ M.toList m
+
+getTmpBuffers :: MiniSymtab -> [String]
+getTmpBuffers st =
+  L.map fst $ L.filter (\(n, tp) -> isBuffer tp) $ localVars st
 
 data SymbolInfo
   = SymbolInfo {
@@ -235,3 +250,4 @@ makeLenses ''Layout
 makeLenses ''MOpSymInfo
 
 allLayouts (MOpSymtab m) = L.map (\inf -> view symLayout inf) $ L.map snd $ M.toList m
+

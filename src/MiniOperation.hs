@@ -14,8 +14,8 @@ import Data.List as L
 
 import CGen
 import IndexExpression
-import SymbolTable
-import Syntax
+import SymbolTable hiding (getBufferSize)
+import Syntax 
 
 data Operation a
   = Operation String [Optimization a] MiniSymtab (Block a)
@@ -35,14 +35,15 @@ addOptimization opt (Operation n opts mst blk) = Operation (n ++ optimizationNam
 applyToOpBlock :: (Block a -> Block a) -> Operation a -> Operation a
 applyToOpBlock f (Operation n opts st b) = Operation n opts st (f b)
 
-toCFunc :: Operation a -> CTopLevelItem a
-toCFunc op = cFuncDecl cVoid (getOpName op) cArgs cBlock
+toCFunc :: a -> Operation a -> CTopLevelItem a
+toCFunc dummyAnn op = cFuncDecl cVoid (getOpName op) cArgs cCodeBlock
   where
     cArgs = L.map (\(n, tp) -> (toCType tp, n)) $ getOpArguments op
-    cBlock = toCBlock (getOpLocalVars op) (getOpBlock op)
+    cCodeBlock = toCBlock dummyAnn (getMiniOpSymtab op) (getOpLocalVars op) (getOpBlock op)
 
 operation n st blk = Operation n [] st blk
 
+getMiniOpSymtab (Operation _ _ st _) = st
 getOpName (Operation n _ _ _) = n
 getOpArguments (Operation _ _ st _) = arguments st
 getIndexArgs op = L.filter (\(n, tp) -> isIndex tp) $ getOpArguments op

@@ -25,11 +25,30 @@ prototype n st = "void " ++ n ++ "(" ++ argumentStr st ++ ")"
 argumentStr :: MiniSymtab -> String
 argumentStr st = L.concat $ L.intersperse ", " $ L.map (\(n, tp) -> show tp ++ " " ++ n) $ arguments st
 
-toCBlock :: [(String, Type)] -> Block a -> CBlock a
-toCBlock decls (Block stmts) = cBlock cDecls cStmts
+toCBlock :: a -> MiniSymtab -> [(String, Type)] -> Block a -> CBlock a
+toCBlock dummyAnn symT decls (Block stmts) = cBlock cDecls cStmts
   where
     cDecls = L.map (\(n, tp) -> (toCType tp, n)) decls
-    cStmts = L.map toCStmt $ stmts
+    tmpBuffers = getTmpBuffers symT
+    allocStmts = allocateBuffers dummyAnn tmpBuffers symT
+    bodyStmts = L.map toCStmt $ stmts
+    deallocStmts = freeBuffers dummyAnn tmpBuffers symT
+    cStmts = allocStmts ++ bodyStmts ++ deallocStmts
+
+allocateBuffers dummyAnn bufNames symT =
+  L.map (\n -> allocBuf dummyAnn n symT) bufNames
+
+allocBuf dummyAnn name symT =
+  cExprSt (cAssign (cVar name) (cFuncall "malloc" [cMul (cSizeOf bufTp) bufSz])) dummyAnn
+  where
+    bufTp = toCType $ getBufferType name symT
+    bufSz = iExprToCExpr $ getBufferSize name symT
+
+freeBuffers dummyAnn bufNames symT =
+  L.map (\n -> freeBuffer dummyAnn n symT) bufNames
+  
+freeBuffer dummyAnn bufName symT =
+  cExprSt (cFuncall "free" [cVar bufName]) dummyAnn
 
 data Block a
   = Block [Statement a]
