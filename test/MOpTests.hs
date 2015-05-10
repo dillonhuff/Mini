@@ -151,13 +151,13 @@ msmulSC =
 innerForSMul = for "j" (iConst 0) (iConst 1) (iConst 11) (block smulBodyStmts) ""
 
 smulBodyStmts =
-  [load "a_r" "a" (iAdd (iMul (iConst 0) (iVar "i")) (iMul (iConst 0) (iVar "j"))) "",
+  [load "a_r" "alpha" (iAdd (iMul (iConst 0) (iVar "i")) (iMul (iConst 0) (iVar "j"))) "",
    load "b_r" "b" (iAdd (iMul (iConst 12) (iVar "i")) (iMul (iConst 1) (iVar "j"))) "",
    times "b_r" "a_r" "b_r" "",
    store "c" (iAdd (iMul (iConst 12) (iVar "i")) (iMul (iConst 1) (iVar "j"))) "b_r" ""]
 
 smulSym =
-  miniSymtab [("a", symInfo (buffer single $ iConst 24) arg),
+  miniSymtab [("alpha", symInfo (buffer single $ iConst 1) arg),
               ("b", symInfo (buffer single $ iConst 24) arg),
               ("c", symInfo (buffer single $ iConst 24) arg),
               ("a_r", symInfo (sReg single) local),
