@@ -127,31 +127,32 @@ matrixExprToMInstrs :: MExpr -> State MOpCodeGen (String, MOpSymInfo)
 matrixExprToMInstrs (VarName n _) = do
   cg <- get
   return (n, getMOpSymInfo n id (view (mcgMOp . mOpSymT) cg))
+matrixExprToMInstrs (MatUnop MatTrans a _) = do
+  (aName, aInfo) <- matrixExprToMInstrs a
+  newName <- addTmpToSymtab (view symEntryType aInfo) $ transLayout (view symLayout aInfo)
+  addInstr $ mtrans aName newName
+  return (newName, aInfo)
 matrixExprToMInstrs (MatBinop MatAdd a b _) = do
   (aName, aInfo) <- matrixExprToMInstrs a
   (bName, bInfo) <- matrixExprToMInstrs b
-  op <- get
   newName <- addTmpToSymtab (view symEntryType aInfo) (view symLayout aInfo)
   addInstr $ madd aName bName newName
   return (newName, aInfo)
 matrixExprToMInstrs (MatBinop MatSub a b _) = do
   (aName, aInfo) <- matrixExprToMInstrs a
   (bName, bInfo) <- matrixExprToMInstrs b
-  op <- get
   newName <- addTmpToSymtab (view symEntryType aInfo) (view symLayout aInfo)
   addInstr $ msub aName bName newName
   return (newName, aInfo)
 matrixExprToMInstrs (MatBinop ScalMul a b _) = do
   (aName, aInfo) <- matrixExprToMInstrs a
   (bName, bInfo) <- matrixExprToMInstrs b
-  op <- get
   newName <- addTmpToSymtab (view symEntryType bInfo) (view symLayout bInfo)
   addInstr $ msmul aName bName newName
   return (newName, aInfo)
 matrixExprToMInstrs (MatBinop MatMul a b _) = do
   (aName, aInfo) <- matrixExprToMInstrs a
   (bName, bInfo) <- matrixExprToMInstrs b
-  op <- get
   newName <- addTmpToSymtab (view symEntryType aInfo) $ mmulLayout (view symLayout aInfo) (view symLayout bInfo)
   addInstr $ mset newName (mOpDouble 0.0)
   addInstr $ mmul aName bName newName
@@ -160,6 +161,9 @@ matrixExprToMInstrs (MatBinop MatMul a b _) = do
 -- For now always generate column major results
 mmulLayout l r =
   layout (view nr l) (view nc r) (iConst 1) (view nr l)
+
+transLayout a =
+  layout (view nc a) (view nr a) (iConst 1) (view nc a)
 
 typeCheckMatrixOperation :: MatrixOperation -> Either String MatrixOperation
 typeCheckMatrixOperation (MatrixOperation name symtab stmts p) = do

@@ -27,7 +27,12 @@ matOpToMOpCases =
    (dMatrixOperation "oneSMul" symList [dMatAsg "A" (dScalarMul (dMatName "alpha") (dMatName "A"))],
     mOp "oneSMul" allConstSt [msmul "alpha" "A" "tmp0", masg "tmp0" "A"]),
    (dMatrixOperation "oneMMul" symList [dMatAsg "P" (dMatrixMul (dMatName "P") (dMatName "Q"))],
-    mOp "oneMMul" mmulSt [mset "tmp0" (mOpDouble 0.0), mmul "P" "Q" "tmp0", masg "tmp0" "P"])]
+    mOp "oneMMul" mmulSt [mset "tmp0" (mOpDouble 0.0), mmul "P" "Q" "tmp0", masg "tmp0" "P"]),
+   (dMatrixOperation "oneTrans" symList [dMatAsg "PT" (dMatrixTrans (dMatName "P"))],
+    mOp "oneTrans" mTransSt [mtrans "P" "tmp0", masg "tmp0" "PT"])]
+
+mTransSt =
+  addMOpEntry "tmp0" (mOpSymInfo local singleFloat $ layout (iVar "n") (iVar "m") (iConst 1) (iVar "n")) $ mOpSymtab symList
 
 mmulSt =
   addMOpEntry "tmp0" (mOpSymInfo local singleFloat $ layout (iVar "m") (iVar "k") (iConst 1) (iVar "m")) $ mOpSymtab symList
@@ -39,7 +44,8 @@ symList = [("A", scSInf (iConst 17) (iConst 17) (iConst 1) (iConst 124)),
            ("B", scSInf (iConst 17) (iConst 17) (iConst 1) (iConst 124)),
            ("C", scSInf (iConst 17) (iConst 17) (iConst 1) (iConst 124)),
            ("Q", sSInf "Q" (iVar "n") (iVar "k")),
-           ("P", sSInf "P" (iVar "m") (iVar "n")),           
+           ("P", sSInf "P" (iVar "m") (iVar "n")),
+           ("PT", sSInf "PT" (iVar "n") (iVar "m")),
            ("alpha", scSInf (iConst 1) (iConst 1) (iConst 1) (iConst 1)),
            ("tmp0", scSInfLoc (iConst 17) (iConst 17) (iConst 1) (iConst 124))]
   
