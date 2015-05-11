@@ -1,0 +1,71 @@
+operation dscal(r matrix double 1 1 1 1 alpha,
+	  	output matrix double gen 1 1 1 x) {
+  x = alpha .* x;
+}
+
+operation dswap(output matrix double gen 1 1 1 x,
+	  	output matrix double gen 1 1 1 y) {
+  t = x;
+  x = y;
+  y = t;
+}
+
+operation dcopy(r matrix double gen 1 1 1 x,
+	  	output matrix double gen 1 1 1 y) {
+  y = x;
+}
+
+operation daxpy(r matrix double 1 1 1 1 alpha,
+	  	r matrix double gen 1 1 1 x,
+		r matrix double gen 1 1 1 y) {
+  y = alpha .* x + y;
+}
+
+operation ddot(r matrix double 1 gen 1 1 x,
+	       r matrix double gen 1 1 1 y,
+	       output matrix double 1 1 1 1 dot) {
+  dot = x * y;
+}
+
+operation dadot(r matrix double 1 gen 1 1 x,
+	       r matrix double gen 1 1 1 y,
+	       r matrix double 1 1 1 1 alpha,
+	       output matrix double 1 1 1 1 dot) {
+  dot = alpha + x * y;
+}
+
+operation sscal(r matrix float 1 1 1 1 alpha,
+	  	output matrix float gen 1 1 1 x) {
+  x = alpha .* x;
+}
+
+operation sswap(output matrix float gen 1 1 1 x,
+	  	output matrix float gen 1 1 1 y) {
+  t = x;
+  x = y;
+  y = t;
+}
+
+operation scopy(r matrix float gen 1 1 1 x,
+	  	output matrix float gen 1 1 1 y) {
+  y = x;
+}
+
+operation saxpy(r matrix float 1 1 1 1 alpha,
+	  	r matrix float gen 1 1 1 x,
+		r matrix float gen 1 1 1 y) {
+  y = alpha .* x + y;
+}
+
+operation sdot(r matrix float 1 gen 1 1 x,
+	       r matrix float gen 1 1 1 y,
+	       output matrix float 1 1 1 1 dot) {
+  dot = x * y;
+}
+
+operation sadot(r matrix float 1 gen 1 1 x,
+	       r matrix float gen 1 1 1 y,
+	       r matrix float 1 1 1 1 alpha,
+	       output matrix float 1 1 1 1 dot) {
+  dot = alpha + x * y;
+}

@@ -1,11 +1,3 @@
-operation dmadd(r matrix double gen gen gen gen A,
-	  	r matrix double gen gen gen gen B,
-		r matrix double gen gen gen gen L,
-		r matrix double gen gen gen gen K,
-		output matrix double gen gen gen gen C) {
-  C = A + B - (L + K);
-}
-
 operation dgemm(r matrix double 1 1 1 1 alpha,
 	  	r matrix double 1 1 1 1 beta,
 		r matrix double gen gen gen gen A,
@@ -14,14 +6,11 @@ operation dgemm(r matrix double 1 1 1 1 alpha,
   C = alpha .* A*B + beta .* C;
 }
 
-operation daxpy(r matrix double 1 1 1 1 alpha,
-	  	r matrix double gen 1 1 1 x,
-		r matrix double gen 1 1 1 y) {
-  y = alpha .* x + y;
-}
 
-operation saxpy(r matrix float 1 1 1 1 alpha,
-	  	r matrix float gen 1 1 1 x,
-		r matrix float gen 1 1 1 y) {
-  y = alpha .* x + y;
+operation sgemm(r matrix float 1 1 1 1 alpha,
+	  	r matrix float 1 1 1 1 beta,
+		r matrix float gen gen gen gen A,
+		r matrix float gen gen gen gen B,
+		output matrix float gen gen gen gen C) {
+  C = alpha .* A*B + beta .* C;
 }
