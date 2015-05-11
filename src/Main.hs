@@ -15,12 +15,12 @@ import RuntimeEvaluation
 import SymbolTable
 import Syntax
 
-fileName = "/Users/dillon/Haskell/Mini/BLASLike.lspc"
-cResFileName = "/Users/dillon/Haskell/Mini/BLASLike.c"
+--fileName = "/Users/dillon/Haskell/Mini/BLASLike.lspc"
+--cResFileName = "/Users/dillon/Haskell/Mini/BLASLike.c"
 
 main :: IO ()
 main = do
---  (fileName:cResFileName:rest) <- getArgs
+  (fileName:cResFileName:rest) <- getArgs
   fileContents <- readFile fileName
   frontEndRes <- runFrontEnd fileName fileContents
   case frontEndRes of

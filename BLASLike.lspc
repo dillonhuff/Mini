@@ -6,6 +6,14 @@ operation dmadd(r matrix double gen gen gen gen A,
   C = A + B - (L + K);
 }
 
+operation dgemm(r matrix double 1 1 1 1 alpha,
+	  	r matrix double 1 1 1 1 beta,
+		r matrix double gen gen gen gen A,
+		r matrix double gen gen gen gen B,
+		output matrix double gen gen gen gen C) {
+  C = alpha .* A*B + beta .* C;
+}
+
 operation daxpy(r matrix double 1 1 1 1 alpha,
 	  	r matrix double gen 1 1 1 x,
 		r matrix double gen 1 1 1 y) {

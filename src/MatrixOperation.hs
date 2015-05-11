@@ -112,14 +112,14 @@ matrixStToMInstrs (MStmt n expr _) = do
 
 freshTempVar = do
   cg <- get
-  let name = "tmp" ++ (show $ view mcgNextInt cg) in
+  let name = "tmpBuf" ++ (show $ view mcgNextInt cg) in
     do
-      put $ over mcgNextInt (+1) cg
+      put $ over mcgNextInt (\n -> n+1) cg
       return name
 
 addTmpToSymtab entType l = do
-  cg <- get
   nextName <- freshTempVar
+  cg <- get
   put $ over (mcgMOp . mOpSymT) (\s -> addMOpEntry nextName (mOpSymInfo local entType l) s) cg
   return nextName
 
