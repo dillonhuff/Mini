@@ -1,11 +1,14 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module RestrictedLayout(RLayout,
+                        rLayout,
                         rnr, rnc, rrs, rcs,
                         dimensionVars, strideVars,
                         strides, dimensions,
+                        isVector, isRowVector, isColVector, isScalar, isMatrix,
                         mOpSymtabToRLayouts,
                         Size,
+                        var, con,
                         sizeName, isVarSize) where
 
 import Control.Lens hiding (Const, const)
@@ -28,6 +31,9 @@ isVarSize _ = False
 
 sizeName (Var n) = n
 
+nonUnit (Const i) = i /= 1
+nonUnit _ = True
+
 data RLayout
   = RLayout {
     _rnr :: Size,
@@ -45,6 +51,13 @@ strides l = [view rrs l, view rcs l]
 
 dimensionVars l = L.filter isVarSize $ dimensions l
 strideVars l = L.filter isVarSize $ strides l
+
+isVector l = isRowVector l || isColVector l
+isRowVector l = view rnr l == con 1 && (nonUnit $ view rnc l)
+isColVector l = view rnc l == con 1 && (nonUnit $ view rnr l)
+isScalar l = view rnr l == con 1 && view rnc l == con 1
+isMatrix l = nonUnit (view rnr l) && nonUnit (view rnc l)
+
 
 ieToSize :: IExpr -> Maybe Size
 ieToSize ie =

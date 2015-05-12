@@ -5,6 +5,7 @@ import LexerTests
 import MatrixOperationTests
 import MOpTests
 import ParserTests
+import RestrictedLayoutTests
 import SyntaxTests
 
 main = do
@@ -13,4 +14,5 @@ main = do
   allMatrixOperationTests
   allMOpTests
   allParserTests
+  allRestrictedLayoutTests
   allSyntaxTests
