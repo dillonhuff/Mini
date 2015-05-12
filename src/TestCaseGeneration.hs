@@ -1,0 +1,88 @@
+module TestCaseGeneration(genRowAndColMajorExamples) where
+
+import Control.Lens hiding (Const, const)
+import Control.Monad.Random
+import Data.List as L
+import Data.Map as M
+import Data.Maybe
+
+import GenerateRandomValues
+import IndexExpression
+import MapUtils
+import RestrictedLayout
+import SymbolTable
+
+dimAndStrideVarsAreSeparable :: [RLayout] -> Bool
+dimAndStrideVarsAreSeparable layouts =
+  case separateDimAndStrideVars layouts of
+    Just _ -> True
+    Nothing -> False
+
+separateDimAndStrideVars :: [RLayout] -> Maybe ([Size], [Size])
+separateDimAndStrideVars layouts =
+  let allLayoutsDimVars = L.concatMap dimensionVars layouts
+      allLayoutsStrideVars = L.concatMap strideVars layouts in
+  case L.intersect allLayoutsDimVars allLayoutsStrideVars of
+    [] -> Just (allLayoutsDimVars, allLayoutsStrideVars)
+    _ -> Nothing
+
+allDimsAndStridesAreVars :: [RLayout] -> Bool
+allDimsAndStridesAreVars layouts =
+  L.and $ L.map isVarSize $ L.concatMap (\l -> dimensions l ++ strides l) layouts
+
+allStridesAreUnique :: [RLayout] -> Bool
+allStridesAreUnique layouts =
+  let allStrides = L.concatMap strides layouts in
+  (L.length $ L.nub allStrides) == L.length allStrides
+
+generalSeparableProblemWithUniqueStrides :: [RLayout] -> Maybe [RLayout]
+generalSeparableProblemWithUniqueStrides layouts =
+  case dimAndStrideVarsAreSeparable layouts && allDimsAndStridesAreVars layouts && allStridesAreUnique layouts of
+    True -> Just layouts
+    False -> Nothing
+
+rowStrideToColSizeMap :: [RLayout] -> Map Size Size
+rowStrideToColSizeMap layouts =
+  let rowStrideColSizePairs = L.map (\l -> (view rrs l, view rnc l)) layouts in
+  M.fromList rowStrideColSizePairs
+
+colStrideToRowSizeMap :: [RLayout] -> Map Size Size
+colStrideToRowSizeMap layouts =
+  let colStrideToRowSizePairs = L.map (\l -> (view rcs l, view rnr l)) layouts in
+  M.fromList colStrideToRowSizePairs
+
+assignRandomValuesToDims lo hi layouts =
+  let allDimVars = L.concatMap dimensionVars layouts in
+  assignRandomValuesInRange lo hi allDimVars
+
+unitRowStrides layouts =
+  let rowStrides = L.map (\l -> view rrs l) layouts in
+  M.fromList $ L.zip rowStrides $ L.replicate (length rowStrides) 1
+
+unitColStrides layouts =
+  let colStrides = L.map (\l -> view rcs l) layouts in
+  M.fromList $ L.zip colStrides $ L.replicate (length colStrides) 1
+
+generateRowMajorTestCase lo hi layouts = do
+  dimVals <- assignRandomValuesToDims lo hi layouts
+  let colStrides = unitColStrides layouts
+      rowStridesToDims = rowStrideToColSizeMap layouts
+      rowStrides = chain rowStridesToDims dimVals in
+    return $ M.mapKeys sizeName $ M.union (M.union colStrides rowStrides) dimVals
+
+generateColMajorTestCase lo hi layouts = do
+  dimVals <- assignRandomValuesToDims lo hi layouts
+  let rowStrides = unitRowStrides layouts
+      colStridesToDims = colStrideToRowSizeMap layouts
+      colStrides = chain colStridesToDims dimVals in
+    return $ M.mapKeys sizeName $ M.union (M.union colStrides rowStrides) dimVals
+
+genRowAndColMajorExamples lo hi st =
+  let layouts = genSeparableLayouts st in
+      case layouts of
+        Just ls -> sequence $ [generateColMajorTestCase lo hi ls, generateRowMajorTestCase lo hi ls]
+        Nothing -> return []
+  
+genSeparableLayouts st = do
+  layouts <- mOpSymtabToRLayouts st
+  generalSeparableProblemWithUniqueStrides layouts

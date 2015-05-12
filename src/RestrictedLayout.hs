@@ -44,7 +44,8 @@ data RLayout
 
 makeLenses ''RLayout
 
-rLayout numRows numCols rowStride colStride = RLayout numRows numCols rowStride colStride
+rLayout numRows numCols rowStride colStride =
+  RLayout numRows numCols rowStride colStride
 
 dimensions l = [view rnr l, view rnc l]
 strides l = [view rrs l, view rcs l]
