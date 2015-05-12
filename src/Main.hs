@@ -1,5 +1,6 @@
 module Main(main) where
 
+import Control.Monad
 import Data.List as L
 import System.Environment
 
@@ -10,29 +11,32 @@ import MatrixOperation
 import MOpSyntax
 import MiniOperation
 import Parser
+import RunBackEnd
 import RunFrontEnd
 import RuntimeEvaluation
 import SymbolTable
 import Syntax
 
---fileName = "/Users/dillon/Haskell/Mini/BLASLike.lspc"
---cResFileName = "/Users/dillon/Haskell/Mini/BLASLike.c"
+fileName = "/Users/dillon/Haskell/Mini/BLASLike.lspc"
+cResFileName = "/Users/dillon/Haskell/Mini/BLASLike.c"
 
 main :: IO ()
 main = do
-  (fileName:cResFileName:rest) <- getArgs
+--  (fileName:cResFileName:rest) <- getArgs
   fileContents <- readFile fileName
-  frontEndRes <- runFrontEnd fileName fileContents
-  case frontEndRes of
+  compileRes <- compileLibSpec fileName fileContents
+  case compileRes of
     Left err -> putStrLn err
     Right res -> writeFile cResFileName (opCStrings res)
 
-showOpCStrings opsAndTestCases =
-  putStrLn $ opCStrings opsAndTestCases
+opCStrings ops =
+  "#include <stdlib.h>\n" ++ (L.concat $ L.intersperse "\n" $ L.map (\op -> miniOpToCString op) ops)
 
-opCStrings opsAndTestCases =
-  "#include <stdlib.h>\n" ++ (L.concat $ L.intersperse "\n" $ L.map (\(op, _) -> matrixOpToCString op) opsAndTestCases)
-
-matrixOpToCString matOp =
-  prettyPrint 0 $ (toCFunc "") $ convertToMini $ matrixOperationToMOp matOp
+compileLibSpec :: String -> String -> IO (Either String [Operation String])
+compileLibSpec srcFileName libStr = do
+  frontEndRes <- runFrontEnd srcFileName libStr
+  return $ frontEndRes >>= runBackEnd
+  
+miniOpToCString miniOp =
+  prettyPrint 0 $ (toCFunc "") $ miniOp
 

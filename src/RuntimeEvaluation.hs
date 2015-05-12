@@ -2,6 +2,7 @@ module RuntimeEvaluation(timeImplementations,
                          timeImplementationsFixedSizes,
                          timeOperationsWithOptimizationsFixedSizes) where
 
+import Control.Monad
 import Data.List as L
 import Data.Map as M
 import System.IO.Strict as S
@@ -25,6 +26,23 @@ timeOptimizations dummyAnn opName originalImpl opts =
 timeImplementationsFixedSizes dummyAnn opName sanityCheckImpl impls =
   timeImplementations M.empty dummyAnn opName sanityCheckImpl impls
 
+timeOperationsOnExamples :: (Ord a, Show a) => a -> [String] -> [[Map String Int]] -> [Operation a] -> [Operation a] -> IO [Map (String, Map String Int) EvaluationResult]
+timeOperationsOnExamples dummyAnn opNames examplesList scImps impls =
+  sequence $ L.zipWith4 (\opName examples scImp impl -> timeOperationOnExamples dummyAnn opName examples scImp impl)
+                        opNames
+                        examplesList
+                        scImps
+                        impls
+
+timeOperationOnExamples dummyAnn opName examples scImp impl =
+  liftM M.fromList $ 
+  sequence $ L.map (\ex -> timeOperationOnExample dummyAnn opName ex scImp impl) examples
+
+timeOperationOnExample dummyAnn opName example scImp impl = do
+  timeRes <- timeImplementations example dummyAnn opName (Just scImp) [impl]
+  let evalRes = snd $ L.head $ M.toList $ timeRes in
+    return ((opName, example), evalRes)
+  
 timeImplementations :: (Ord a, Show a) => Map String Int -> a -> String -> Maybe (Operation a) -> [Operation a] -> IO (Map (Operation a) EvaluationResult)
 timeImplementations indexVals dummyAnn opName sanityCheckImpl impls =
   let testCode = cTestHarness dummyAnn indexVals opName sanityCheckImpl impls in

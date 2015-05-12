@@ -1,6 +1,7 @@
 module TestCaseGeneration(genRowAndColMajorExamples) where
 
 import Control.Lens hiding (Const, const)
+import Control.Monad
 import Control.Monad.Random
 import Data.List as L
 import Data.Map as M
@@ -55,6 +56,14 @@ assignRandomValuesToDims lo hi layouts =
   let allDimVars = L.concatMap dimensionVars layouts in
   assignRandomValuesInRange lo hi allDimVars
 
+assignRandomValuesToStrides lo hi layouts =
+  let allStrideVars = L.concatMap strideVars layouts in
+  assignRandomValuesInRange lo hi allStrideVars
+
+assignRandomValuesToDimsAndStrides lo hi layouts =
+  let allDimAndStrideVars = L.concatMap (\l -> strideVars l ++ dimensionVars l) layouts in
+  assignRandomValuesInRange lo hi allDimAndStrideVars
+
 unitRowStrides layouts =
   let rowStrides = L.map (\l -> view rrs l) layouts in
   M.fromList $ L.zip rowStrides $ L.replicate (length rowStrides) 1
@@ -86,3 +95,18 @@ genRowAndColMajorExamples lo hi st =
 genSeparableLayouts st = do
   layouts <- mOpSymtabToRLayouts st
   generalSeparableProblemWithUniqueStrides layouts
+
+genVectorVectorExample :: (MonadRandom m, Random a, Num a) => a -> a -> MOpSymtab -> m [Map String a]
+genVectorVectorExample lo hi st =
+  let layouts = genVectorVectorLayouts st in
+  case layouts of
+    Just ls -> liftM (\m -> [M.mapKeys sizeName m]) $ assignRandomValuesToDimsAndStrides lo hi ls
+    Nothing -> return []
+    
+genVectorVectorLayouts :: MOpSymtab -> Maybe [RLayout]
+genVectorVectorLayouts st = do
+  layouts <- mOpSymtabToRLayouts st
+  case L.and $ L.map isVector layouts of
+    True -> Just layouts
+    False -> Nothing
+
