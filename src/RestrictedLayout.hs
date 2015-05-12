@@ -1,18 +1,3 @@
-\documentclass{article}
-
-%include lhs2TeX.fmt
-
-\begin{document}
-
-\title{Restricted Layout}
-\author{Dillon Huff}
-\maketitle
-
-\section{Front matter}
-
-\bigbreak
-\begin{code}
-
 {-# LANGUAGE TemplateHaskell #-}
 
 module RestrictedLayout(RLayout,
@@ -30,16 +15,6 @@ import Data.List as L
 import IndexExpression
 import SymbolTable
 
-\end{code}
-\bigbreak
-
-\section{Core data structures}
-
-The Size ADT represents the size of a dimension or stride.
-
-\bigbreak
-\begin{code}
-
 data Size
   = Const Int
   | Var String
@@ -52,17 +27,6 @@ isVarSize (Var _) = True
 isVarSize _ = False
 
 sizeName (Var n) = n
-
-\end{code}
-\bigbreak
-
-The RLayout data structure represents the format of a matrix.
-It is analagous to the Layout data structure, but it restricts
-strides and dimensions to be either vars or constants, not any
-form allowed by IExpr.
-
-\bigbreak
-\begin{code}
 
 data RLayout
   = RLayout {
@@ -81,18 +45,6 @@ strides l = [view rrs l, view rcs l]
 
 dimensionVars l = L.filter isVarSize $ dimensions l
 strideVars l = L.filter isVarSize $ strides l
-
-\end{code}
-\bigbreak
-
-\section{Conversion operations}
-
-The following code converts normal Layouts stored in
-the symtab into restricted form or fails if the conversion
-cannot be done.
-
-\bigbreak
-\begin{code}
 
 ieToSize :: IExpr -> Maybe Size
 ieToSize ie =
@@ -114,9 +66,3 @@ mOpSymtabToRLayouts :: MOpSymtab -> Maybe [RLayout]
 mOpSymtabToRLayouts symTab =
   let layouts = allLayouts symTab in
   sequence $ L.map layoutToRLayout layouts
-
-\end{code}
-\bigbreak
-
-
-\end{document}
