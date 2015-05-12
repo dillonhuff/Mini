@@ -1,4 +1,4 @@
-module TestCaseGeneration(genRowAndColMajorExamples) where
+module TestCaseGeneration(genRowAndColMajorExamples, genTestCases) where
 
 import Control.Lens hiding (Const, const)
 import Control.Monad
@@ -106,7 +106,8 @@ genVectorVectorExample lo hi st =
 genVectorVectorLayouts :: MOpSymtab -> Maybe [RLayout]
 genVectorVectorLayouts st = do
   layouts <- mOpSymtabToRLayouts st
-  case L.and $ L.map isVector layouts of
+  case L.and $ L.map (\l -> isVector l || isScalar l) layouts of
     True -> Just layouts
     False -> Nothing
 
+genTestCases lo hi st = liftM concat $ sequence $ L.map (\f -> f lo hi st) [genVectorVectorExample, genRowAndColMajorExamples]

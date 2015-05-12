@@ -1,5 +1,6 @@
 module RuntimeEvaluation(timeImplementations,
                          timeImplementationsFixedSizes,
+                         timeOperationsOnExamples,
                          timeOperationsWithOptimizationsFixedSizes) where
 
 import Control.Monad
@@ -66,7 +67,9 @@ runCommandStrict str = do
 
 readResultFile :: String -> IO (Map String EvaluationResult)
 readResultFile opName = do
+  putStrLn $ "reading result file " ++ opName
   timingResults <- S.readFile (dataFileName opName)
+  putStrLn $ show timingResults
   return $ parseTimingResults timingResults
 
 reconstructOpMap :: (Show a, Ord a) => [Operation a] -> Map String EvaluationResult -> Map (Operation a) EvaluationResult

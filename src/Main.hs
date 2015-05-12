@@ -17,8 +17,8 @@ import RuntimeEvaluation
 import SymbolTable
 import Syntax
 
-fileName = "/Users/dillon/Haskell/Mini/BLASLike.lspc"
-cResFileName = "/Users/dillon/Haskell/Mini/BLASLike.c"
+fileName = "/Users/dillon/Haskell/Mini/Level1BLAS.lspc"
+cResFileName = "/Users/dillon/Haskell/Mini/Level1BLAS.c"
 
 main :: IO ()
 main = do
@@ -35,7 +35,9 @@ opCStrings ops =
 compileLibSpec :: String -> String -> IO (Either String [Operation String])
 compileLibSpec srcFileName libStr = do
   frontEndRes <- runFrontEnd srcFileName libStr
-  return $ frontEndRes >>= runBackEnd
+  case frontEndRes of
+    Left err -> return $ Left err
+    Right opsAndTestCases -> runBackEnd opsAndTestCases
   
 miniOpToCString miniOp =
   prettyPrint 0 $ (toCFunc "") $ miniOp
