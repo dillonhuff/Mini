@@ -30,7 +30,10 @@ import Token
 
 data MatrixOperation
   = MatrixOperation String MOpSymtab [MatrixStmt] SourcePos
-    deriving (Ord, Show)
+    deriving (Ord)
+
+instance Show MatrixOperation where
+  show (MatrixOperation n st stmts _) = n ++ "\n" ++ show st ++ "\n" ++ (L.concat $ L.intersperse "\n" $ L.map show stmts)
 
 instance Eq MatrixOperation where
   (==) (MatrixOperation s1 sym1 stmts1 _) (MatrixOperation s2 sym2 stmts2 _) =
@@ -44,7 +47,10 @@ getMatrixOpSymtab (MatrixOperation _ st _ _) = st
 
 data MatrixStmt
   = MStmt String MExpr SourcePos
-    deriving (Ord, Show)
+    deriving (Ord)
+
+instance Show MatrixStmt where
+  show (MStmt n e _) = n ++ " = " ++ show e
 
 instance Eq MatrixStmt where
   (==) (MStmt n1 e1 _) (MStmt n2 e2 _) = n1 == n2 && e1 == e2
@@ -56,7 +62,12 @@ data MExpr
   = MatBinop MatBOp MExpr MExpr SourcePos
   | MatUnop MatUOp MExpr SourcePos
   | VarName String SourcePos
-    deriving (Ord, Show)
+    deriving (Ord)
+
+instance Show MExpr where
+  show (MatBinop b l r _) = "(" ++ show l ++ show b ++ show r ++ ")"
+  show (MatUnop u l _) = "(" ++ show l ++ show u ++ ")"
+  show (VarName n _) = n
 
 instance Eq MExpr where
   (==) (MatBinop b1 l1 r1 _) (MatBinop b2 l2 r2 _) = b1 == b2 && l1 == l2 && r1 == r2
@@ -82,7 +93,13 @@ data MatBOp
   | MatAdd
   | MatSub
   | ScalMul
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+
+instance Show MatBOp where
+  show MatMul = "*"
+  show MatAdd = "+"
+  show MatSub = "-"
+  show ScalMul = ".*"
 
 data MatUOp
   = MatTrans
@@ -129,9 +146,11 @@ matrixExprToMInstrs (VarName n _) = do
   return (n, getMOpSymInfo n id (view (mcgMOp . mOpSymT) cg))
 matrixExprToMInstrs (MatUnop MatTrans a _) = do
   (aName, aInfo) <- matrixExprToMInstrs a
-  newName <- addTmpToSymtab (view symEntryType aInfo) $ transLayout (view symLayout aInfo)
-  addInstr $ mtrans aName newName
-  return (newName, aInfo)
+  let resLayout = transLayout (view symLayout aInfo) in
+    do
+      newName <- addTmpToSymtab (view symEntryType aInfo) resLayout
+      addInstr $ mtrans aName newName
+      return (newName, mOpSymInfo local (view symEntryType aInfo) resLayout)
 matrixExprToMInstrs (MatBinop MatAdd a b _) = do
   (aName, aInfo) <- matrixExprToMInstrs a
   (bName, bInfo) <- matrixExprToMInstrs b
@@ -149,14 +168,16 @@ matrixExprToMInstrs (MatBinop ScalMul a b _) = do
   (bName, bInfo) <- matrixExprToMInstrs b
   newName <- addTmpToSymtab (view symEntryType bInfo) (view symLayout bInfo)
   addInstr $ msmul aName bName newName
-  return (newName, aInfo)
+  return (newName, bInfo)
 matrixExprToMInstrs (MatBinop MatMul a b _) = do
   (aName, aInfo) <- matrixExprToMInstrs a
   (bName, bInfo) <- matrixExprToMInstrs b
-  newName <- addTmpToSymtab (view symEntryType aInfo) $ mmulLayout (view symLayout aInfo) (view symLayout bInfo)
-  addInstr $ mset newName (mOpDouble 0.0)
-  addInstr $ mmul aName bName newName
-  return (newName, aInfo)
+  let resLayout = mmulLayout (view symLayout aInfo) (view symLayout bInfo) in
+    do
+      newName <- addTmpToSymtab (view symEntryType aInfo) resLayout
+      addInstr $ mset newName (mOpDouble 0.0)
+      addInstr $ mmul aName bName newName
+      return (newName, mOpSymInfo local (view symEntryType aInfo) resLayout)
 
 -- For now always generate column major results
 mmulLayout l r =

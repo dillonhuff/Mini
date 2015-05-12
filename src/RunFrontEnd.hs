@@ -10,21 +10,23 @@ import Parser
 import MatrixOperation
 import TestCaseGeneration
 
-runFrontEnd :: (MonadRandom m) => String -> String -> m (Either String [(MatrixOperation, [Map String Int])])
+runFrontEnd :: String -> String -> IO (Either String [(MatrixOperation, [Map String Int])])
 runFrontEnd fileName libStr = do
   case readLibSpec fileName libStr of
     Left err -> return $ Left err
-    Right ops -> liftM sequence $ sequence $ L.map (typeCheckAndGenerateTestCases lowDim highDim) ops
+    Right ops -> do
+      liftM sequence $ sequence $ L.map (typeCheckAndGenerateTestCases lowDim highDim) ops
   
 readLibSpec :: String -> String -> Either String [MatrixOperation]
 readLibSpec fileName libSpecStr =
   (lexString fileName libSpecStr) >>= (parseOperation fileName)
 
-typeCheckAndGenerateTestCases :: (MonadRandom m) => Int -> Int -> MatrixOperation -> m (Either String (MatrixOperation, [Map String Int]))
+typeCheckAndGenerateTestCases :: Int -> Int -> MatrixOperation -> IO (Either String (MatrixOperation, [Map String Int]))
 typeCheckAndGenerateTestCases lo hi matOp =
   case typeCheckMatrixOperation matOp of
     Left err -> return $ Left err
     Right checkedMOp -> do
+      putStrLn $ show checkedMOp
       testCases <- genTestCases lo hi (getMatrixOpSymtab checkedMOp)
       return $ Right (checkedMOp, testCases)
 

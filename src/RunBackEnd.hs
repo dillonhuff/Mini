@@ -26,7 +26,9 @@ runBackEnd opsAndTestCases =
       errors -> return $ Left $ L.concat $ L.intersperse "\n" $ L.map show errors
 
 matrixOpToMiniOpNoOptimizations matOp =
-  convertToMini $ matrixOperationToMOp matOp
+  let mOp = matrixOperationToMOp matOp
+      miniRes = convertToMini mOp in
+  miniRes
 
 matrixOpToMiniOp matOp =
   applyOptimization evalIExprConstants $ convertToMini $ matrixOperationToMOp matOp
