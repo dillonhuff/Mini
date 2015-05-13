@@ -9,6 +9,7 @@ module Syntax(toCType,
               toCBlock,
               block,
               load, loadConst, store, plus, minus, times, for,
+              forStart, forEnd, forInc, isFor,
               sReg, buffer,
               doubleLit, floatLit, getLitType) where
 
@@ -85,7 +86,14 @@ store = Store
 plus = BOp Plus
 minus = BOp Minus
 times = BOp Times
-for n start end inc b ann = For n start end inc b ann
+for n start inc end b ann = For n start inc end b ann
+
+isFor (For _ _ _ _ _ _) = True
+isFor _ = False
+
+forStart (For _ start _ _ _ _) = start
+forInc (For _ _ inc _ _ _) = inc
+forEnd (For _ _ _ end _ _) = end
 
 transformStatement :: (Statement a -> Statement a) -> Statement a -> Statement a
 transformStatement f (For v s i e blk ann) = f (For v s i e (transformBlock f blk) ann)

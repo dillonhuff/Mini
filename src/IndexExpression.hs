@@ -1,7 +1,7 @@
 module IndexExpression(IExpr,
                        evaluateIExprConstants,
                        iAdd, iMul, iConst, iVar, iSub,
-                       iExprToCExpr, isConst, isVar,
+                       iExprToCExpr, isConst, isVar, ieToConst,
                        constVal, varName,
                        subIExpr) where
 
@@ -73,3 +73,10 @@ evaluateIExprConstants (IAdd l r) =
     evaledL = evaluateIExprConstants l
     evaledR = evaluateIExprConstants r
 evaluateIExprConstants e = e  
+
+ieToConst :: IExpr -> Maybe Int
+ieToConst ie =
+  let evaluatedIE = evaluateIExprConstants ie in
+  case isConst evaluatedIE of
+    True -> Just $ constVal evaluatedIE
+    False -> Nothing
