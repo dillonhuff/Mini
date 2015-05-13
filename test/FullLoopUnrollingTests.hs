@@ -1,4 +1,4 @@
-module FullLoopUnrollingTests(allFullyUnrollLoopTests) where
+module FullLoopUnrollingTests(allFullLoopUnrollingTests) where
 
 import Data.List as L
 
@@ -7,9 +7,12 @@ import IndexExpression
 import Syntax
 import TestUtils
 
-allFullyUnrollLoopTests = do
+allFullLoopUnrollingTests = do
   testFunction fullyUnrollLoop fullUnrollSuccessCases
 
 fullUnrollSuccessCases =
   L.map (\(x, y) -> (x, Just y))
-  [(for "i" (iConst 0) (iConst 1) (iConst 0) (block []) "", [])]
+  [(for "i" (iConst 0) (iConst 1) (iConst 0) (block []) "", []),
+   (for "j" (iConst 1) (iConst 2) (iConst 4) (block [load "a" "b" (iVar "j") ""]) "",
+    [load "a" "b" (iConst 1) "",
+     load "a" "b" (iConst 3) ""])]

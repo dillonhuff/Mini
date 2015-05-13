@@ -4,6 +4,7 @@ import Data.List as L
 import Data.Map as M
 
 import EvaluationResult
+import FullLoopUnrolling
 import IndexExpressionOptimizations
 import MatrixOperation
 import MOpSyntax
@@ -31,7 +32,9 @@ matrixOpToMiniOpNoOptimizations matOp =
   miniRes
 
 matrixOpToMiniOp matOp =
-  applyOptimization evalIExprConstants $ convertToMini $ matrixOperationToMOp matOp
+  applyOptimization evalIExprConstants $
+  applyOptimization fullyUnrollAllLoops $
+  convertToMini $ matrixOperationToMOp matOp
 
 sanityCheckFailures :: [Map (String, Map String Int) EvaluationResult] -> [(String, Map String Int)]
 sanityCheckFailures runResults = L.map fst $ L.filter (\(_, res) -> not $ passedSanityCheck res) $ L.concatMap M.toList runResults

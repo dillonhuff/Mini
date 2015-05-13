@@ -6,10 +6,11 @@ module Syntax(toCType,
               transformStatementIExprs,
               Type,
               Block,
+              blockStatements, expandBlockStatements,
               toCBlock,
               block,
               load, loadConst, store, plus, minus, times, for,
-              forStart, forEnd, forInc, isFor,
+              forStart, forEnd, forInc, isFor, forInductionVariable, forBody,
               sReg, buffer,
               doubleLit, floatLit, getLitType) where
 
@@ -57,8 +58,13 @@ data Block a
 
 block = Block
 
+blockStatements (Block stmts) = stmts
+
 transformBlock :: (Statement a -> Statement a) -> Block a -> Block a
 transformBlock f (Block stmts) = block $ L.map (transformStatement f) stmts
+
+expandBlockStatements :: (Statement a -> [Statement a]) -> Block a -> Block a
+expandBlockStatements f (Block stmts) = block $ L.concatMap (expandStatement f) stmts
 
 data Statement a
   = BOp Binop String String String a
@@ -94,13 +100,21 @@ isFor _ = False
 forStart (For _ start _ _ _ _) = start
 forInc (For _ _ inc _ _ _) = inc
 forEnd (For _ _ _ end _ _) = end
+forInductionVariable (For i _ _ _ _ _) = i
+forBody (For _ _ _ _ b _) = b
 
 transformStatement :: (Statement a -> Statement a) -> Statement a -> Statement a
 transformStatement f (For v s i e blk ann) = f (For v s i e (transformBlock f blk) ann)
 transformStatement f s = f s
 
+expandStatement :: (Statement a -> [Statement a]) -> Statement a -> [Statement a]
+expandStatement f (For v s i e blk ann) = f (For v s i e (expandBlockStatements f blk) ann)
+expandStatement f s = f s
+
 transformStatementIExprs :: (IExpr -> IExpr) -> Statement a -> Statement a
 transformStatementIExprs f (For v s i e blk ann) = For v (f s) (f i) (f e) blk ann
+transformStatementIExprs f (Load n m i ann) = Load n m (f i) ann
+transformStatementIExprs f (Store n i m ann) = Store n (f i) m ann
 transformStatementIExprs f s = s
 
 data Binop
