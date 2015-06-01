@@ -112,6 +112,16 @@ freshName prefix = do
 
 freshLabel = freshName "st_"
 
+freshRegister a rType = do
+  r <- freshName a
+  symtab <- get
+  put $ addRegister r rType symtab
+  return r
+
+freshRegisterForBuffer a = do
+  symtab <- get
+  freshRegister a (getBufferTypeFromSymtab a symtab)
+
 loadToRegister a rowInd colInd = do
   r <- freshName a
   t <- get
@@ -120,11 +130,16 @@ loadToRegister a rowInd colInd = do
   mst <- currentMOpSymtab
   return (r, load r a (accessExpr a rowInd colInd mst) l)
 
-loadConstToRegister c rowInd colInd = do
-  r <- freshName "const"
+loadToRegisterConst a rowVal colVal = do
   t <- get
   l <- freshLabel
-  put $ addRegister r (getLitType c) t
+  r <- freshRegister a (getBufferTypeFromSymtab a t)
+  mst <- currentMOpSymtab
+  return (r, load r a (accessExprConst a rowVal colVal mst) l)
+
+loadConstToRegister c rowInd colInd = do
+  l <- freshLabel
+  r <- freshRegister "const" (getLitType c)
   return (r, loadConst r c l)
   
 storeFromRegister bufName rowInd colInd regName = do
@@ -211,16 +226,18 @@ maddBodyTemplate :: String -> String -> String -> String -> String -> State Mini
 maddBodyTemplate a b c rowInd colInd = do
   (aReg, lda) <- loadToRegister a rowInd colInd
   (bReg, ldb) <- loadToRegister b rowInd colInd
-  stc <- storeFromRegister c rowInd colInd bReg
+  cReg <- freshRegisterForBuffer c
+  stc <- storeFromRegister c rowInd colInd cReg
   l <- freshLabel
-  return $ block [lda, ldb, plus bReg aReg bReg l, stc]
+  return $ block [lda, ldb, plus cReg aReg bReg l, stc]
 
 msubBodyTemplate a b c rowInd colInd = do
   (aReg, lda) <- loadToRegister a rowInd colInd
   (bReg, ldb) <- loadToRegister b rowInd colInd
-  stc <- storeFromRegister c rowInd colInd bReg
+  cReg <- freshRegisterForBuffer c
+  stc <- storeFromRegister c rowInd colInd cReg
   l <- freshLabel
-  return $ block [lda, ldb, minus bReg aReg bReg l, stc]
+  return $ block [lda, ldb, minus cReg aReg bReg l, stc]
 
 mtransBodyTemplate a b rowInd colInd = do
   (aReg, lda) <- loadToRegister a rowInd colInd
@@ -238,21 +255,24 @@ msetBodyTemplate a l rowInd colInd = do
   return $ block [ldc, sta]
 
 msmulBodyTemplate a b c rowInd colInd = do
-  (aReg, lda) <- loadToRegister a "0" "0"
+  (aReg, lda) <- loadToRegisterConst a 0 0
   (bReg, ldb) <- loadToRegister b rowInd colInd
-  stc <- storeFromRegister c rowInd colInd bReg
+  cReg <- freshRegisterForBuffer c
+  stc <- storeFromRegister c rowInd colInd cReg
   l <- freshLabel
-  return $ block [lda, ldb, times bReg aReg bReg l, stc]
+  return $ block [lda, ldb, times cReg aReg bReg l, stc]
 
 mmmulBodyTemplate a b c rowInd colInd = do
   (kInd, aColLoop) <- loopOverCols a
   (aReg, lda) <- loadToRegister a rowInd kInd
   (bReg, ldb) <- loadToRegister b kInd colInd
   (cReg, ldc) <- loadToRegister c rowInd colInd
-  stc <- storeFromRegister c rowInd colInd cReg
+  dReg <- freshRegisterForBuffer c
+  eReg <- freshRegisterForBuffer c
+  stc <- storeFromRegister c rowInd colInd eReg
   l1 <- freshLabel
   l2 <- freshLabel
-  return $ block $ [aColLoop $ block [lda, ldb, ldc, times bReg aReg bReg l1, plus cReg bReg cReg l2, stc]]
+  return $ block $ [aColLoop $ block [lda, ldb, ldc, times dReg aReg bReg l1, plus eReg cReg dReg l2, stc]]
 
 iterateOverMatTemplate :: String -> (String -> String -> State MiniCodeGenState (Block String)) -> State MiniCodeGenState (Statement String)
 iterateOverMatTemplate matName loopBodyTemplate = do

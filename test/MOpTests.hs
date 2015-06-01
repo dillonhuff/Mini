@@ -31,7 +31,10 @@ testConvert opName scImpl op =
     rtRes <- timeImplementationsFixedSizes "" opName (Just scImpl) [resOp]
     case L.and $ L.map (\(n, evalRes) -> passedSanityCheck evalRes) $ M.toList rtRes of
       True -> putStrLn "test passed"
-      False -> putStrLn $ opName ++ " test FAILED"
+      False -> putStrLn $ failHeader ++ opName ++ failFooter
+
+failHeader = "\n****************************** FAILED ***********************************\n\n"
+failFooter = "\n\n*************************************************************************\n\n"
 
 masgOp =
   mOp "one_matrix_assign" masgOpSym [masg "a" "b"]

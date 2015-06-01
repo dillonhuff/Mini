@@ -16,6 +16,7 @@ module SymbolTable(MOpSymtab,
                    entryType, numRows, numCols, rowStride, colStride,
                    getNumRowsM, getNumColsM, getRowStrideM, getColStrideM, getEntryTypeM,
                    accessExpr,
+                   accessExprConst,
                    Layout, layout, nr, nc, rs, cs,
                    subInLayout,
                    EntryType, doubleFloat, singleFloat,
@@ -76,6 +77,12 @@ accessExpr :: String -> String -> String -> MOpSymtab -> IExpr
 accessExpr symName row col (MOpSymtab symMap) =
   case M.lookup symName symMap of
     Just info -> iAdd (iMul (rowStride info) (iVar row)) (iMul (colStride info) (iVar col))
+    Nothing -> error $ "Symbol " ++ symName ++ " not found in " ++ show symMap
+
+accessExprConst :: String -> Int -> Int -> MOpSymtab -> IExpr
+accessExprConst symName row col (MOpSymtab symMap) =
+  case M.lookup symName symMap of
+    Just info -> iAdd (iMul (rowStride info) (iConst row)) (iMul (colStride info) (iConst col))
     Nothing -> error $ "Symbol " ++ symName ++ " not found in " ++ show symMap
 
 getMOpSymInfo :: String -> (MOpSymInfo -> a) -> MOpSymtab -> a

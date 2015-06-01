@@ -61,18 +61,34 @@ evaluateIExprConstants :: IExpr -> IExpr
 evaluateIExprConstants (IMul l r) =
   case isConstant evaledL && isConstant evaledR of
     True -> iConst $ (constValue evaledL) * (constValue evaledR)
-    False -> IMul evaledL evaledR
+    False -> simplifyMul evaledL evaledR
   where
     evaledL = evaluateIExprConstants l
     evaledR = evaluateIExprConstants r
 evaluateIExprConstants (IAdd l r) =
   case isConstant evaledL && isConstant evaledR of
     True -> iConst $ (constValue evaledL) + (constValue evaledR)
-    False -> IAdd evaledL evaledR
+    False -> simplifyAdd evaledL evaledR
   where
     evaledL = evaluateIExprConstants l
     evaledR = evaluateIExprConstants r
-evaluateIExprConstants e = e  
+evaluateIExprConstants e = e
+
+simplifyMul l r =
+  case l == iConst 0 || r == iConst 0 of
+    True -> iConst 0
+    False -> case l == iConst 1 of
+      True -> r
+      False -> case r == iConst 1 of
+        True -> l
+        False -> iMul l r
+
+simplifyAdd l r =
+  case l == iConst 0 of
+    True -> r
+    False -> case r == iConst 0 of
+      True -> l
+      False -> iAdd l r
 
 ieToConst :: IExpr -> Maybe Int
 ieToConst ie =

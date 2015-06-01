@@ -110,8 +110,6 @@ instance Show a => Pretty (CStmt a) where
   prettyPrint indL (CIfThenElse e l r ann) =
     indent indL $ "if (" ++ show e ++ ")\n" ++ prettyPrint indL l ++ (indent indL "else\n") ++ prettyPrint indL r
 
-
-
 data CExpr
   = CIntLit Int
   | CFloatLit Float
@@ -178,3 +176,6 @@ class Pretty a where
 
 indent :: Int -> String -> String
 indent indL str = (L.replicate indL '\t') ++ str
+
+lineComment :: (Show a) => a -> String
+lineComment str = "// " ++ show str ++ "\n"

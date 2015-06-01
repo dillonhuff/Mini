@@ -129,7 +129,7 @@ matrixStToMInstrs (MStmt n expr _) = do
 
 freshTempVar = do
   cg <- get
-  let name = "tmpBuf" ++ (show $ view mcgNextInt cg) in
+  let name = "tmp" ++ (show $ view mcgNextInt cg) in
     do
       put $ over mcgNextInt (\n -> n+1) cg
       return name
