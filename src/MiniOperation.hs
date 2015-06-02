@@ -4,7 +4,7 @@ module MiniOperation(Operation,
                      getOpName, getBufferSize, getOptimizationsApplied,
                      getIndexArgs, getBufferArgs, getOpArguments,
                      toCFunc,
-                     applyToOpBlock,
+                     applyToOpBlock, allNonLoopStatementsInOperation,
                      Optimization,
                      optimizationName, optimizationFunction,
                      applyOptimization,
@@ -34,6 +34,9 @@ addOptimization opt (Operation n opts mst blk) = Operation (n ++ optimizationNam
 
 applyToOpBlock :: (Block a -> Block a) -> Operation a -> Operation a
 applyToOpBlock f (Operation n opts st b) = Operation n opts st (f b)
+
+allNonLoopStatementsInOperation (Operation _ _ _ b) =
+  L.concatMap nonLoopStatements $ blockStatements b
 
 toCFunc :: a -> Operation a -> CTopLevelItem a
 toCFunc dummyAnn op = cFuncDecl cVoid (getOpName op) cArgs cCodeBlock

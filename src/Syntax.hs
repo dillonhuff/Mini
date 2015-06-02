@@ -4,6 +4,7 @@ module Syntax(toCType,
               localVars, arguments,
               Statement,
               transformStatementIExprs,
+              label, nonLoopStatements,
               Operand, operandWritten, operandsRead,
               operandsHaveSameType, isBufferVal,
               bufferName,
@@ -77,6 +78,15 @@ data Statement a
   | For String IExpr IExpr IExpr (Block a) a
     deriving (Eq, Ord, Show)
 
+label (BOp _ _ _ _ l) = l
+label (Load _ _ _ l) = l
+label (LoadConst _ _ l) = l
+label (Store _ _ _ l) = l
+label (For _ _ _ _ _ l) = l
+
+nonLoopStatements (For _ _ _ _ b _) = L.concatMap nonLoopStatements $ blockStatements b
+nonLoopStatements st = [st]
+
 toCStmt (For n start inc end (Block bodyStatements) ann) =
   cFor (cAssign (cVar n) (iExprToCExpr start))
        (cLEQ (cVar n) (iExprToCExpr end))
@@ -104,6 +114,7 @@ operandsRead (Load _ b i _) = [bufferVal b i]
 operandWritten (BOp _ c _ _ _) = reg c
 operandWritten (Store a i _ _) = bufferVal a i
 operandWritten (LoadConst a _ _) = reg a
+operandWritten (Load a _ _ _) = reg a
 
 isFor (For _ _ _ _ _ _) = True
 isFor _ = False
