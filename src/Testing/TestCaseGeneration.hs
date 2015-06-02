@@ -1,4 +1,4 @@
-module TestCaseGeneration(genRowAndColMajorExamples, genTestCases) where
+module Testing.TestCaseGeneration(genRowAndColMajorExamples, genTestCases) where
 
 import Control.Lens hiding (Const, const)
 import Control.Monad

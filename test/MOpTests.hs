@@ -3,14 +3,14 @@ module MOpTests(allMOpTests) where
 import Data.List as L
 import Data.Map as M
 
-import EvaluationResult
 import IndexExpression
 import MiniOperation
 import MOpSyntax
-import RuntimeEvaluation
 import SymbolTable
 import Syntax
-import TestHarness
+import Testing.EvaluationResult
+import Testing.RuntimeEvaluation
+import Testing.TestHarness
 
 allMOpTests = do
   testConvertToMini

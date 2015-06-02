@@ -1,4 +1,4 @@
-module EvaluationResult(EvaluationResult,
+module Testing.EvaluationResult(EvaluationResult,
                         evaluationResult,
                         avgCyclesPerRun,
                         passedSanityCheck) where

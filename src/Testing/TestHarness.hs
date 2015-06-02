@@ -1,11 +1,11 @@
-module TestHarness(cTestHarness,
+module Testing.TestHarness(cTestHarness,
                    parseTimingResults) where
 
 import Data.List as L
 import Data.Map as M
 
 import CGen
-import EvaluationResult
+import Testing.EvaluationResult
 import IndexExpression
 import MiniOperation
 import SymbolTable hiding (getBufferSize)

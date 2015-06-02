@@ -1,4 +1,4 @@
-module RuntimeEvaluation(timeImplementations,
+module Testing.RuntimeEvaluation(timeImplementations,
                          timeImplementationsFixedSizes,
                          timeOperationsOnExamples,
                          timeOperationsWithOptimizationsFixedSizes) where
@@ -9,11 +9,11 @@ import Data.Map as M
 import System.IO.Strict as S
 import System.Process
 
-import EvaluationResult
+import Testing.EvaluationResult
 import MiniOperation
 import Syntax
 import SystemSettings
-import TestHarness
+import Testing.TestHarness
 
 timeOperationsWithOptimizationsFixedSizes :: (Ord a, Show a) => a -> String -> [Operation a] -> [Optimization a] -> IO [Map (Operation a) EvaluationResult]
 timeOperationsWithOptimizationsFixedSizes dummyAnn testName opImpls optimizations =
