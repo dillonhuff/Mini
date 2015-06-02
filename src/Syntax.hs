@@ -5,7 +5,8 @@ module Syntax(toCType,
               Statement,
               transformStatementIExprs,
               Operand, operandWritten, operandsRead,
-              operandsHaveSameType,
+              operandsHaveSameType, isBufferVal,
+              bufferName,
               Type,
               Block,
               blockStatements, expandBlockStatements,
@@ -98,8 +99,10 @@ for n start inc end b ann = For n start inc end b ann
 
 operandsRead (BOp _ _ a b _) = [reg a, reg b]
 operandsRead (Store _ _ a _) = [reg a]
+operandsRead (Load _ b i _) = [bufferVal b i]
 
 operandWritten (BOp _ c _ _ _) = reg c
+operandWritten (Store a i _ _) = bufferVal a i
 operandWritten (LoadConst a _ _) = reg a
 
 isFor (For _ _ _ _ _ _) = True
@@ -152,8 +155,15 @@ miniLitToCLit (FloatLit f) = cFloatLit f
 
 data Operand
   = Register String
+  | BufferVal String IExpr
     deriving (Eq, Ord, Show)
 
 reg s = Register s
+bufferVal s i = BufferVal s i
+
+isBufferVal (BufferVal _ _) = True
+isBufferVal _ = False
 
 operandsHaveSameType (Register _) (Register _) = True
+
+bufferName (BufferVal s _) = s

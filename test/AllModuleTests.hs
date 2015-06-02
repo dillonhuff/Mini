@@ -11,6 +11,7 @@ import RestrictedLayoutTests
 import SyntaxTests
 
 main = do
+  allDependenceAnalysisTests
   allIndexExpressionTests
   allLexerTests
   allLoopAnalysisTests
@@ -19,4 +20,3 @@ main = do
   allParserTests
   allRestrictedLayoutTests
   allSyntaxTests
-  allDependenceAnalysisTests
