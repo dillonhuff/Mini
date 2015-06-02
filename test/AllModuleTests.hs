@@ -1,5 +1,6 @@
 module AllModuleTests(main) where
 
+import DependenceAnalysisTests
 import IndexExpressionTests
 import LexerTests
 import LoopAnalysisTests
@@ -18,3 +19,4 @@ main = do
   allParserTests
   allRestrictedLayoutTests
   allSyntaxTests
+  allDependenceAnalysisTests

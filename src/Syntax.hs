@@ -4,6 +4,8 @@ module Syntax(toCType,
               localVars, arguments,
               Statement,
               transformStatementIExprs,
+              Operand, operandWritten, operandsRead,
+              operandsHaveSameType,
               Type,
               Block,
               blockStatements, expandBlockStatements,
@@ -94,6 +96,12 @@ minus = BOp Minus
 times = BOp Times
 for n start inc end b ann = For n start inc end b ann
 
+operandsRead (BOp _ _ a b _) = [reg a, reg b]
+operandsRead (Store _ _ a _) = [reg a]
+
+operandWritten (BOp _ c _ _ _) = reg c
+operandWritten (LoadConst a _ _) = reg a
+
 isFor (For _ _ _ _ _ _) = True
 isFor _ = False
 
@@ -141,3 +149,11 @@ getLitType (FloatLit _) = single
 
 miniLitToCLit (DoubleLit d) = cDoubleLit d
 miniLitToCLit (FloatLit f) = cFloatLit f
+
+data Operand
+  = Register String
+    deriving (Eq, Ord, Show)
+
+reg s = Register s
+
+operandsHaveSameType (Register _) (Register _) = True
