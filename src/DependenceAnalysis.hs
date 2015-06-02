@@ -3,7 +3,7 @@ module DependenceAnalysis(isFlowDependent,
                           isOutputDependent,
                           isInputDependent,
                           indexRange,
-                          flowDependent,
+                          flowDependent, antiDependent,
                           dependenceGraph) where
 
 import Data.Graph.Inductive as G
@@ -46,6 +46,20 @@ data IndexRange
 
 indexRange start end = IndexRange start end
 
+computeDependencies :: (Show a) => [Statement a] -> [(Statement a, Statement a, Dependence)]
+computeDependencies stmts =
+  L.concatMap statementDeps $ L.tails stmts
+
+statementDeps :: (Show a) => [Statement a] -> [(Statement a, Statement a, Dependence)]
+statementDeps [] = []
+statementDeps [st] = []
+statementDeps (st:stmts) = L.concatMap (\otherSt -> statementPairDeps st otherSt) stmts
+
+statementPairDeps l r =
+  case isFlowDependent [] l r of
+    True -> [(l, r, Flow)]
+    False -> []
+
 data DependenceGraph a
      = DependenceGraph (Map a Node) (Gr a Dependence)
        deriving (Eq, Show)
@@ -57,12 +71,21 @@ data Dependence
   | Input
     deriving (Eq, Ord, Show)
 
-dependenceGraph :: (Ord a) => Operation a -> DependenceGraph a
+dependenceGraph :: (Show a, Ord a) => Operation a -> DependenceGraph a
 dependenceGraph op =
   let stmts = allNonLoopStatementsInOperation op
       labNodePairs = L.zip (L.map label stmts) [1..(length stmts)]
-      nodeLabPairs = L.map (\(x, y) -> (y, x)) labNodePairs in
-  DependenceGraph (M.fromList labNodePairs) (insNodes nodeLabPairs G.empty)
+      nodeLabPairs = L.map (\(x, y) -> (y, x)) labNodePairs
+      depTriples = computeDependencies stmts
+      labNodeMap = M.fromList labNodePairs
+      depEdges = L.map (\(l, r, d) -> (findNode l labNodeMap, findNode r labNodeMap, d)) depTriples in
+  DependenceGraph labNodeMap (insEdges depEdges $ insNodes nodeLabPairs G.empty)
+
+findNode :: (Show a, Ord a) => Statement a -> Map a Node -> Node
+findNode st m =
+  case M.lookup (label st) m of
+    Just n -> n
+    Nothing -> error $ "findNode: " ++ show st ++ " does not exist in " ++ show m
 
 graphNode :: (Ord a, Show a) => a -> DependenceGraph a -> Node
 graphNode l (DependenceGraph m _) =
@@ -70,12 +93,14 @@ graphNode l (DependenceGraph m _) =
     Just n -> n
     Nothing -> error $ "graphNode: " ++ show l ++ " does not exist in " ++ show m
 
-flowDependencies :: (Show a, Ord a) => a -> DependenceGraph a -> [Node]
-flowDependencies l dg@(DependenceGraph m g) =
+dependenciesOfType :: (Show a, Ord a) => Dependence -> a -> DependenceGraph a -> [Node]
+dependenciesOfType d l dg@(DependenceGraph m g) =
   let deps = lsuc g (graphNode l dg) in
-  L.map fst $ L.filter (\(_, y) -> y == Flow) deps      
+  L.map fst $ L.filter (\(_, y) -> y == d) deps      
 
-flowDependent :: (Show a, Ord a) => DependenceGraph a -> a -> a -> Bool
-flowDependent depGraph l1 l2 =
-  L.elem (graphNode l2 depGraph) (flowDependencies l1 depGraph)
-  
+dependentQuery :: (Show a, Ord a) => Dependence -> DependenceGraph a -> a -> a -> Bool
+dependentQuery d depGraph l1 l2 =
+  L.elem (graphNode l2 depGraph) (dependenciesOfType d l1 depGraph)
+
+flowDependent depGraph l1 l2 = dependentQuery Flow depGraph l1 l2
+antiDependent depGraph l1 l2 = dependentQuery Anti depGraph l2 l1

@@ -17,6 +17,7 @@ allDependenceAnalysisTests = do
   testFunction isOutputDependentTest noIndexOutputDependentCases
   testFunction isInputDependentTest noIndexInputDependentCases
   testFunction queryFlowDependencies wholeOperationFlowDepsCases
+  testFunction queryAntiDependencies wholeOperationAntiDepsCases
 
 noIndexFlowDependentCases =
   L.map (\((x, y), z) -> (([], x, y), z))
@@ -62,10 +63,20 @@ dummyRange =
 
 wholeOperationFlowDepsCases =
   L.map (\((x, y), z) -> ((opDepGraph, x, y), z))
-  [(("l1", "l2"), False)]
+  [(("l1", "l2"), False),
+   (("l2", "l3"), True)]
+
+wholeOperationAntiDepsCases =
+  L.map (\((x, y), z) -> ((opDepGraph, x, y), z))
+  [(("l1", "l2"), False),
+   (("l2", "l3"), False),
+   (("l3", "l2"), True)]
 
 queryFlowDependencies (depGraph, l1, l2) =
   flowDependent depGraph l1 l2
+
+queryAntiDependencies (depGraph, l1, l2) =
+  antiDependent depGraph l1 l2
 
 opDepGraph = dependenceGraph testOperation
 
@@ -75,7 +86,8 @@ alphaLoop = for "i" (iConst 0) (iSub (iVar "n") (iConst 1)) (iAdd (iVar "i") (iC
 
 alphaBody =
   [load "alpha20" "alpha" (iConst 0) "l1",
-   load "x21" "x" (iVar "i") "l2"]
+   load "x21" "x" (iVar "i") "l2",
+   times "tmp022" "alpha20" "x21" "l3"]
 
 sumLoop = for "k" (iConst 0) (iSub (iVar "n") (iConst 1)) (iAdd (iVar "k") (iConst 1)) (block []) "l20"
 

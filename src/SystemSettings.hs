@@ -1,4 +1,5 @@
 module SystemSettings(compileString,
+                      projectPath,
                       runString,
                       dataFileName,
                       cFileName,

@@ -1,7 +1,7 @@
 module Testing.RuntimeEvaluation(timeImplementations,
-                         timeImplementationsFixedSizes,
-                         timeOperationsOnExamples,
-                         timeOperationsWithOptimizationsFixedSizes) where
+                                timeImplementationsFixedSizes,
+                                timeOperationsOnExamples,
+                                timeOperationsWithOptimizationsFixedSizes) where
 
 import Control.Monad
 import Data.List as L

@@ -58,7 +58,6 @@ getOpLocalVars (Operation _ _ st _) = localVars st
 getBufferSize :: String -> Operation a -> IExpr
 getBufferSize n (Operation _ _ st _) = getMiniSymInfo n bufferSize st
 
-
 data Optimization a
   = Optimization {
     optimizationName :: String,
