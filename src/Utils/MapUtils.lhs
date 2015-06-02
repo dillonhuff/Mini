@@ -17,7 +17,7 @@ that are not provided by the Data.Map library itself.
 
 \begin{code}
 
-module MapUtils(chain) where
+module Utils.MapUtils(chain) where
 
 import Data.List as L
 import Data.Map as M

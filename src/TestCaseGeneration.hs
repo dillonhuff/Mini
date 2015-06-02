@@ -7,9 +7,9 @@ import Data.List as L
 import Data.Map as M
 import Data.Maybe
 
-import GenerateRandomValues
+import Utils.GenerateRandomValues
 import IndexExpression
-import MapUtils
+import Utils.MapUtils
 import RestrictedLayout
 import SymbolTable
 
