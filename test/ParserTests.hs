@@ -3,12 +3,12 @@ module ParserTests(allParserTests) where
 import Data.List as L
 
 import IndexExpression
-import Lexer
+import FrontEnd.Lexer
 import MatrixOperation
-import Parser
+import FrontEnd.Parser
 import SymbolTable
 import TestUtils
-import Token
+import FrontEnd.Token
 
 allParserTests = do
   testFunction (lexAndParseOperation "noname.lspc") opCases

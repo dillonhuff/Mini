@@ -26,7 +26,7 @@ import IndexExpression
 import MOpCodeGen
 import MOpSyntax
 import SymbolTable
-import Token
+import FrontEnd.Token
 
 data MatrixOperation
   = MatrixOperation String MOpSymtab [MatrixStmt] SourcePos

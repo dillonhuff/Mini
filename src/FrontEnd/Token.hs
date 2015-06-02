@@ -1,4 +1,4 @@
-module Token(Token,
+module FrontEnd.Token(Token,
              pos,
              res, ident, lit, intLit,
              dres, dident, dlit, dIntLit,

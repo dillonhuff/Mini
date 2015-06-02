@@ -8,7 +8,7 @@ import MatrixOperation
 import MOpSyntax
 import SymbolTable
 import TestUtils
-import Token
+import FrontEnd.Token
 
 allMatrixOperationTests = do
   testFunction matrixOperationToMOp matOpToMOpCases

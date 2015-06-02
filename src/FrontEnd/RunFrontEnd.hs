@@ -1,12 +1,12 @@
-module RunFrontEnd(runFrontEnd) where
+module FrontEnd.RunFrontEnd(runFrontEnd) where
 
 import Control.Monad
 import Control.Monad.Random
 import Data.List as L
 import Data.Map as M
 
-import Lexer
-import Parser
+import FrontEnd.Lexer
+import FrontEnd.Parser
 import MatrixOperation
 import TestCaseGeneration
 

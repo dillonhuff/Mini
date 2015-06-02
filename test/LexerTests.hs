@@ -2,9 +2,9 @@ module LexerTests(allLexerTests) where
 
 import Data.List as L
 
-import Lexer
+import FrontEnd.Lexer
 import TestUtils
-import Token
+import FrontEnd.Token
 
 allLexerTests = do
   testFunction (lexString "nofile.lspc") keywordCases

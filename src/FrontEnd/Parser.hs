@@ -1,4 +1,4 @@
-module Parser(parseOperation,
+module FrontEnd.Parser(parseOperation,
               parseStatement,
               parseFormalParam) where
 
@@ -9,7 +9,7 @@ import Text.ParserCombinators.Parsec
 import IndexExpression
 import MatrixOperation
 import SymbolTable
-import Token
+import FrontEnd.Token
 
 parser :: Parsec [Token] () a -> String -> [Token] -> Either String a
 parser p srcName toks = case parse p srcName toks of

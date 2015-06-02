@@ -5,17 +5,9 @@ import Data.List as L
 import System.Environment
 
 import CGen
-import IndexExpression
-import Lexer
-import MatrixOperation
-import MOpSyntax
 import MiniOperation
-import Parser
 import RunBackEnd
-import RunFrontEnd
-import RuntimeEvaluation
-import SymbolTable
-import Syntax
+import FrontEnd.RunFrontEnd
 
 fileName = "/Users/dillon/Haskell/Mini/Level1BLAS.lspc"
 cResFileName = "/Users/dillon/Haskell/Mini/Level1BLAS.c"

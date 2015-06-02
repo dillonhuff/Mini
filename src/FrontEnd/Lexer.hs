@@ -1,10 +1,10 @@
-module Lexer(lexString) where
+module FrontEnd.Lexer(lexString) where
 
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.Parsec.Token as Tok
 
-import Token
+import FrontEnd.Token
 
 lexString :: String -> String -> Either String [Token]
 lexString sourceFileName str = case parse (sepBy pTok spaces) sourceFileName str of
