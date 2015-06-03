@@ -33,6 +33,6 @@ partiallyUnrollBy n st =
   where
     mainIVarName = forInductionVariable st
     mainIVar = iVar mainIVarName
-    mainLoop = for mainIVarName (forStart st) (iConst n) (forEnd st) unrolledBody (label st)
+    mainLoop = for mainIVarName (forStart st) (iConst n) (iSub (forEnd st) (iConst n)) unrolledBody (label st)
     unrolledBody = block $ L.concatMap (\i -> blockStatements $ subIExprInBlock (iAdd mainIVar (iConst i)) mainIVarName (forBody st)) [0..(n - 1)]
     
