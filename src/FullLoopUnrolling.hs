@@ -10,7 +10,7 @@ import Syntax
 
 fullyUnrollAllLoops =
   optimization
-        "fully_unroll_all_loops"
+        "FullyUnrollAllLoops"
         (applyToOpBlock (expandBlockStatements tryFullyUnrollLoop))
 
 tryFullyUnrollLoop st =
