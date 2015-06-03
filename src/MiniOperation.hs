@@ -2,6 +2,7 @@
 module MiniOperation(Operation,
                      operation,
                      getOpName, getBufferSize, getOptimizationsApplied,
+                     getMiniOpSymtab,
                      getIndexArgs, getBufferArgs, getOpArguments,
                      toCFunc,
                      applyToOpBlock, allNonLoopStatementsInOperation,

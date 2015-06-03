@@ -4,17 +4,19 @@ module Syntax(toCType,
               localVars, arguments,
               Statement,
               transformStatementIExprs,
-              label, nonLoopStatements,
+              label, nonLoopStatements, substituteName,
               Operand, operandWritten, operandsRead,
               operandsHaveSameType, isBufferVal,
-              bufferName,
+              bufferName, registerName, 
               Type,
               Block,
+              noLoopsInBlock, updateBlock,
               blockStatements, expandBlockStatements,
               toCBlock,
               block,
               load, loadConst, store, plus, minus, times, for,
               forStart, forEnd, forInc, isFor, forInductionVariable, forBody,
+              isLoad, isStore,
               sReg, buffer,
               doubleLit, floatLit, getLitType) where
 
@@ -67,8 +69,13 @@ blockStatements (Block stmts) = stmts
 transformBlock :: (Statement a -> Statement a) -> Block a -> Block a
 transformBlock f (Block stmts) = block $ L.map (transformStatement f) stmts
 
+updateBlock :: (Block a -> Block a) -> Block a -> Block a
+updateBlock f b = f $ block $ L.map (transformStatement (updateStmtBlocks f)) $ blockStatements b
+
 expandBlockStatements :: (Statement a -> [Statement a]) -> Block a -> Block a
 expandBlockStatements f (Block stmts) = block $ L.concatMap (expandStatement f) stmts
+
+noLoopsInBlock b = L.and $ L.map (\st -> not $ isFor st) $ blockStatements b
 
 data Statement a
   = BOp Binop String String String a
@@ -116,6 +123,12 @@ operandWritten (Store a i _ _) = bufferVal a i
 operandWritten (LoadConst a _ _) = reg a
 operandWritten (Load a _ _ _) = reg a
 
+isLoad (Load _ _ _ _) = True
+isLoad _ = False
+
+isStore (Store _ _ _ _) = True
+isStore _ = False
+
 isFor (For _ _ _ _ _ _) = True
 isFor _ = False
 
@@ -129,6 +142,9 @@ transformStatement :: (Statement a -> Statement a) -> Statement a -> Statement a
 transformStatement f (For v s i e blk ann) = f (For v s i e (transformBlock f blk) ann)
 transformStatement f s = f s
 
+updateStmtBlocks f (For v s i e blk ann) = For v s i e (updateBlock f blk) ann
+updateStmtBlocks f other = other
+
 expandStatement :: (Statement a -> [Statement a]) -> Statement a -> [Statement a]
 expandStatement f (For v s i e blk ann) = f (For v s i e (expandBlockStatements f blk) ann)
 expandStatement f s = f s
@@ -138,6 +154,15 @@ transformStatementIExprs f (For v s i e blk ann) = For v (f s) (f i) (f e) blk a
 transformStatementIExprs f (Load n m i ann) = Load n m (f i) ann
 transformStatementIExprs f (Store n i m ann) = Store n (f i) m ann
 transformStatementIExprs f s = s
+
+substituteName target result (Load n m i ann) = Load (subN target result n) (subN target result m) i ann
+substituteName target result (Store n i m ann) = Store (subN target result n) i (subN target result m) ann
+substituteName target result (BOp op a b c ann) = BOp op (subN target result a) (subN target result b) (subN target result c) ann
+
+subN target result n =
+  case n == target of
+    True -> result
+    False -> n
 
 data Binop
   = Plus
@@ -178,3 +203,6 @@ isBufferVal _ = False
 operandsHaveSameType (Register _) (Register _) = True
 
 bufferName (BufferVal s _) = s
+
+registerName (Register s) = s
+registerName other = error $ "cannot get register name for buffer " ++ show other
