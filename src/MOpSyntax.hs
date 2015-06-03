@@ -125,16 +125,16 @@ freshRegisterForBuffer a = do
 loadToRegister a rowInd colInd = do
   r <- freshName a
   t <- get
-  l <- freshLabel
   put $ addRegister r (getBufferTypeFromSymtab a t) t
   mst <- currentMOpSymtab
+  l <- freshLabel
   return (r, load r a (accessExpr a rowInd colInd mst) l)
 
 loadToRegisterConst a rowVal colVal = do
   t <- get
-  l <- freshLabel
   r <- freshRegister a (getBufferTypeFromSymtab a t)
   mst <- currentMOpSymtab
+  l <- freshLabel
   return (r, load r a (accessExprConst a rowVal colVal mst) l)
 
 loadConstToRegister c rowInd colInd = do

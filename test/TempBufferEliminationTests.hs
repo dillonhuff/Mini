@@ -7,8 +7,9 @@ import SystemSettings
 import TempBufferElimination
 import Testing.LibraryOptimization
 
-level1Path = projectPath ++ "DSwap.lspc"
-level1CPath = projectPath ++ "DSwap.c"
+libName = "Level1BLAS"
+level1Path = projectPath ++ libName ++ ".lspc"
+level1CPath = projectPath ++ libName ++ ".c"
 
 allTempBufferEliminationTests =
   compileLibSpecToFileWithOptimizations [eliminateTempBuffers,

@@ -37,10 +37,11 @@ tryToEliminateTemp (bufName, storeLabels, loadLabels) stmts =
     False -> stmts
 
 removeTemp (bufName, storeLabel, loadLabels) stmts =
-  let valStored = error $ "stmts = " ++ show stmts ++ "\n" ++ (show $ L.head $ operandsRead $ L.head $ L.filter (\st -> label st == storeLabel) stmts) --registerName
+  let valStored = registerName $ L.head $ operandsRead $ L.head $ L.filter (\st -> label st == storeLabel) stmts
       loadLocations = L.filter (\st -> L.elem (label st) loadLabels) stmts
-      receivingRegs = L.map registerName $ L.map operandWritten loadLocations in
-  L.map (multiSubstitution (L.zip (L.replicate (length receivingRegs) valStored) receivingRegs)) stmts
+      receivingRegs = L.map registerName $ L.map operandWritten loadLocations
+      remainingStmts = L.filter (\st -> not $ L.elem (label st) (storeLabel:loadLabels)) stmts in
+  L.map (multiSubstitution (L.zip (L.replicate (length receivingRegs) valStored) receivingRegs)) remainingStmts
 
 multiSubstitution [] st = st
 multiSubstitution ((targetName, resultName):stmts) st =
