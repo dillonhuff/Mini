@@ -7,10 +7,12 @@ import Data.Map as M
 
 import FullLoopUnrolling
 import IndexExpressionOptimizations
+import LoopFusion
 import MatrixOperation
 import MOpSyntax
 import MiniOperation
 import Syntax
+import TempBufferElimination
 import Testing.RuntimeEvaluation
 import Testing.EvaluationResult
 
@@ -36,7 +38,10 @@ matrixOpToMiniOpNoOptimizations matOp =
       miniRes = convertToMini mOp in
   miniRes
 
-defaultOptimizations = [evalIExprConstants, fullyUnrollAllLoops]
+defaultOptimizations = [eliminateTempBuffers,
+                        fuseAllTopLevelLoopsPossible,
+                        evalIExprConstants,
+                        fullyUnrollAllLoops]
 
 matrixOpToMiniOpWithOptimizations [] matOp = convertToMini $ matrixOperationToMOp matOp
 matrixOpToMiniOpWithOptimizations (opt:rest) matOp =

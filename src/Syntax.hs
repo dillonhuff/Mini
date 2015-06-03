@@ -10,7 +10,7 @@ module Syntax(toCType,
               bufferName, registerName, 
               Type,
               Block,
-              noLoopsInBlock, updateBlock,
+              noLoopsInBlock, updateBlock, subIExprInBlock,
               blockStatements, expandBlockStatements,
               toCBlock,
               block,
@@ -206,3 +206,6 @@ bufferName (BufferVal s _) = s
 
 registerName (Register s) = s
 registerName other = error $ "cannot get register name for buffer " ++ show other
+
+subIExprInBlock :: IExpr -> String -> Block a -> Block a
+subIExprInBlock ie n b = transformBlock (transformStatementIExprs (subIExprForVar ie n)) b

@@ -1,9 +1,9 @@
 module IndexExpression(IExpr,
                        evaluateIExprConstants,
-                       iAdd, iMul, iConst, iVar, iSub,
+                       iAdd, iMul, iConst, iVar, iSub, iDiv,
                        iExprToCExpr, isConst, isVar, ieToConst,
                        constVal, varName,
-                       subIExpr) where
+                       subIExpr, subIExprForVar) where
 
 import CGen
 
@@ -12,6 +12,7 @@ data IExpr
   | IVar String
   | IMul IExpr IExpr
   | IAdd IExpr IExpr
+  | IDiv IExpr IExpr
     deriving (Eq, Ord)
 
 iSub l r = iAdd l (iMul (iConst (-1)) r)
@@ -19,6 +20,7 @@ iAdd l r = IAdd l r
 iMul l r = IMul l r
 iConst i = IConst i
 iVar n = IVar n
+iDiv l r = IDiv l r
 
 isConst (IConst _) = True
 isConst _ = False
@@ -96,3 +98,6 @@ ieToConst ie =
   case isConst evaluatedIE of
     True -> Just $ constVal evaluatedIE
     False -> Nothing
+
+subIExprForVar :: IExpr -> String -> IExpr -> IExpr
+subIExprForVar ie varName expr = subIExpr (iVar varName) ie expr

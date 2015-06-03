@@ -1,5 +1,7 @@
 module LoopAnalysis(numberOfIterations,
-                    allIterationsList) where
+                    allIterationsList,
+                    moreThanNIterations,
+                    unitIncrement) where
 
 import Data.List as L
 
@@ -20,3 +22,9 @@ allIterationsList start inc end = do
   return $ [iConst i | i <- iterSpace startVal incVal endVal]
 
 iterSpace start inc end = L.map (\i -> i * inc + start) [0..(div (end - start) inc)]
+
+moreThanNIterations n st =
+  True
+
+unitIncrement st =
+  True

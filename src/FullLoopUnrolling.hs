@@ -26,8 +26,3 @@ fullyUnrollLoop st =
       Just $ L.concatMap (\i -> blockStatements $ subIExprInBlock i (forInductionVariable st) (forBody st)) iterSpace
     False -> Nothing
 
-subIExprInBlock :: IExpr -> String -> Block a -> Block a
-subIExprInBlock ie n b = transformBlock (transformStatementIExprs (subIExprForVar ie n)) b
-
-subIExprForVar :: IExpr -> String -> IExpr -> IExpr
-subIExprForVar ie varName expr = subIExpr (iVar varName) ie expr

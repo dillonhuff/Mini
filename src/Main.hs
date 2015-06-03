@@ -10,7 +10,9 @@ l1BLASFile = "/Users/dillon/Haskell/Mini/Level1BLAS.lspc"
 cL1BLAS = "/Users/dillon/Haskell/Mini/Level1BLAS.c"
 
 main :: IO ()
-main = compileLibSpecToFileWithOptimizations defaultOptimizations l1BLASFile cL1BLAS
+main = do
+  (libPath:resultFilePath:[]) <- getArgs
+  compileLibSpecToFileWithOptimizations defaultOptimizations libPath resultFilePath
 
 
 

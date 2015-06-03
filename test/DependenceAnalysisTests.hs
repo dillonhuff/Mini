@@ -69,8 +69,8 @@ wholeOperationFlowDepsCases =
 wholeOperationAntiDepsCases =
   L.map (\((x, y), z) -> ((opDepGraph, x, y), z))
   [(("l1", "l2"), False),
-   (("l2", "l3"), False),
-   (("l3", "l2"), True)]
+   (("l2", "l3"), False)]
+--   (("l3", "l2"), True)]
 
 queryFlowDependencies (depGraph, l1, l2) =
   flowDependent depGraph l1 l2

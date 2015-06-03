@@ -28,9 +28,9 @@ operation ddot(r matrix double 1 gen 1 1 x,
 }
 
 operation dadot(r matrix double 1 gen 1 1 x,
-	       r matrix double gen 1 1 1 y,
-	       r matrix double 1 1 1 1 alpha,
-	       output matrix double 1 1 1 1 dot) {
+	       	r matrix double gen 1 1 1 y,
+	       	r matrix double 1 1 1 1 alpha,
+	       	output matrix double 1 1 1 1 dot) {
   dot = alpha + x * y;
 }
 
@@ -64,8 +64,8 @@ operation sdot(r matrix float 1 gen 1 1 x,
 }
 
 operation sadot(r matrix float 1 gen 1 1 x,
-	       r matrix float gen 1 1 1 y,
-	       r matrix float 1 1 1 1 alpha,
-	       output matrix float 1 1 1 1 dot) {
+	       	r matrix float gen 1 1 1 y,
+	       	r matrix float 1 1 1 1 alpha,
+	       	output matrix float 1 1 1 1 dot) {
   dot = alpha + x * y;
 }
