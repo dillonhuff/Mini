@@ -83,14 +83,7 @@ genVectorVectorCase lo hi st =
     Just ls -> liftM (\m -> [M.mapKeys sizeName m]) $ assignRandomValuesToDimsAndStrides lo hi ls
     Nothing -> return []
     
-genVectorVectorLayouts :: MOpSymtab -> Maybe [RLayout]
-genVectorVectorLayouts st = do
-  layouts <- mOpSymtabToRLayouts st
-  case L.and $ L.map (\l -> isVector l || isScalar l) layouts of
-    True -> Just layouts
-    False -> Nothing
-
-genTestCases lo hi st = liftM concat $ sequence $ L.map (\f -> f lo hi st) [genVectorVectorCase,
-                                                                            genRowAndColMajorCase,
-                                                                            genUnitRowStrideCase,
-                                                                            genUnitColStrideCase]
+genTestCases lo hi st = liftM L.concat $ sequence $ L.map (\f -> f lo hi st) [genVectorVectorCase,
+                                                             genRowAndColMajorCase,
+                                                             genUnitRowStrideCase,
+                                                             genUnitColStrideCase]

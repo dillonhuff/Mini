@@ -14,7 +14,8 @@ module RestrictedLayout(RLayout,
                         generalSeparableProblemWithUniqueStrides,
                         unitColStrides, unitRowStrides,
                         allRowStridesAreUnit, allColStridesAreUnit,
-                        someRowStridesAreNonUnit, someColStridesAreNonUnit) where
+                        someRowStridesAreNonUnit, someColStridesAreNonUnit,
+                        genVectorVectorLayouts) where
 
 import Control.Lens hiding (Const, const)
 import Control.Lens.TH
@@ -118,13 +119,15 @@ generalSeparableProblemWithUniqueStrides layouts =
 
 rowStrideToColSizeMap :: [RLayout] -> Map Size Size
 rowStrideToColSizeMap layouts =
-  let rowStrideColSizePairs = L.map (\l -> (view rrs l, view rnc l)) layouts in
-  M.fromList rowStrideColSizePairs
+  let rowStrideColSizePairs = L.map (\l -> (view rrs l, view rnc l)) layouts
+      rowStrideVarColSizePairs = L.filter (\(cs, nr) -> isVarSize cs) rowStrideColSizePairs in
+  M.fromList rowStrideVarColSizePairs
 
 colStrideToRowSizeMap :: [RLayout] -> Map Size Size
 colStrideToRowSizeMap layouts =
-  let colStrideToRowSizePairs = L.map (\l -> (view rcs l, view rnr l)) layouts in
-  M.fromList colStrideToRowSizePairs
+  let colStrideToRowSizePairs = L.map (\l -> (view rcs l, view rnr l)) layouts
+      colStrideVarToRowSizePairs = L.filter (\(cs, nr) -> isVarSize cs) colStrideToRowSizePairs in
+  M.fromList colStrideVarToRowSizePairs
 
 unitRowStrides layouts =
   let rowStrides = L.map (\l -> view rrs l) layouts in
@@ -149,3 +152,10 @@ someRowStridesAreNonUnit layouts =
 unitColStrides layouts =
   let colStrides = L.map (\l -> view rcs l) layouts in
   M.fromList $ L.zip colStrides $ L.replicate (length colStrides) 1
+
+genVectorVectorLayouts :: MOpSymtab -> Maybe [RLayout]
+genVectorVectorLayouts st = do
+  layouts <- mOpSymtabToRLayouts st
+  case L.and $ L.map (\l -> isVector l || isScalar l) layouts of
+    True -> Just layouts
+    False -> Nothing
