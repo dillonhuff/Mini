@@ -12,6 +12,7 @@ module Syntax(toCType,
               Block,
               noLoopsInBlock, updateBlock, subIExprInBlock,
               blockStatements, expandBlockStatements,
+              updateBlockM,
               toCBlock,
               block,
               load, loadConst, store, plus, minus, times, for,
@@ -20,6 +21,7 @@ module Syntax(toCType,
               sReg, buffer, accessIExpr,
               doubleLit, floatLit, getLitType) where
 
+import Control.Monad
 import Data.List as L
 import Data.Map as M
 
@@ -69,8 +71,18 @@ blockStatements (Block stmts) = stmts
 transformBlock :: (Statement a -> Statement a) -> Block a -> Block a
 transformBlock f (Block stmts) = block $ L.map (transformStatement f) stmts
 
+transformBlockM :: (Monad m) => (Statement a -> m (Statement a)) -> Block a -> m (Block a)
+transformBlockM f (Block stmts) = do
+  newStmts <- sequence $ L.map (transformStatementM f) stmts
+  return $ block newStmts
+
 updateBlock :: (Block a -> Block a) -> Block a -> Block a
 updateBlock f b = f $ block $ L.map (transformStatement (updateStmtBlocks f)) $ blockStatements b
+
+updateBlockM :: (Monad m) => (Block a -> m (Block a)) -> Block a -> m (Block a)
+updateBlockM f b = do
+  modStmts <- sequence $ L.map (transformStatementM (updateStmtBlocksM f)) $ blockStatements b
+  f (block modStmts)
 
 expandBlockStatements :: (Statement a -> [Statement a]) -> Block a -> Block a
 expandBlockStatements f (Block stmts) = block $ L.concatMap (expandStatement f) stmts
@@ -143,8 +155,19 @@ transformStatement :: (Statement a -> Statement a) -> Statement a -> Statement a
 transformStatement f (For v s i e blk ann) = f (For v s i e (transformBlock f blk) ann)
 transformStatement f s = f s
 
+transformStatementM :: (Monad m) => (Statement a -> m (Statement a)) -> Statement a -> m (Statement a)
+transformStatementM f (For v s i e blk ann) = do
+  newBody <- transformBlockM f blk
+  f (For v s i e newBody ann)
+transformStatementM f s = f s
+
 updateStmtBlocks f (For v s i e blk ann) = For v s i e (updateBlock f blk) ann
 updateStmtBlocks f other = other
+
+updateStmtBlocksM f (For v s i e blk ann) = do
+  newBody <- updateBlockM f blk
+  return $ For v s i e newBody ann
+updateStmtBlocksM f other = return other
 
 expandStatement :: (Statement a -> [Statement a]) -> Statement a -> [Statement a]
 expandStatement f (For v s i e blk ann) = f (For v s i e (expandBlockStatements f blk) ann)

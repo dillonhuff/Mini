@@ -22,6 +22,7 @@ module SymbolTable(MOpSymtab,
                    EntryType, doubleFloat, singleFloat,
                    MiniSymtab,
                    miniSymtab,
+                   removeSymbol,
                    getMiniSymInfo,
                    getBufferType, getBufferSize,
                    getTmpBuffers,
@@ -180,6 +181,9 @@ data MiniSymtab
 miniSymtab l = MiniSymtab $ M.fromList l
 
 addEntry name info (MiniSymtab m) = MiniSymtab $ M.insert name info m
+
+removeSymbol :: String -> MiniSymtab -> MiniSymtab
+removeSymbol n (MiniSymtab m) = MiniSymtab $ M.delete n m
 
 getMiniSymInfo :: String -> (SymbolInfo -> a) -> MiniSymtab -> a
 getMiniSymInfo symName f (MiniSymtab symMap) =

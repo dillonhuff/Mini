@@ -1,5 +1,6 @@
 module TempBufferElimination(eliminateTempBuffers) where
 
+import Control.Monad.State.Lazy
 import Data.List as L
 
 import MiniOperation
@@ -10,20 +11,32 @@ eliminateTempBuffers :: (Show a, Eq a) => Optimization a
 eliminateTempBuffers =
   optimization
         "EliminateTempBuffers"
-        simpleElimTempBuffers
+        elimTempBuffersM
 
-simpleElimTempBuffers op =
-  let tempUsageInfo = tempLoadStoreLocations op in
-  applyToOpBlock (updateBlock (simpleRemoveTemps tempUsageInfo)) op
+elimTempBuffersM op =
+  let st = getMiniOpSymtab op
+      b = getOpBlock op
+      opts = getOptimizationsApplied op
+      (newOpBlock, newSt) = (runState $ elimTmps b) st in
+  makeOperation (getOpName op) opts newSt newOpBlock
 
-simpleRemoveTemps usageInfo b =
+elimTmps :: (Eq a) => Block a -> State MiniSymtab (Block a)
+elimTmps b = do
+  symtab <- get
+  updateBlockM (simpleElimTempBuffersM (tempLoadStoreLocations symtab b)) b
+
+simpleElimTempBuffersM usageInfo b =
   case noLoopsInBlock b of
-    True -> block $ removeTempsFromInnerLoop usageInfo $ blockStatements b
-    False -> b
+    True -> do
+      newStmts <- removeTempsFromInnerLoop usageInfo $ blockStatements b
+      return $ block newStmts
+    False -> return b
 
+removeTempsFromInnerLoop :: (Eq a) => [(String, [a], [a])] -> [Statement a] -> State MiniSymtab [Statement a]
 removeTempsFromInnerLoop usageInfo stmts =
-  foldr tryToEliminateTemp stmts usageInfo
+  foldM (\stmts info -> tryToEliminateTemp info stmts) stmts usageInfo
 
+tryToEliminateTemp :: (Eq a) => (String, [a], [a]) -> [Statement a] -> State MiniSymtab [Statement a]
 tryToEliminateTemp (bufName, storeLabels, loadLabels) stmts =
   case L.length storeLabels == 1 of
     True ->
@@ -32,9 +45,13 @@ tryToEliminateTemp (bufName, storeLabels, loadLabels) stmts =
           labsAfterStore = L.drop 1 $ L.dropWhile (\l -> l /= storeLabel) labs
           allLoadsAfterStore = (L.length $ L.intersect loadLabels labsAfterStore) == (L.length loadLabels) in
       case allLoadsAfterStore of
-        True -> removeTemp (bufName, storeLabel, loadLabels) stmts
-        False -> stmts
-    False -> stmts
+        True -> let newStmts = removeTemp (bufName, storeLabel, loadLabels) stmts in
+          do
+            st <- get
+            put $ removeSymbol bufName st
+            return newStmts
+        False -> return stmts
+    False -> return stmts
 
 removeTemp (bufName, storeLabel, loadLabels) stmts =
   let valStored = registerName $ L.head $ operandsRead $ L.head $ L.filter (\st -> label st == storeLabel) stmts
@@ -47,10 +64,9 @@ multiSubstitution [] st = st
 multiSubstitution ((targetName, resultName):stmts) st =
   multiSubstitution stmts $ substituteName targetName resultName st
 
-tempLoadStoreLocations op =
-  let symt = getMiniOpSymtab op
-      tmpBufs = getTmpBuffers symt
-      stmts = allNonLoopStatementsInOperation op
+tempLoadStoreLocations symt blk =
+  let tmpBufs = getTmpBuffers symt
+      stmts = L.concatMap nonLoopStatements $ blockStatements blk
       loads = L.filter isLoad stmts
       stores = L.filter isStore stmts in
   L.map (createUseTriple loads stores) tmpBufs
@@ -60,7 +76,6 @@ createUseTriple loads stores bufName =
       storeLocs = L.filter (storesToBuffer bufName) stores
       storeLabels = L.map label storeLocs in
   (bufName, storeLabels, loadLabels)
-      
 
 loadsFromBuffer bufName ld = L.elem bufName $ L.map bufferName $ L.filter isBufferVal $ operandsRead ld
 

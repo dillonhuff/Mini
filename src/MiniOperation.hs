@@ -2,7 +2,7 @@
 module MiniOperation(Operation,
                      operation,
                      getOpName, getBufferSize, getOptimizationsApplied,
-                     getMiniOpSymtab,
+                     getMiniOpSymtab, getOpBlock, makeOperation,
                      getIndexArgs, getBufferArgs, getOpArguments,
                      toCFunc,
                      applyToOpBlock, allNonLoopStatementsInOperation,
@@ -46,6 +46,8 @@ toCFunc dummyAnn op = cFuncDecl cVoid (getOpName op) cArgs cCodeBlock
     cCodeBlock = toCBlock dummyAnn (getMiniOpSymtab op) (getOpLocalVars op) (getOpBlock op)
 
 operation n st blk = Operation n [] st blk
+
+makeOperation n ops st blk = Operation n ops st blk
 
 getMiniOpSymtab (Operation _ _ st _) = st
 getOpName (Operation n _ _ _) = n
