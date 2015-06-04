@@ -8,8 +8,10 @@ import SymbolTable
 import Testing.TestCaseGeneration
 import TestUtils
 
-allTestCaseGenerationTests :: IO String
-allTestCaseGenerationTests = testFunctionM (testGenTestCases (3 :: Int) (100 :: Int)) symtabCases
+allTestCaseGenerationTests :: IO ()
+allTestCaseGenerationTests = do
+  r1 <- testFunctionM (testGenTestCases (3 :: Int) (100 :: Int)) symtabCases
+  putStrLn r1
 
 symtabCases =
   L.map (\(x, y) -> (createSymtabFromTuple x, y))

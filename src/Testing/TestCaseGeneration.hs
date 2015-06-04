@@ -68,6 +68,10 @@ unitRowStrides layouts =
   let rowStrides = L.map (\l -> view rrs l) layouts in
   M.fromList $ L.zip rowStrides $ L.replicate (length rowStrides) 1
 
+allRowStridesAreUnit layouts =
+  let rowStrides = L.map (\l -> view rrs l) layouts in
+  L.and $ L.map (\rs -> rs == (con 1)) rowStrides
+
 unitColStrides layouts =
   let colStrides = L.map (\l -> view rcs l) layouts in
   M.fromList $ L.zip colStrides $ L.replicate (length colStrides) 1
@@ -86,12 +90,25 @@ generateColMajorTestCase lo hi layouts = do
       colStrides = chain colStridesToDims dimVals in
     return $ M.mapKeys sizeName $ M.union (M.union colStrides rowStrides) dimVals
 
+generateUnitRowStrideCase lo hi layouts =
+  case allRowStridesAreUnit layouts of
+    True -> do
+      dimVals <- assignRandomValuesToDims lo hi layouts
+      let colStridesToDims = colStrideToRowSizeMap layouts
+          colStrides = chain colStridesToDims dimVals in
+        return $ M.mapKeys sizeName $ M.union colStrides dimVals
+    False -> return M.empty
+  
 genRowAndColMajorExamples lo hi st =
   let layouts = genSeparableLayouts st in
       case layouts of
-        Just ls -> sequence $ [generateColMajorTestCase lo hi ls, generateRowMajorTestCase lo hi ls]
-        Nothing -> return []
-  
+        Just ls -> sequence $ [generateColMajorTestCase lo hi ls,
+                               generateRowMajorTestCase lo hi ls]
+        Nothing ->
+          case mOpSymtabToRLayouts st of
+            Just ls -> sequence $ [generateUnitRowStrideCase lo hi ls]
+            Nothing -> return []
+
 genSeparableLayouts st = do
   layouts <- mOpSymtabToRLayouts st
   generalSeparableProblemWithUniqueStrides layouts
@@ -110,4 +127,5 @@ genVectorVectorLayouts st = do
     True -> Just layouts
     False -> Nothing
 
-genTestCases lo hi st = liftM concat $ sequence $ L.map (\f -> f lo hi st) [genVectorVectorExample, genRowAndColMajorExamples]
+genTestCases lo hi st = liftM concat $ sequence $ L.map (\f -> f lo hi st) [genVectorVectorExample,
+                                                                            genRowAndColMajorExamples]
