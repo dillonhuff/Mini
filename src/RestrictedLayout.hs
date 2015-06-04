@@ -9,11 +9,17 @@ module RestrictedLayout(RLayout,
                         mOpSymtabToRLayouts,
                         Size,
                         var, con,
-                        sizeName, isVarSize) where
+                        sizeName, isVarSize,
+                        rowStrideToColSizeMap, colStrideToRowSizeMap,
+                        generalSeparableProblemWithUniqueStrides,
+                        unitColStrides, unitRowStrides,
+                        allRowStridesAreUnit, allColStridesAreUnit,
+                        someRowStridesAreNonUnit, someColStridesAreNonUnit) where
 
 import Control.Lens hiding (Const, const)
 import Control.Lens.TH
 import Data.List as L
+import Data.Map as M
 
 import IndexExpression
 import SymbolTable
@@ -80,3 +86,66 @@ mOpSymtabToRLayouts :: MOpSymtab -> Maybe [RLayout]
 mOpSymtabToRLayouts symTab =
   let layouts = allLayouts symTab in
   sequence $ L.map layoutToRLayout layouts
+
+dimAndStrideVarsAreSeparable :: [RLayout] -> Bool
+dimAndStrideVarsAreSeparable layouts =
+  case separateDimAndStrideVars layouts of
+    Just _ -> True
+    Nothing -> False
+
+separateDimAndStrideVars :: [RLayout] -> Maybe ([Size], [Size])
+separateDimAndStrideVars layouts =
+  let allLayoutsDimVars = L.concatMap dimensionVars layouts
+      allLayoutsStrideVars = L.concatMap strideVars layouts in
+  case L.intersect allLayoutsDimVars allLayoutsStrideVars of
+    [] -> Just (allLayoutsDimVars, allLayoutsStrideVars)
+    _ -> Nothing
+
+allDimsAndStridesAreVars :: [RLayout] -> Bool
+allDimsAndStridesAreVars layouts =
+  L.and $ L.map isVarSize $ L.concatMap (\l -> dimensions l ++ strides l) layouts
+
+allStridesAreUnique :: [RLayout] -> Bool
+allStridesAreUnique layouts =
+  let allStrides = L.concatMap strides layouts in
+  (L.length $ L.nub allStrides) == L.length allStrides
+
+generalSeparableProblemWithUniqueStrides :: [RLayout] -> Maybe [RLayout]
+generalSeparableProblemWithUniqueStrides layouts =
+  case dimAndStrideVarsAreSeparable layouts && allDimsAndStridesAreVars layouts && allStridesAreUnique layouts of
+    True -> Just layouts
+    False -> Nothing
+
+rowStrideToColSizeMap :: [RLayout] -> Map Size Size
+rowStrideToColSizeMap layouts =
+  let rowStrideColSizePairs = L.map (\l -> (view rrs l, view rnc l)) layouts in
+  M.fromList rowStrideColSizePairs
+
+colStrideToRowSizeMap :: [RLayout] -> Map Size Size
+colStrideToRowSizeMap layouts =
+  let colStrideToRowSizePairs = L.map (\l -> (view rcs l, view rnr l)) layouts in
+  M.fromList colStrideToRowSizePairs
+
+unitRowStrides layouts =
+  let rowStrides = L.map (\l -> view rrs l) layouts in
+  M.fromList $ L.zip rowStrides $ L.replicate (length rowStrides) 1
+
+allRowStridesAreUnit layouts =
+  let rowStrides = L.map (\l -> view rrs l) layouts in
+  L.and $ L.map (\rs -> rs == (con 1)) rowStrides
+
+someColStridesAreNonUnit layouts =
+  let colStrides = L.map (\l -> view rcs l) layouts in
+  L.or $ L.map (\cs -> cs /= (con 1)) colStrides
+
+allColStridesAreUnit layouts =
+  let colStrides = L.map (\l -> view rcs l) layouts in
+  L.and $ L.map (\rs -> rs == (con 1)) colStrides
+
+someRowStridesAreNonUnit layouts =
+  let rowStrides = L.map (\l -> view rrs l) layouts in
+  L.or $ L.map (\cs -> cs /= (con 1)) rowStrides
+
+unitColStrides layouts =
+  let colStrides = L.map (\l -> view rcs l) layouts in
+  M.fromList $ L.zip colStrides $ L.replicate (length colStrides) 1

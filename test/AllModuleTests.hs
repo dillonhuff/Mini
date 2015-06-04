@@ -9,6 +9,7 @@ import MOpTests
 import ParserTests
 import RestrictedLayoutTests
 import SyntaxTests
+import TestCaseGenerationTests
 
 main = do
   allDependenceAnalysisTests
@@ -20,3 +21,4 @@ main = do
   allParserTests
   allRestrictedLayoutTests
   allSyntaxTests
+  allTestCaseGenerationTests
