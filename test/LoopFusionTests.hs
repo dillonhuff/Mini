@@ -6,8 +6,9 @@ import LoopFusion
 import SystemSettings
 import Testing.LibraryOptimization
 
-level1Path = projectPath ++ "Level1BLAS.lspc"
-level1CPath = projectPath ++ "Level1BLAS.c"
+libName = "LargeTests"
+level1Path = projectPath ++ libName ++ ".lspc"
+level1CPath = projectPath ++ libName ++ ".c"
 
 allLoopFusionTests =
   compileLibSpecToFileWithOptimizations [fuseAllTopLevelLoopsPossible, evalIExprConstants, fullyUnrollAllLoops] level1Path level1CPath

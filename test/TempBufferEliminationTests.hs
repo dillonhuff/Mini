@@ -7,7 +7,7 @@ import SystemSettings
 import TempBufferElimination
 import Testing.LibraryOptimization
 
-libName = "Level1BLAS"
+libName = "LargeTests"
 level1Path = projectPath ++ libName ++ ".lspc"
 level1CPath = projectPath ++ libName ++ ".c"
 

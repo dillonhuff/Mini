@@ -1,5 +1,7 @@
 module LoopFusion(fuseAllTopLevelLoopsPossible) where
 
+import Data.List as L
+
 import IndexExpression
 import MiniOperation
 import Syntax
@@ -34,7 +36,9 @@ sameIterationSpace s1 s2 =
   sameIncrement s1 s2
 
 allSimpleAccesses forLoop =
-  True
+  let stmts = nonLoopStatements forLoop
+      allOps = (L.concatMap operandsRead stmts) ++ (L.map operandWritten stmts) in
+  L.and $ L.map (\i -> isConst i || isVar i) $ L.map accessIExpr $ L.filter (\op -> isBufferVal op) allOps
 
 noWritesOverLap loop1 loop2 =
   True

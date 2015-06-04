@@ -6,8 +6,9 @@ import PartialLoopUnrolling
 import SystemSettings
 import Testing.LibraryOptimization
 
-level1Path = projectPath ++ "Level1BLAS.lspc"
-level1CPath = projectPath ++ "Level1BLAS.c"
+libName = "LargeTests"
+level1Path = projectPath ++ libName ++ ".lspc"
+level1CPath = projectPath ++ libName ++ ".c"
 
 allPartialLoopUnrollingTests = do
   compileLibSpecToFileWithOptimizations [partiallyUnrollAllLoopsBy 4, evalIExprConstants, fullyUnrollAllLoops] level1Path level1CPath

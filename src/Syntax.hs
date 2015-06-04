@@ -17,7 +17,7 @@ module Syntax(toCType,
               load, loadConst, store, plus, minus, times, for,
               forStart, forEnd, forInc, isFor, forInductionVariable, forBody,
               isLoad, isStore,
-              sReg, buffer,
+              sReg, buffer, accessIExpr,
               doubleLit, floatLit, getLitType) where
 
 import Data.List as L
@@ -117,6 +117,7 @@ for n start inc end b ann = For n start inc end b ann
 operandsRead (BOp _ _ a b _) = [reg a, reg b]
 operandsRead (Store _ _ a _) = [reg a]
 operandsRead (Load _ b i _) = [bufferVal b i]
+operandsRead (LoadConst _ _ _) = []
 
 operandWritten (BOp _ c _ _ _) = reg c
 operandWritten (Store a i _ _) = bufferVal a i
@@ -203,6 +204,8 @@ isBufferVal _ = False
 operandsHaveSameType (Register _) (Register _) = True
 
 bufferName (BufferVal s _) = s
+
+accessIExpr (BufferVal _ i) = i
 
 registerName (Register s) = s
 registerName other = error $ "cannot get register name for buffer " ++ show other
