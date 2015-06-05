@@ -1,10 +1,10 @@
 module TempBufferEliminationTests(allTempBufferEliminationTests) where
 
-import IndexExpressionOptimizations
 import Optimizations.FullLoopUnrolling
+import Optimizations.IndexExpressionOptimizations
 import Optimizations.LoopFusion
+import Optimizations.TempBufferElimination
 import SystemSettings
-import TempBufferElimination
 import Testing.LibraryOptimization
 
 libName = "LargeTests"

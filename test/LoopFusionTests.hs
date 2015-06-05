@@ -1,7 +1,7 @@
 module LoopFusionTests(allLoopFusionTests) where
 
-import IndexExpressionOptimizations
 import Optimizations.FullLoopUnrolling
+import Optimizations.IndexExpressionOptimizations
 import Optimizations.LoopFusion
 import SystemSettings
 import Testing.LibraryOptimization

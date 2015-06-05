@@ -1,4 +1,4 @@
-module TempBufferElimination(eliminateTempBuffers) where
+module Optimizations.TempBufferElimination(eliminateTempBuffers) where
 
 import Control.Monad.State.Lazy
 import Data.List as L

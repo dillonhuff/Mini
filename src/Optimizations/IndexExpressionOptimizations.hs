@@ -1,4 +1,4 @@
-module IndexExpressionOptimizations(evalIExprConstants) where
+module Optimizations.IndexExpressionOptimizations(evalIExprConstants) where
 
 import IndexExpression
 import MiniOperation
