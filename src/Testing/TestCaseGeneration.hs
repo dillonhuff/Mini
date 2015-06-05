@@ -8,10 +8,10 @@ import Data.Map as M
 import Data.Maybe
 
 import IndexExpression
-import Utils.MapUtils
-import RestrictedLayout
 import SymbolTable
+import Testing.RestrictedLayout
 import Utils.GenerateRandomValues
+import Utils.MapUtils
 
 assignRandomValuesToDims lo hi layouts =
   let allDimVars = L.concatMap dimensionVars layouts in

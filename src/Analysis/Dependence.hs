@@ -1,4 +1,4 @@
-module DependenceAnalysis(isFlowDependent,
+module Analysis.Dependence(isFlowDependent,
                           isAntiDependent,
                           isOutputDependent,
                           isInputDependent,

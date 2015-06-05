@@ -1,4 +1,4 @@
-module LoopAnalysis(numberOfIterations,
+module Analysis.Loop(numberOfIterations,
                     allIterationsList,
                     moreThanNIterations,
                     unitIncrement) where

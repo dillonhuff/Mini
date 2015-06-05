@@ -1,6 +1,6 @@
 module RestrictedLayoutTests(allRestrictedLayoutTests) where
 
-import RestrictedLayout
+import Testing.RestrictedLayout
 import TestUtils
 
 allRestrictedLayoutTests = do

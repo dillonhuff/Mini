@@ -2,8 +2,8 @@ module LoopAnalysisTests(allLoopAnalysisTests) where
 
 import Data.List as L
 
+import Analysis.LoopAnalysis
 import IndexExpression
-import LoopAnalysis
 import TestUtils
 
 allLoopAnalysisTests = do
