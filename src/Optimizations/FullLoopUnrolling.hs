@@ -1,4 +1,4 @@
-module FullLoopUnrolling(fullyUnrollLoop,
+module Optimizations.FullLoopUnrolling(fullyUnrollLoop,
                          fullyUnrollAllLoops) where
 
 import Data.List as L

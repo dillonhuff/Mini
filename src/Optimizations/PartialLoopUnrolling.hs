@@ -1,4 +1,4 @@
-module PartialLoopUnrolling(partiallyUnrollAllLoopsBy) where
+module Optimizations.PartialLoopUnrolling(partiallyUnrollAllLoopsBy) where
 
 import Data.List as L
 

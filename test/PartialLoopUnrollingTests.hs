@@ -1,8 +1,8 @@
 module PartialLoopUnrollingTests(allPartialLoopUnrollingTests) where
 
-import FullLoopUnrolling
 import IndexExpressionOptimizations
-import PartialLoopUnrolling
+import Optimizations.FullLoopUnrolling
+import Optimizations.PartialLoopUnrolling
 import SystemSettings
 import Testing.LibraryOptimization
 

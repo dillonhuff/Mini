@@ -1,8 +1,8 @@
 module TempBufferEliminationTests(allTempBufferEliminationTests) where
 
-import FullLoopUnrolling
 import IndexExpressionOptimizations
-import LoopFusion
+import Optimizations.FullLoopUnrolling
+import Optimizations.LoopFusion
 import SystemSettings
 import TempBufferElimination
 import Testing.LibraryOptimization

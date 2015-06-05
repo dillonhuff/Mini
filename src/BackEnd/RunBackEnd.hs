@@ -5,12 +5,12 @@ module BackEnd.RunBackEnd(runBackEndWithOptimizations,
 import Data.List as L
 import Data.Map as M
 
-import FullLoopUnrolling
 import IndexExpressionOptimizations
-import LoopFusion
 import MatrixOperation
 import MOpSyntax
 import MiniOperation
+import Optimizations.FullLoopUnrolling
+import Optimizations.LoopFusion
 import Syntax
 import TempBufferElimination
 import Testing.RuntimeEvaluation

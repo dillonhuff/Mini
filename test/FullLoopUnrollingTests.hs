@@ -2,8 +2,8 @@ module FullLoopUnrollingTests(allFullLoopUnrollingTests) where
 
 import Data.List as L
 
-import FullLoopUnrolling
 import IndexExpression
+import Optimizations.FullLoopUnrolling
 import Syntax
 import TestUtils
 

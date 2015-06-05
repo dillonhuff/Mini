@@ -1,4 +1,4 @@
-module LoopFusion(fuseAllTopLevelLoopsPossible) where
+module Optimizations.LoopFusion(fuseAllTopLevelLoopsPossible) where
 
 import Data.List as L
 
