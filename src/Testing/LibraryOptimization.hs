@@ -2,10 +2,10 @@ module Testing.LibraryOptimization(compileLibSpecToFileWithOptimizations) where
 
 import Data.List as L
 
-import CGen
+import BackEnd.CGen
+import BackEnd.RunBackEnd
 import FrontEnd.RunFrontEnd
 import MiniOperation
-import RunBackEnd
 
 compileLibSpecToFileWithOptimizations :: [Optimization String] -> String -> String -> IO ()
 compileLibSpecToFileWithOptimizations opts fileName cResFileName = do

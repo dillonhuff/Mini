@@ -13,7 +13,7 @@ module MiniOperation(Operation,
 
 import Data.List as L
 
-import CGen
+import BackEnd.CGen
 import IndexExpression
 import SymbolTable hiding (getBufferSize)
 import Syntax 

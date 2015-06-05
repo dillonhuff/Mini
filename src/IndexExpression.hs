@@ -5,7 +5,7 @@ module IndexExpression(IExpr,
                        constVal, varName,
                        subIExpr, subIExprForVar) where
 
-import CGen
+import BackEnd.CGen
 
 data IExpr
   = IConst Int

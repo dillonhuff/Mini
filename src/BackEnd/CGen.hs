@@ -1,17 +1,17 @@
-module CGen(CTopLevelItem,
-            cFuncDecl, cInclude,
-            cInt, cFloat, cDouble, cFILE, cVoid, cPtr, cULongLong,
-            CBlock,
-            cBlock,
-            CStmt,
-            CExpr,
-            cExprSt, cBlockSt,
-            CType,
-            cAssign, cCast, cAdd, cSub, cMul, cDiv, cFuncall, cOr, cLEQ, cIfThenElse, cFor, cWhile,
-            cIntLit, cFloatLit, cDoubleLit,
-            cVar, cArrAcc, cReturn, cSizeOf,
-            getReferencedType,
-            Pretty(..)) where
+module BackEnd.CGen(CTopLevelItem,
+                    cFuncDecl, cInclude,
+                    cInt, cFloat, cDouble, cFILE, cVoid, cPtr, cULongLong,
+                    CBlock,
+                    cBlock,
+                    CStmt,
+                    CExpr,
+                    cExprSt, cBlockSt,
+                    CType,
+                    cAssign, cCast, cAdd, cSub, cMul, cDiv, cFuncall, cOr, cLEQ, cIfThenElse, cFor, cWhile,
+                    cIntLit, cFloatLit, cDoubleLit,
+                    cVar, cArrAcc, cReturn, cSizeOf,
+                    getReferencedType,
+                    Pretty(..)) where
 
 import Data.List as L
 

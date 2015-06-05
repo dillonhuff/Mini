@@ -25,7 +25,7 @@ import Control.Monad
 import Data.List as L
 import Data.Map as M
 
-import CGen
+import BackEnd.CGen
 import IndexExpression
 import SymbolTable
 

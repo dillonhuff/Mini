@@ -4,7 +4,7 @@ module Testing.TestHarness(cTestHarness,
 import Data.List as L
 import Data.Map as M
 
-import CGen
+import BackEnd.CGen
 import Testing.EvaluationResult
 import IndexExpression
 import MiniOperation
