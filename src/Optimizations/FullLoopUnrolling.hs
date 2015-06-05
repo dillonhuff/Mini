@@ -3,8 +3,8 @@ module Optimizations.FullLoopUnrolling(fullyUnrollLoop,
 
 import Data.List as L
 
+import Analysis.Loop
 import IndexExpression
-import LoopAnalysis
 import MiniOperation
 import Syntax
 
