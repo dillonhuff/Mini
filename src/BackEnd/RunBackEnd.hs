@@ -8,6 +8,7 @@ import Data.Map as M
 import MatrixOperation
 import MOpSyntax
 import MiniOperation
+import Optimizations.ArrayCompaction
 import Optimizations.FullLoopUnrolling
 import Optimizations.IndexExpressionOptimizations
 import Optimizations.LoopFusion
@@ -40,6 +41,7 @@ matrixOpToMiniOpNoOptimizations matOp =
 
 defaultOptimizations = [eliminateTempBuffers,
                         fuseAllTopLevelLoopsPossible,
+                        compactArrays,
                         evalIExprConstants,
                         fullyUnrollAllLoops]
 
