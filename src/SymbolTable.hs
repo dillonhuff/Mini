@@ -30,7 +30,7 @@ module SymbolTable(MOpSymtab,
                    arguments, sReg, buffer, double, single, index,
                    localVars,
                    symInfo,
-                   local, arg,
+                   local, arg, symType, bufType,
                    bufferSize, isIndex, isBuffer,
                    Type,
                    toCType) where

@@ -15,9 +15,9 @@ module Syntax(toCType,
               updateBlockM,
               toCBlock,
               block,
-              load, loadConst, store, plus, minus, times, for,
+              load, loadConst, store, plus, minus, times, for, regAssign,
               forStart, forEnd, forInc, isFor, forInductionVariable, forBody,
-              isLoad, isStore,
+              isLoad, isStore, isLoadConst,
               sReg, buffer, accessIExpr,
               doubleLit, floatLit, getLitType) where
 
@@ -95,6 +95,7 @@ data Statement a
   | LoadConst String Lit a
   | Store String IExpr String a
   | For String IExpr IExpr IExpr (Block a) a
+  | RegAssign String String a
     deriving (Eq, Ord, Show)
 
 label (BOp _ _ _ _ l) = l
@@ -102,6 +103,7 @@ label (Load _ _ _ l) = l
 label (LoadConst _ _ l) = l
 label (Store _ _ _ l) = l
 label (For _ _ _ _ _ l) = l
+label (RegAssign _ _ l) = l
 
 nonLoopStatements (For _ _ _ _ b _) = L.concatMap nonLoopStatements $ blockStatements b
 nonLoopStatements st = [st]
@@ -117,6 +119,7 @@ toCStmt (BOp Plus s1 s2 s3 ann) = cExprSt (cAssign (cVar s1) (cAdd (cVar s2) (cV
 toCStmt (BOp Minus s1 s2 s3 ann) = cExprSt (cAssign (cVar s1) (cSub (cVar s2) (cVar s3))) ann
 toCStmt (BOp Times s1 s2 s3 ann) = cExprSt (cAssign (cVar s1) (cMul (cVar s2) (cVar s3))) ann
 toCStmt (Store s1 iExpr s2 ann) = cExprSt (cAssign (cArrAcc (cVar s1) (iExprToCExpr iExpr)) (cVar s2)) ann
+toCStmt (RegAssign l r ann) = cExprSt (cAssign (cVar l) (cVar r)) ann
 
 loadConst n l = LoadConst n l
 load = Load
@@ -125,6 +128,7 @@ plus = BOp Plus
 minus = BOp Minus
 times = BOp Times
 for n start inc end b ann = For n start inc end b ann
+regAssign = RegAssign
 
 operandsRead (BOp _ _ a b _) = [reg a, reg b]
 operandsRead (Store _ _ a _) = [reg a]
@@ -135,6 +139,9 @@ operandWritten (BOp _ c _ _ _) = reg c
 operandWritten (Store a i _ _) = bufferVal a i
 operandWritten (LoadConst a _ _) = reg a
 operandWritten (Load a _ _ _) = reg a
+
+isLoadConst (LoadConst _ _ _) = True
+isLoadConst _ = False
 
 isLoad (Load _ _ _ _) = True
 isLoad _ = False
