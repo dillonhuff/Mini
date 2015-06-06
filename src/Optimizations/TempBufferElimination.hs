@@ -61,8 +61,8 @@ removeTemp (bufName, storeLabel, loadLabels) stmts =
   L.map (multiSubstitution (L.zip (L.replicate (length receivingRegs) valStored) receivingRegs)) remainingStmts
 
 multiSubstitution [] st = st
-multiSubstitution ((targetName, resultName):stmts) st =
-  multiSubstitution stmts $ substituteName targetName resultName st
+multiSubstitution ((targetName, resultName):rest) st =
+  multiSubstitution rest $ substituteName targetName resultName st
 
 tempLoadStoreLocations symt blk =
   let tmpBufs = getTmpBuffers symt

@@ -4,6 +4,7 @@ module Syntax(toCType,
               localVars, arguments,
               Statement,
               transformStatementIExprs,
+              transformStatement,
               label, nonLoopStatements, substituteName,
               Operand, operandWritten, operandsRead,
               operandsHaveSameType, isBufferVal,
@@ -17,13 +18,14 @@ module Syntax(toCType,
               block,
               load, loadConst, store, plus, minus, times, for, regAssign,
               forStart, forEnd, forInc, isFor, forInductionVariable, forBody,
-              isLoad, isStore, isLoadConst,
+              isLoad, isStore, isLoadConst, isRegAssign, namesReferenced,
               sReg, buffer, accessIExpr,
               doubleLit, floatLit, getLitType) where
 
 import Control.Monad
 import Data.List as L
 import Data.Map as M
+import Data.Maybe as Maybe
 
 import BackEnd.CGen
 import IndexExpression
@@ -134,11 +136,16 @@ operandsRead (BOp _ _ a b _) = [reg a, reg b]
 operandsRead (Store _ _ a _) = [reg a]
 operandsRead (Load _ b i _) = [bufferVal b i]
 operandsRead (LoadConst _ _ _) = []
+operandsRead (RegAssign _ b _) = [reg b]
 
 operandWritten (BOp _ c _ _ _) = reg c
 operandWritten (Store a i _ _) = bufferVal a i
 operandWritten (LoadConst a _ _) = reg a
 operandWritten (Load a _ _ _) = reg a
+operandWritten (RegAssign a _ _) = reg a
+
+isRegAssign (RegAssign _ _ _) = True
+isRegAssign _ = False
 
 isLoadConst (LoadConst _ _ _) = True
 isLoadConst _ = False
@@ -189,6 +196,9 @@ transformStatementIExprs f s = s
 substituteName target result (Load n m i ann) = Load (subN target result n) (subN target result m) i ann
 substituteName target result (Store n i m ann) = Store (subN target result n) i (subN target result m) ann
 substituteName target result (BOp op a b c ann) = BOp op (subN target result a) (subN target result b) (subN target result c) ann
+substituteName target result (RegAssign a b ann) = RegAssign (subN target result a) (subN target result b) ann
+substituteName target result (LoadConst a c ann) = LoadConst (subN target result a) c ann
+substituteName _ _ other = other
 
 subN target result n =
   case n == target of
@@ -233,6 +243,11 @@ isBufferVal _ = False
 
 operandsHaveSameType (Register _) (Register _) = True
 
+operandName op =
+  case isBufferVal op of
+    True -> bufferName op
+    False -> registerName op
+
 bufferName (BufferVal s _) = s
 
 accessIExpr (BufferVal _ i) = i
@@ -242,3 +257,10 @@ registerName other = error $ "cannot get register name for buffer " ++ show othe
 
 subIExprInBlock :: IExpr -> String -> Block a -> Block a
 subIExprInBlock ie n b = transformBlock (transformStatementIExprs (subIExprForVar ie n)) b
+
+operands stmt = (operandWritten stmt) : (operandsRead stmt)
+
+namesReferenced stmt =
+  case isFor stmt of
+    True -> L.concatMap namesReferenced $ blockStatements $ forBody stmt
+    False -> L.map operandName $ operands stmt
