@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module MiniCodeGenState(MiniCodeGenState,
+module Core.MiniCodeGenState(MiniCodeGenState,
                         miniCodeGenState,
                         cgsMiniSymtab,
                         cgsMOpSymtab,

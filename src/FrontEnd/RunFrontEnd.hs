@@ -7,7 +7,7 @@ import Data.Map as M
 
 import FrontEnd.Lexer
 import FrontEnd.Parser
-import MatrixOperation
+import Core.MatrixOperation
 import Testing.TestCaseGeneration
 
 runFrontEnd :: String -> String -> IO (Either String [(MatrixOperation, [Map String Int])])

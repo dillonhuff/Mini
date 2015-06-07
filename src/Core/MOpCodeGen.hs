@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module MOpCodeGen(MOpCodeGen,
+module Core.MOpCodeGen(MOpCodeGen,
                   mOpCodeGen,
                   mcgMOp, mcgNextInt) where
 

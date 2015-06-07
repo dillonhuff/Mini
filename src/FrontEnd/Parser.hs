@@ -7,7 +7,7 @@ import Text.Parsec.Prim
 import Text.ParserCombinators.Parsec
 
 import Core.IndexExpression
-import MatrixOperation
+import Core.MatrixOperation
 import Core.SymbolTable
 import FrontEnd.Token
 

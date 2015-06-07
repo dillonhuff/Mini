@@ -1,4 +1,4 @@
-module MatrixOperation(MatrixOperation,
+module Core.MatrixOperation(MatrixOperation,
                        typeCheckMatrixOperation,
                        matAsg,
                        symProp,
@@ -23,7 +23,7 @@ import Data.List as L
 import Text.Parsec.Pos
 
 import Core.IndexExpression
-import MOpCodeGen
+import Core.MOpCodeGen
 import Core.MOpSyntax
 import Core.SymbolTable
 import FrontEnd.Token

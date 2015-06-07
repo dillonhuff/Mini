@@ -4,7 +4,7 @@ import Control.Monad.Except
 import Data.List as L
 
 import Core.IndexExpression
-import MatrixOperation
+import Core.MatrixOperation
 import Core.MOpSyntax
 import Core.SymbolTable
 import TestUtils

@@ -5,7 +5,7 @@ module BackEnd.RunBackEnd(runBackEndWithOptimizations,
 import Data.List as L
 import Data.Map as M
 
-import MatrixOperation
+import Core.MatrixOperation
 import Core.MOpSyntax
 import Core.MiniOperation
 import Core.MiniSyntax

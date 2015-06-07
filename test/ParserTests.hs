@@ -4,7 +4,7 @@ import Data.List as L
 
 import Core.IndexExpression
 import FrontEnd.Lexer
-import MatrixOperation
+import Core.MatrixOperation
 import FrontEnd.Parser
 import Core.SymbolTable
 import TestUtils

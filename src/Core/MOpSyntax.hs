@@ -16,7 +16,7 @@ import Data.List as L
 import Data.Map as M
 
 import Core.IndexExpression
-import MiniCodeGenState
+import Core.MiniCodeGenState
 import Core.MiniOperation
 import Core.SymbolTable as Sym
 import Core.MiniSyntax
