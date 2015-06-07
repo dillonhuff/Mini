@@ -5,8 +5,8 @@ import Data.Map as M
 
 import Core.IndexExpression
 import Core.MiniOperation
-import MOpSyntax
-import SymbolTable
+import Core.MOpSyntax
+import Core.SymbolTable
 import Core.MiniSyntax
 import Testing.EvaluationResult
 import Testing.RuntimeEvaluation

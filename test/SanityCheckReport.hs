@@ -6,10 +6,10 @@ import Data.Map as M
 import Core.IndexExpression
 import Core.IndexExpressionOptimizations
 import Core.MiniOperation
-import MOpSyntax
+import Core.MOpSyntax
 import Reporting
 import RuntimeEvaluation
-import SymbolTable
+import Core.SymbolTable
 
 showTimeOps = do
   timeRes <- timeOps

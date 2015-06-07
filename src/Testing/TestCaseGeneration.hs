@@ -8,7 +8,7 @@ import Data.Map as M
 import Data.Maybe
 
 import Core.IndexExpression
-import SymbolTable
+import Core.SymbolTable
 import Testing.RestrictedLayout
 import Utils.GenerateRandomValues
 import Utils.MapUtils

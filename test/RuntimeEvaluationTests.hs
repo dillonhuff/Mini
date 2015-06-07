@@ -5,7 +5,7 @@ import Data.Map as M
 import Core.IndexExpression
 import Core.MiniOperation
 import RuntimeEvaluation
-import SymbolTable
+import Core.SymbolTable
 import Core.MiniSyntax
 
 compileGenSizeTest =

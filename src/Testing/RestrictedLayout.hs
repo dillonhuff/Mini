@@ -23,7 +23,7 @@ import Data.List as L
 import Data.Map as M
 
 import Core.IndexExpression
-import SymbolTable
+import Core.SymbolTable
 
 data Size
   = Const Int

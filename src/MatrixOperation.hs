@@ -24,8 +24,8 @@ import Text.Parsec.Pos
 
 import Core.IndexExpression
 import MOpCodeGen
-import MOpSyntax
-import SymbolTable
+import Core.MOpSyntax
+import Core.SymbolTable
 import FrontEnd.Token
 
 data MatrixOperation

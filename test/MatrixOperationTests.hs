@@ -5,8 +5,8 @@ import Data.List as L
 
 import Core.IndexExpression
 import MatrixOperation
-import MOpSyntax
-import SymbolTable
+import Core.MOpSyntax
+import Core.SymbolTable
 import TestUtils
 import FrontEnd.Token
 

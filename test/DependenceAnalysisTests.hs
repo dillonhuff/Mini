@@ -5,7 +5,7 @@ import Data.List as L
 import Analysis.Dependence
 import Core.IndexExpression
 import Core.MiniOperation
-import SymbolTable
+import Core.SymbolTable
 import Core.MiniSyntax
 import TestUtils
 

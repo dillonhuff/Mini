@@ -29,7 +29,7 @@ import Data.Maybe as Maybe
 
 import BackEnd.CGen
 import Core.IndexExpression
-import SymbolTable
+import Core.SymbolTable
 
 prototype :: String -> MiniSymtab -> String
 prototype n st = "void " ++ n ++ "(" ++ argumentStr st ++ ")"

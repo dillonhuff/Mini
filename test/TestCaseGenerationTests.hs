@@ -4,7 +4,7 @@ import Control.Monad.Random
 import Data.List as L
 
 import Core.IndexExpression
-import SymbolTable
+import Core.SymbolTable
 import Testing.TestCaseGeneration
 import TestUtils
 

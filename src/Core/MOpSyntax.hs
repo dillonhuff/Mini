@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module MOpSyntax(MOp,
+module Core.MOpSyntax(MOp,
                  mOp,
                  mOpName, mOpSymT, mOpInstrs,
                  addMInstr,
@@ -18,7 +18,7 @@ import Data.Map as M
 import Core.IndexExpression
 import MiniCodeGenState
 import Core.MiniOperation
-import SymbolTable as Sym
+import Core.SymbolTable as Sym
 import Core.MiniSyntax
 
 data MOp

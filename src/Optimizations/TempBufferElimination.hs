@@ -5,7 +5,7 @@ import Data.List as L
 
 import Core.MiniOperation
 import Core.MiniSyntax
-import SymbolTable
+import Core.SymbolTable
 
 eliminateTempBuffers :: (Show a, Eq a) => Optimization a
 eliminateTempBuffers =

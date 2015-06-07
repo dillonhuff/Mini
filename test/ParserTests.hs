@@ -6,7 +6,7 @@ import Core.IndexExpression
 import FrontEnd.Lexer
 import MatrixOperation
 import FrontEnd.Parser
-import SymbolTable
+import Core.SymbolTable
 import TestUtils
 import FrontEnd.Token
 

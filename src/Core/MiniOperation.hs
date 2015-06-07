@@ -15,7 +15,7 @@ import Data.List as L
 
 import BackEnd.CGen
 import Core.IndexExpression
-import SymbolTable hiding (getBufferSize)
+import Core.SymbolTable hiding (getBufferSize)
 import Core.MiniSyntax 
 
 data Operation a

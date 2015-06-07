@@ -7,8 +7,8 @@ module MOpCodeGen(MOpCodeGen,
 import Control.Lens
 import Control.Lens.TH
 
-import MOpSyntax
-import SymbolTable
+import Core.MOpSyntax
+import Core.SymbolTable
 
 data MOpCodeGen
   = MOpCodeGen {

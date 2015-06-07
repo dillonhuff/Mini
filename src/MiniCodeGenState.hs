@@ -10,7 +10,7 @@ module MiniCodeGenState(MiniCodeGenState,
 import Control.Lens
 import Control.Lens.TH
 
-import SymbolTable
+import Core.SymbolTable
 import Core.MiniSyntax
 
 data MiniCodeGenState =

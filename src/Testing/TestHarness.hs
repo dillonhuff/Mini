@@ -8,7 +8,7 @@ import BackEnd.CGen
 import Testing.EvaluationResult
 import Core.IndexExpression
 import Core.MiniOperation
-import SymbolTable hiding (getBufferSize)
+import Core.SymbolTable hiding (getBufferSize)
 import Core.MiniSyntax
 import SystemSettings
 

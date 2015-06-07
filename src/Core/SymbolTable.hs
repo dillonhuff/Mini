@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module SymbolTable(MOpSymtab,
+module Core.SymbolTable(MOpSymtab,
                    mOpSymtab,
                    allLayouts,
                    mOpSymtabToMiniSymtab,

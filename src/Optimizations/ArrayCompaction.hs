@@ -5,7 +5,7 @@ import Data.List as L
 import Core.IndexExpression
 import Core.MiniOperation
 import Core.MiniSyntax
-import SymbolTable
+import Core.SymbolTable
 
 compactArrays =
   optimization
@@ -54,5 +54,5 @@ compactBufferLoad bufName ld =
     False -> ld
 
 bufSize b st =
-  let bufSize = SymbolTable.getBufferSize b st in
+  let bufSize = Core.SymbolTable.getBufferSize b st in
   evaluateIExprConstants bufSize

@@ -6,7 +6,7 @@ import Data.List as L
 import Data.Map as M
 
 import MatrixOperation
-import MOpSyntax
+import Core.MOpSyntax
 import Core.MiniOperation
 import Core.MiniSyntax
 import Optimizations.ArrayCompaction

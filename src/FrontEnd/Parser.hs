@@ -8,7 +8,7 @@ import Text.ParserCombinators.Parsec
 
 import Core.IndexExpression
 import MatrixOperation
-import SymbolTable
+import Core.SymbolTable
 import FrontEnd.Token
 
 parser :: Parsec [Token] () a -> String -> [Token] -> Either String a
