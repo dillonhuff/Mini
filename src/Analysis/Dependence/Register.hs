@@ -1,10 +1,10 @@
-module Analysis.Dependence(isFlowDependent,
-                          isAntiDependent,
-                          isOutputDependent,
-                          isInputDependent,
-                          indexRange,
-                          flowDependent, antiDependent,
-                          dependenceGraphForVectorInnerLoop) where
+module Analysis.Dependence.Register(isFlowDependent,
+                                    isAntiDependent,
+                                    isOutputDependent,
+                                    isInputDependent,
+                                    indexRange,
+                                    flowDependent, antiDependent,
+                                    dependenceGraphForVectorInnerLoop) where
 
 import Data.List as L
 import Data.Map as M
@@ -65,3 +65,4 @@ dependenceGraphForVectorInnerLoop forLoopStmt =
       depTriplesSt = computeDependencies stmts
       depTriples = L.map (\(l, r, d) -> (label l, label r, d)) depTriplesSt in
   dependenceGraph labels depTriples
+

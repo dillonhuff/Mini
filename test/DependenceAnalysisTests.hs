@@ -2,7 +2,7 @@ module DependenceAnalysisTests(allDependenceAnalysisTests) where
 
 import Data.List as L
 
-import Analysis.Dependence
+import Analysis.Dependence.Register
 import Core.IndexExpression
 import Core.MiniOperation
 import Core.SymbolTable
