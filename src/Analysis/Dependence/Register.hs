@@ -30,14 +30,10 @@ isInputDependent t s =
   0 < (L.length $ L.intersectBy operandsEqual (operandsRead t) (operandsRead s))
 
 operandsEqual :: Operand -> Operand -> Bool
-operandsEqual l r = case l == r of
-  True -> True
-  False -> case isBufferVal l && isBufferVal r of
-    True -> buffersCouldBeEqual l r
-    False -> False
-
-buffersCouldBeEqual l r =
-  bufferName l == bufferName r
+operandsEqual l r =
+  case isBufferVal l || isBufferVal r of
+    True -> error $ "operandsEqual: Comparing buffer value(s) in register dependence analysis " ++ show l ++ " " ++ show r
+    False -> l == r
 
 computeDependencies :: (Eq a, Show a) => [Statement a] -> [(Statement a, Statement a, Dependence)]
 computeDependencies stmts =
