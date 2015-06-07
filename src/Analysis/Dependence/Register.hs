@@ -2,7 +2,6 @@ module Analysis.Dependence.Register(isFlowDependent,
                                     isAntiDependent,
                                     isOutputDependent,
                                     isInputDependent,
-                                    flowDependent, antiDependent,
                                     registerDependenceGraph) where
 
 import Data.List as L
@@ -37,14 +36,29 @@ operandsEqual l r =
 
 computeDependencies :: (Eq a, Show a) => [Statement a] -> [(Statement a, Statement a, Dependence)]
 computeDependencies stmts =
-  L.concatMap (\stmt -> statementDeps stmt stmts) stmts
+  L.concatMap statementDeps $ L.tails $ L.reverse stmts
 
-statementDeps :: (Eq a, Show a) => Statement a -> [Statement a] -> [(Statement a, Statement a, Dependence)]
-statementDeps st others = L.concatMap (\other -> statementPairDeps st other) $ L.filter (\other -> label other /= label st) others
+statementDeps :: (Eq a, Show a) => [Statement a] -> [(Statement a, Statement a, Dependence)]
+statementDeps [] = []
+statementDeps [x] = []
+statementDeps (st:others) = L.concatMap (\other -> statementPairDeps st other) others
 
 statementPairDeps l r =
+  L.concatMap (\f -> f l r) [fDep, aDep, oDep]
+
+aDep l r =
+  case isAntiDependent l r of
+    True -> [(l, r, antiDep)]
+    False -> []
+
+fDep l r =
   case isFlowDependent l r of
     True -> [(l, r, flowDep)]
+    False -> []
+
+oDep l r =
+  case isOutputDependent l r of
+    True -> [(l, r, outputDep)]
     False -> []
 
 registerDependenceGraph stmts =

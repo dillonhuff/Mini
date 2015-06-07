@@ -2,7 +2,7 @@ module Analysis.Dependence.Graph(DependenceGraph,
                                  dependenceGraph,
                                  Dependence,
                                  flowDep, antiDep, outputDep, inputDep,
-                                 flowDependent, antiDependent) where
+                                 flowDependent, antiDependent, outputDependent) where
 
 import Data.Graph.Inductive as G
 import Data.List as L
@@ -53,6 +53,8 @@ dependentQuery :: (Show a, Ord a) => Dependence -> DependenceGraph a -> a -> a -
 dependentQuery d depGraph t s =
   L.elem (graphNode t depGraph) (dependenciesOfType d s depGraph)
 
-flowDependent depGraph l1 l2 = dependentQuery Flow depGraph l1 l2
+flowDependent depGraph t s = dependentQuery Flow depGraph t s
 
-antiDependent depGraph l1 l2 = dependentQuery Anti depGraph l2 l1
+antiDependent depGraph t s = dependentQuery Anti depGraph t s
+
+outputDependent depGraph t s = dependentQuery Output depGraph t s

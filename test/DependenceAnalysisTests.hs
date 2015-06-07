@@ -2,6 +2,7 @@ module DependenceAnalysisTests(allDependenceAnalysisTests) where
 
 import Data.List as L
 
+import Analysis.Dependence.Graph
 import Analysis.Dependence.Register
 import Core.IndexExpression
 import Core.MiniOperation
@@ -15,6 +16,8 @@ allDependenceAnalysisTests = do
   testFunction isOutputDependentTest outputDependentCases
   testFunction isInputDependentTest inputDependentCases
   testFunction grSimpleFlowTest grSimpleFlowCases
+  testFunction grSimpleAntiTest grSimpleAntiCases
+  testFunction grSimpleOutTest grSimpleOutCases
 
 flowDependentCases =
   [((plus "a" "b" "c" 0, minus "x" "y" "z" 1), False),
@@ -54,6 +57,15 @@ grSimpleFlowCases =
    ((0, 2), False),
    ((2, 0), True)]
 
+grSimpleAntiCases =
+  [((1, 0), False),
+   ((0, 1), False),
+   ((3, 1), True)]
+
+grSimpleOutCases =
+  [((1, 0), False),
+   ((3, 0), True)]
+   
 isFlowDependentTest (s1, s2) = isFlowDependent s1 s2
 isAntiDependentTest (s1, s2) = isAntiDependent s1 s2
 isOutputDependentTest (s1, s2) = isOutputDependent s1 s2
@@ -62,6 +74,12 @@ isInputDependentTest (s1, s2) = isInputDependent s1 s2
 grSimpleFlowTest (t, s) =
   flowDependent simpleGraph t s
 
+grSimpleAntiTest (t, s) =
+  antiDependent simpleGraph t s
+
+grSimpleOutTest (t, s) =
+  outputDependent simpleGraph t s
+
 simpleGraph =
-  case registerDependenceGraph [loadConst "a" (doubleLit 1.0) 0, regAssign "b" "a" 1, times "x" "a" "b" 2] of
+  case registerDependenceGraph [loadConst "a" (doubleLit 1.0) 0, regAssign "b" "a" 1, times "x" "a" "b" 2, plus "a" "b" "x" 3] of
     Just g -> g
