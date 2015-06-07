@@ -10,9 +10,9 @@ import Data.Graph.Inductive as G
 import Data.List as L
 import Data.Map as M
 
-import MiniOperation
 import IndexExpression
-import Syntax
+import MiniOperation
+import MiniSyntax
 
 isFlowDependent :: (Show a) => [IndexRange] -> Statement a -> Statement a -> Bool
 isFlowDependent iRanges t s =

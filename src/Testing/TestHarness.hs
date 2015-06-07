@@ -9,7 +9,7 @@ import Testing.EvaluationResult
 import IndexExpression
 import MiniOperation
 import SymbolTable hiding (getBufferSize)
-import Syntax
+import MiniSyntax
 import SystemSettings
 
 cTestHarness :: (Show a) => a -> Map String Int -> String -> Maybe (Operation a) -> [Operation a] -> String

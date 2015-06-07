@@ -4,7 +4,7 @@ import Data.List as L
 
 import IndexExpression
 import MiniOperation
-import Syntax
+import MiniSyntax
 
 fuseAllTopLevelLoopsPossible =
   optimization

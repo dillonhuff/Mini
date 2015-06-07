@@ -6,7 +6,7 @@ import Analysis.Dependence
 import IndexExpression
 import MiniOperation
 import SymbolTable
-import Syntax
+import MiniSyntax
 import TestUtils
 
 allDependenceAnalysisTests = do

@@ -11,7 +11,7 @@ import Control.Lens
 import Control.Lens.TH
 
 import SymbolTable
-import Syntax
+import MiniSyntax
 
 data MiniCodeGenState =
   MiniCodeGenState {

@@ -4,7 +4,7 @@ import Data.List as L
 
 import IndexExpression
 import Optimizations.FullLoopUnrolling
-import Syntax
+import MiniSyntax
 import TestUtils
 
 allFullLoopUnrollingTests = do

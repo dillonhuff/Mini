@@ -2,7 +2,7 @@ module Optimizations.IndexExpressionOptimizations(evalIExprConstants) where
 
 import IndexExpression
 import MiniOperation
-import Syntax
+import MiniSyntax
 
 evalIExprConstants =
   optimization

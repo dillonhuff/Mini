@@ -8,12 +8,12 @@ import Data.Map as M
 import MatrixOperation
 import MOpSyntax
 import MiniOperation
+import MiniSyntax
 import Optimizations.ArrayCompaction
 import Optimizations.FullLoopUnrolling
 import Optimizations.IndexExpressionOptimizations
 import Optimizations.LoopFusion
 import Optimizations.TempBufferElimination
-import Syntax
 import Testing.RuntimeEvaluation
 import Testing.EvaluationResult
 

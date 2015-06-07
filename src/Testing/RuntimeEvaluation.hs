@@ -11,7 +11,7 @@ import System.Process
 
 import Testing.EvaluationResult
 import MiniOperation
-import Syntax
+import MiniSyntax
 import SystemSettings
 import Testing.TestHarness
 

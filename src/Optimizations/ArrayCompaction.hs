@@ -4,8 +4,8 @@ import Data.List as L
 
 import IndexExpression
 import MiniOperation
+import MiniSyntax
 import SymbolTable
-import Syntax
 
 compactArrays =
   optimization

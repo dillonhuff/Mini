@@ -19,7 +19,7 @@ import IndexExpression
 import MiniCodeGenState
 import MiniOperation
 import SymbolTable as Sym
-import Syntax
+import MiniSyntax
 
 data MOp
   = MOp {

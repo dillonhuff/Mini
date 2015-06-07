@@ -4,8 +4,8 @@ import Control.Monad.State.Lazy
 import Data.List as L
 
 import MiniOperation
+import MiniSyntax
 import SymbolTable
-import Syntax
 
 eliminateTempBuffers :: (Show a, Eq a) => Optimization a
 eliminateTempBuffers =

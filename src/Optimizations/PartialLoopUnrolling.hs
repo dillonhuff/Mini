@@ -5,7 +5,7 @@ import Data.List as L
 import Analysis.Loop
 import IndexExpression
 import MiniOperation
-import Syntax
+import MiniSyntax
 
 partiallyUnrollAllLoopsBy m =
   optimization

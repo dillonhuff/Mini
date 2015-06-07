@@ -1,4 +1,4 @@
-module Syntax(toCType,
+module MiniSyntax(toCType,
               transformBlock,
               MiniSymtab,
               localVars, arguments,

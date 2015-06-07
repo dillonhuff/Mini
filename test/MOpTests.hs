@@ -7,7 +7,7 @@ import IndexExpression
 import MiniOperation
 import MOpSyntax
 import SymbolTable
-import Syntax
+import MiniSyntax
 import Testing.EvaluationResult
 import Testing.RuntimeEvaluation
 import Testing.TestHarness

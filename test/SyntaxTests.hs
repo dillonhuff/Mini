@@ -1,7 +1,7 @@
 module SyntaxTests(allSyntaxTests) where
 
 import IndexExpression
-import Syntax
+import MiniSyntax
 import TestUtils
 
 allSyntaxTests = do

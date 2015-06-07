@@ -4,7 +4,7 @@ module Optimizations.CopyPropagation(propagateAllTopLevelCopiesPossible,
 import Data.List as L
 
 import MiniOperation
-import Syntax
+import MiniSyntax
 
 propagateAllTopLevelCopiesPossible =
   optimization
