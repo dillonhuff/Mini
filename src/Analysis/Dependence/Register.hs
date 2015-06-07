@@ -3,7 +3,7 @@ module Analysis.Dependence.Register(isFlowDependent,
                                     isOutputDependent,
                                     isInputDependent,
                                     flowDependent, antiDependent,
-                                    dependenceGraphForVectorInnerLoop) where
+                                    registerDependenceGraph) where
 
 import Data.List as L
 import Data.Map as M
@@ -47,10 +47,16 @@ statementPairDeps l r =
     True -> [(l, r, flowDep)]
     False -> []
 
-dependenceGraphForVectorInnerLoop :: (Show a, Ord a) => Statement a -> DependenceGraph a
-dependenceGraphForVectorInnerLoop forLoopStmt =
-  let stmts = nonLoopStatements forLoopStmt
-      labels = L.map label stmts
+registerDependenceGraph stmts =
+  case allRegisterOps stmts of
+    True -> Just $ regDepGraph stmts
+    False -> Nothing
+
+allRegisterOps stmts =
+  L.and $ L.map (\st -> isRegAssign st || isLoadConst st || isBinop st) stmts
+
+regDepGraph stmts =
+  let labels = L.map label stmts
       depTriplesSt = computeDependencies stmts
       depTriples = L.map (\(l, r, d) -> (label l, label r, d)) depTriplesSt in
   dependenceGraph labels depTriples

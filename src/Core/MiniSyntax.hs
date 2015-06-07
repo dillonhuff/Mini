@@ -18,7 +18,7 @@ module Core.MiniSyntax(toCType,
               block,
               load, loadConst, store, plus, minus, times, for, regAssign,
               forStart, forEnd, forInc, isFor, forInductionVariable, forBody,
-              isLoad, isStore, isLoadConst, isRegAssign, namesReferenced,
+              isLoad, isStore, isLoadConst, isRegAssign, isBinop, namesReferenced,
               sReg, buffer, accessIExpr,
               doubleLit, floatLit, getLitType) where
 
@@ -146,6 +146,9 @@ operandWritten (RegAssign a _ _) = reg a
 
 isRegAssign (RegAssign _ _ _) = True
 isRegAssign _ = False
+
+isBinop (BOp _ _ _ _ _) = True
+isBinop _ = False
 
 isLoadConst (LoadConst _ _ _) = True
 isLoadConst _ = False

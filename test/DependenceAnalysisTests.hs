@@ -14,6 +14,7 @@ allDependenceAnalysisTests = do
   testFunction isAntiDependentTest antiDependentCases
   testFunction isOutputDependentTest outputDependentCases
   testFunction isInputDependentTest inputDependentCases
+  testFunction grSimpleFlowTest grSimpleFlowCases
 
 flowDependentCases =
   [((plus "a" "b" "c" 0, minus "x" "y" "z" 1), False),
@@ -44,15 +45,23 @@ inputDependentCases =
    ((plus "a" "b" "c" 0, times "x" "y" "c" 1), True),
    ((plus "a" "b" "c" 0, times "x" "b" "c" 1), True),
    ((regAssign "x" "c" 0, regAssign "y" "c" 1), True)]
-  
+
+grSimpleFlowCases =
+  [((0, 1), False),
+   ((1, 0), True),
+   ((1, 2), False),
+   ((2, 1), True),
+   ((0, 2), False),
+   ((2, 0), True)]
+
 isFlowDependentTest (s1, s2) = isFlowDependent s1 s2
 isAntiDependentTest (s1, s2) = isAntiDependent s1 s2
 isOutputDependentTest (s1, s2) = isOutputDependent s1 s2
 isInputDependentTest (s1, s2) = isInputDependent s1 s2
 
-queryFlowDependencies (depGraph, l1, l2) =
-  flowDependent depGraph l1 l2
+grSimpleFlowTest (t, s) =
+  flowDependent simpleGraph t s
 
-queryAntiDependencies (depGraph, l1, l2) =
-  antiDependent depGraph l1 l2
-
+simpleGraph =
+  case registerDependenceGraph [loadConst "a" (doubleLit 1.0) 0, regAssign "b" "a" 1, times "x" "a" "b" 2] of
+    Just g -> g
