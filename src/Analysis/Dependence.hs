@@ -10,7 +10,7 @@ import Data.Graph.Inductive as G
 import Data.List as L
 import Data.Map as M
 
-import IndexExpression
+import Core.IndexExpression
 import Core.MiniOperation
 import Core.MiniSyntax
 

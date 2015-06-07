@@ -1,6 +1,6 @@
 module Optimizations.IndexExpressionOptimizations(evalIExprConstants) where
 
-import IndexExpression
+import Core.IndexExpression
 import Core.MiniOperation
 import Core.MiniSyntax
 

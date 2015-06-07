@@ -4,7 +4,7 @@ module Optimizations.FullLoopUnrolling(fullyUnrollLoop,
 import Data.List as L
 
 import Analysis.Loop
-import IndexExpression
+import Core.IndexExpression
 import Core.MiniOperation
 import Core.MiniSyntax
 

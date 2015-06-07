@@ -22,7 +22,7 @@ import Control.Monad.State.Lazy
 import Data.List as L
 import Text.Parsec.Pos
 
-import IndexExpression
+import Core.IndexExpression
 import MOpCodeGen
 import MOpSyntax
 import SymbolTable

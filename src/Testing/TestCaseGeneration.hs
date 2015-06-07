@@ -7,7 +7,7 @@ import Data.List as L
 import Data.Map as M
 import Data.Maybe
 
-import IndexExpression
+import Core.IndexExpression
 import SymbolTable
 import Testing.RestrictedLayout
 import Utils.GenerateRandomValues

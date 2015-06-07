@@ -2,7 +2,7 @@ module ParserTests(allParserTests) where
 
 import Data.List as L
 
-import IndexExpression
+import Core.IndexExpression
 import FrontEnd.Lexer
 import MatrixOperation
 import FrontEnd.Parser

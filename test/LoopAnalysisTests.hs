@@ -3,7 +3,7 @@ module LoopAnalysisTests(allLoopAnalysisTests) where
 import Data.List as L
 
 import Analysis.Loop
-import IndexExpression
+import Core.IndexExpression
 import TestUtils
 
 allLoopAnalysisTests = do

@@ -1,4 +1,4 @@
-module IndexExpression(IExpr,
+module Core.IndexExpression(IExpr,
                        evaluateIExprConstants,
                        iAdd, iMul, iConst, iVar, iSub, iDiv,
                        iExprToCExpr, isConst, isVar, ieToConst,

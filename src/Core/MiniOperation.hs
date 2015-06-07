@@ -14,7 +14,7 @@ module Core.MiniOperation(Operation,
 import Data.List as L
 
 import BackEnd.CGen
-import IndexExpression
+import Core.IndexExpression
 import SymbolTable hiding (getBufferSize)
 import Core.MiniSyntax 
 

@@ -2,7 +2,7 @@ module IndexExpressionTests(allIndexExpressionTests) where
 
 import Data.List as L
 
-import IndexExpression
+import Core.IndexExpression
 import TestUtils
 
 allIndexExpressionTests = do

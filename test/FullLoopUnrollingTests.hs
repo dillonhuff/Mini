@@ -2,7 +2,7 @@ module FullLoopUnrollingTests(allFullLoopUnrollingTests) where
 
 import Data.List as L
 
-import IndexExpression
+import Core.IndexExpression
 import Optimizations.FullLoopUnrolling
 import Core.MiniSyntax
 import TestUtils

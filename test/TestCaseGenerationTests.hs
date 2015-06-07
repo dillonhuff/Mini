@@ -3,7 +3,7 @@ module TestCaseGenerationTests(allTestCaseGenerationTests) where
 import Control.Monad.Random
 import Data.List as L
 
-import IndexExpression
+import Core.IndexExpression
 import SymbolTable
 import Testing.TestCaseGeneration
 import TestUtils

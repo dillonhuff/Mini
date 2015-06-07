@@ -2,7 +2,7 @@ module Optimizations.LoopFusion(fuseAllTopLevelLoopsPossible) where
 
 import Data.List as L
 
-import IndexExpression
+import Core.IndexExpression
 import Core.MiniOperation
 import Core.MiniSyntax
 

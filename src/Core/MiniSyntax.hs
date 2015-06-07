@@ -28,7 +28,7 @@ import Data.Map as M
 import Data.Maybe as Maybe
 
 import BackEnd.CGen
-import IndexExpression
+import Core.IndexExpression
 import SymbolTable
 
 prototype :: String -> MiniSymtab -> String

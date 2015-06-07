@@ -3,8 +3,8 @@ module SanityCheckReport() where
 import Data.List as L
 import Data.Map as M
 
-import IndexExpression
-import IndexExpressionOptimizations
+import Core.IndexExpression
+import Core.IndexExpressionOptimizations
 import Core.MiniOperation
 import MOpSyntax
 import Reporting

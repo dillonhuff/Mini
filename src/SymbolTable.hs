@@ -41,7 +41,7 @@ import Data.List as L
 import Data.Map as M
 
 import BackEnd.CGen
-import IndexExpression
+import Core.IndexExpression
 
 data MOpSymtab
   = MOpSymtab (Map String MOpSymInfo)

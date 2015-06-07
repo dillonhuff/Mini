@@ -22,7 +22,7 @@ import Control.Lens.TH
 import Data.List as L
 import Data.Map as M
 
-import IndexExpression
+import Core.IndexExpression
 import SymbolTable
 
 data Size

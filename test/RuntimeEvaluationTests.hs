@@ -2,7 +2,7 @@ module RuntimeEvaluationTests() where
 
 import Data.Map as M
 
-import IndexExpression
+import Core.IndexExpression
 import Core.MiniOperation
 import RuntimeEvaluation
 import SymbolTable

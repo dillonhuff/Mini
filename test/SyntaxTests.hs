@@ -1,6 +1,6 @@
 module SyntaxTests(allSyntaxTests) where
 
-import IndexExpression
+import Core.IndexExpression
 import Core.MiniSyntax
 import TestUtils
 

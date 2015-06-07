@@ -5,7 +5,7 @@ module Analysis.Loop(numberOfIterations,
 
 import Data.List as L
 
-import IndexExpression
+import Core.IndexExpression
 
 numberOfIterations :: IExpr -> IExpr -> IExpr -> Maybe Int
 numberOfIterations start inc end = do

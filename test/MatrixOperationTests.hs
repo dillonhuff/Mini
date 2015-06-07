@@ -3,7 +3,7 @@ module MatrixOperationTests(allMatrixOperationTests) where
 import Control.Monad.Except
 import Data.List as L
 
-import IndexExpression
+import Core.IndexExpression
 import MatrixOperation
 import MOpSyntax
 import SymbolTable

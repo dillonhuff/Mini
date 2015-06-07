@@ -6,7 +6,7 @@ import Data.Map as M
 
 import BackEnd.CGen
 import Testing.EvaluationResult
-import IndexExpression
+import Core.IndexExpression
 import Core.MiniOperation
 import SymbolTable hiding (getBufferSize)
 import Core.MiniSyntax

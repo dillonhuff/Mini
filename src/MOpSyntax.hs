@@ -15,7 +15,7 @@ import Control.Monad.State.Lazy
 import Data.List as L
 import Data.Map as M
 
-import IndexExpression
+import Core.IndexExpression
 import MiniCodeGenState
 import Core.MiniOperation
 import SymbolTable as Sym
