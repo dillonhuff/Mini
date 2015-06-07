@@ -8,8 +8,6 @@ import Data.Graph.Inductive as G
 import Data.List as L
 import Data.Map as M
 
-import Core.MiniSyntax
-
 data DependenceGraph a
      = DependenceGraph (Map a Node) (Gr a Dependence)
        deriving (Eq, Show)
