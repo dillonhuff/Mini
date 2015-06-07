@@ -5,7 +5,7 @@ import Data.List as L
 import BackEnd.CGen
 import BackEnd.RunBackEnd
 import FrontEnd.RunFrontEnd
-import MiniOperation
+import Core.MiniOperation
 
 compileLibSpecToFileWithOptimizations :: [Optimization String] -> String -> String -> IO ()
 compileLibSpecToFileWithOptimizations opts fileName cResFileName = do

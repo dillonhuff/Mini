@@ -3,8 +3,8 @@ module Optimizations.LoopFusion(fuseAllTopLevelLoopsPossible) where
 import Data.List as L
 
 import IndexExpression
-import MiniOperation
-import MiniSyntax
+import Core.MiniOperation
+import Core.MiniSyntax
 
 fuseAllTopLevelLoopsPossible =
   optimization

@@ -1,8 +1,8 @@
 module Optimizations.IndexExpressionOptimizations(evalIExprConstants) where
 
 import IndexExpression
-import MiniOperation
-import MiniSyntax
+import Core.MiniOperation
+import Core.MiniSyntax
 
 evalIExprConstants =
   optimization

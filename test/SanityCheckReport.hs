@@ -5,7 +5,7 @@ import Data.Map as M
 
 import IndexExpression
 import IndexExpressionOptimizations
-import MiniOperation
+import Core.MiniOperation
 import MOpSyntax
 import Reporting
 import RuntimeEvaluation

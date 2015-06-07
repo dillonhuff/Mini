@@ -4,9 +4,9 @@ import Data.List as L
 
 import Analysis.Dependence
 import IndexExpression
-import MiniOperation
+import Core.MiniOperation
 import SymbolTable
-import MiniSyntax
+import Core.MiniSyntax
 import TestUtils
 
 allDependenceAnalysisTests = do

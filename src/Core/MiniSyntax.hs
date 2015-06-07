@@ -1,4 +1,4 @@
-module MiniSyntax(toCType,
+module Core.MiniSyntax(toCType,
               transformBlock,
               MiniSymtab,
               localVars, arguments,

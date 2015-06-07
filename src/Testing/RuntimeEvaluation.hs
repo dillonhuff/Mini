@@ -10,8 +10,8 @@ import System.IO.Strict as S
 import System.Process
 
 import Testing.EvaluationResult
-import MiniOperation
-import MiniSyntax
+import Core.MiniOperation
+import Core.MiniSyntax
 import SystemSettings
 import Testing.TestHarness
 

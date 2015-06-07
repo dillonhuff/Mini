@@ -1,7 +1,7 @@
 module CopyPropagationTests(allCopyPropagationTests) where
 
 import IndexExpression
-import MiniSyntax
+import Core.MiniSyntax
 import Optimizations.CopyPropagation
 import TestUtils
 

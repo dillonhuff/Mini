@@ -17,9 +17,9 @@ import Data.Map as M
 
 import IndexExpression
 import MiniCodeGenState
-import MiniOperation
+import Core.MiniOperation
 import SymbolTable as Sym
-import MiniSyntax
+import Core.MiniSyntax
 
 data MOp
   = MOp {

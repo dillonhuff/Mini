@@ -11,8 +11,8 @@ import Data.List as L
 import Data.Map as M
 
 import IndexExpression
-import MiniOperation
-import MiniSyntax
+import Core.MiniOperation
+import Core.MiniSyntax
 
 isFlowDependent :: (Show a) => [IndexRange] -> Statement a -> Statement a -> Bool
 isFlowDependent iRanges t s =

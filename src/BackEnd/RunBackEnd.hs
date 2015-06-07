@@ -7,8 +7,8 @@ import Data.Map as M
 
 import MatrixOperation
 import MOpSyntax
-import MiniOperation
-import MiniSyntax
+import Core.MiniOperation
+import Core.MiniSyntax
 import Optimizations.ArrayCompaction
 import Optimizations.FullLoopUnrolling
 import Optimizations.IndexExpressionOptimizations

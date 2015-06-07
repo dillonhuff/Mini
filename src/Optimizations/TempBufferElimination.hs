@@ -3,8 +3,8 @@ module Optimizations.TempBufferElimination(eliminateTempBuffers) where
 import Control.Monad.State.Lazy
 import Data.List as L
 
-import MiniOperation
-import MiniSyntax
+import Core.MiniOperation
+import Core.MiniSyntax
 import SymbolTable
 
 eliminateTempBuffers :: (Show a, Eq a) => Optimization a

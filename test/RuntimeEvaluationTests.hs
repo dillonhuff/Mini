@@ -3,10 +3,10 @@ module RuntimeEvaluationTests() where
 import Data.Map as M
 
 import IndexExpression
-import MiniOperation
+import Core.MiniOperation
 import RuntimeEvaluation
 import SymbolTable
-import Syntax
+import Core.MiniSyntax
 
 compileGenSizeTest =
   timeImplementations

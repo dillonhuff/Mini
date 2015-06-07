@@ -4,10 +4,10 @@ import Data.List as L
 import Data.Map as M
 
 import IndexExpression
-import MiniOperation
+import Core.MiniOperation
 import MOpSyntax
 import SymbolTable
-import MiniSyntax
+import Core.MiniSyntax
 import Testing.EvaluationResult
 import Testing.RuntimeEvaluation
 import Testing.TestHarness

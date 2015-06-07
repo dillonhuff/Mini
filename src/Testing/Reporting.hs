@@ -4,7 +4,7 @@ import Data.List as L
 import Data.Map as M
 
 import Testing.EvaluationResult
-import MiniOperation
+import Core.MiniOperation
 
 hfSanityCheckReport :: String -> Map (Operation a) EvaluationResult -> String
 hfSanityCheckReport opName opResMap =
