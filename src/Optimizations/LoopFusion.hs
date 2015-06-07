@@ -2,10 +2,13 @@ module Optimizations.LoopFusion(fuseAllTopLevelLoopsPossible) where
 
 import Data.List as L
 
+import Analysis.Dependence.Graph
+import Analysis.Dependence.RegisterReduction
 import Core.IndexExpression
 import Core.MiniOperation
 import Core.MiniSyntax
 
+fuseAllTopLevelLoopsPossible :: (Ord a, Show a) => Optimization a
 fuseAllTopLevelLoopsPossible =
   optimization
         "FuseAllLoopsPossible"
@@ -18,17 +21,23 @@ fuseLoopsInBlock b =
 fuseLoopsInStmtList [] = []
 fuseLoopsInStmtList [stmt] = [stmt]
 fuseLoopsInStmtList (s1:s2:rest) =
-  case canBeFused s1 s2 of
-    True -> fuseLoopsInStmtList $ (fuseLoops s1 s2):rest
+  case isFor s1 && isFor s2 && sameIterationSpace s1 s2 of
+    True -> case tryToFuse s1 s2 of
+      Just l -> fuseLoopsInStmtList $ l : rest
+      Nothing -> s1 : (fuseLoopsInStmtList (s2:rest))
     False -> s1 : (fuseLoopsInStmtList (s2:rest))
 
-canBeFused s1 s2 =
-  case isFor s1 && isFor s2 of
-    True -> sameIterationSpace s1 s2 &&
-            allSimpleAccesses s1 &&
-            allSimpleAccesses s2 &&
-            noWritesOverlap s1 s2
-    False -> False
+tryToFuse l1 l2 =
+  case buildDependenceGraph [fuseLoops l1 l2] of
+    Just g -> case noFlowAntiOrOutDeps l1 l2 g of
+      True -> Just $ fuseLoops l1 l2
+      False -> Nothing
+    Nothing -> Nothing
+
+noFlowAntiOrOutDeps l1 l2 g =
+  let labs1 = L.map label $ nonLoopStatements l1
+      labs2 = L.map label $ nonLoopStatements l2 in
+  not $ L.or $ L.map (\(t, s) -> antiDependent g t s || flowDependent g t s || outputDependent g t s) [(t, s) | t <- labs1, s <- labs2]
 
 sameIterationSpace s1 s2 =
   forStart s1 == forStart s2 &&

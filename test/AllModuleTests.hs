@@ -7,6 +7,7 @@ import LoopAnalysisTests
 import MatrixOperationTests
 import MOpTests
 import ParserTests
+import RegisterReductionTests
 import RestrictedLayoutTests
 import SyntaxTests
 import TestCaseGenerationTests
@@ -19,6 +20,7 @@ main = do
   allMatrixOperationTests
   allMOpTests
   allParserTests
+  allRegisterReductionTests
   allRestrictedLayoutTests
   allSyntaxTests
   allTestCaseGenerationTests
