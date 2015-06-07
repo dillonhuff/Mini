@@ -35,10 +35,6 @@ sameIterationSpace s1 s2 =
   forEnd s1 == forEnd s2 &&
   forInc s1 == forInc s2
 
-allSimpleAccesses forLoop =
-  let stmts = nonLoopStatements forLoop
-      allOps = (L.concatMap operandsRead stmts) ++ (L.map operandWritten stmts) in
-  L.and $ L.map (\i -> isConst i || isVar i) $ L.map accessIExpr $ L.filter (\op -> isBufferVal op) allOps
 
 noWritesOverlap loop1 loop2 =
   True

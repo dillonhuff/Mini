@@ -6,12 +6,13 @@ module Core.MiniSyntax(toCType,
               transformStatementIExprs,
               transformStatement,
               label, nonLoopStatements, substituteName,
-              Operand, operandWritten, operandsRead,
+              Operand, operandWritten, operandsRead, allOperands,
               operandsHaveSameType, isBufferVal,
               bufferName, registerName, 
               Type,
               Block,
               noLoopsInBlock, updateBlock, subIExprInBlock,
+              expandStatement,
               blockStatements, expandBlockStatements,
               updateBlockM,
               toCBlock,
@@ -19,6 +20,7 @@ module Core.MiniSyntax(toCType,
               load, loadConst, store, plus, minus, times, for, regAssign,
               forStart, forEnd, forInc, isFor, forInductionVariable, forBody,
               isLoad, isStore, isLoadConst, isRegAssign, isBinop, namesReferenced,
+              allSimpleAccesses,
               sReg, buffer, accessIExpr,
               doubleLit, floatLit, getLitType) where
 
@@ -144,6 +146,8 @@ operandWritten (LoadConst a _ _) = reg a
 operandWritten (Load a _ _ _) = reg a
 operandWritten (RegAssign a _ _) = reg a
 
+allOperands stmt = (operandWritten stmt) : (operandsRead stmt)
+
 isRegAssign (RegAssign _ _ _) = True
 isRegAssign _ = False
 
@@ -267,3 +271,18 @@ namesReferenced stmt =
   case isFor stmt of
     True -> L.concatMap namesReferenced $ blockStatements $ forBody stmt
     False -> L.map operandName $ operands stmt
+
+allSimpleAccesses stmt =
+  case isFor stmt of
+    True -> forAllSimpleAccesses stmt
+    False -> basicAllSimpleAccesses stmt
+
+forAllSimpleAccesses forLoop =
+  let stmts = nonLoopStatements forLoop
+      allOps = (L.concatMap operandsRead stmts) ++ (L.map operandWritten stmts) in
+  L.and $ L.map (\i -> isConst i || isVar i) $ L.map accessIExpr $ L.filter (\op -> isBufferVal op) allOps
+
+basicAllSimpleAccesses stmt =
+  let allOps = (operandWritten stmt) : (operandsRead stmt) in
+  L.and $ L.map (\i -> isConst i || isVar i) $ L.map accessIExpr $ L.filter (\op -> isBufferVal op) allOps
+

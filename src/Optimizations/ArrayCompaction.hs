@@ -32,7 +32,6 @@ newSymbolInfo bufName st =
   let bufDataType = bufType $ getMiniSymInfo bufName symType st in
   symInfo bufDataType local
       
-
 replaceBufWithScalar bufName block =
   transformBlock (compactBuffer bufName) block
 
