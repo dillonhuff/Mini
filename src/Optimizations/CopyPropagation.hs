@@ -1,9 +1,15 @@
-module Optimizations.CopyPropagation(propagateTopLevelCopies) where
+module Optimizations.CopyPropagation(propagateAllTopLevelCopiesPossible,
+                                     propagateTopLevelCopies) where
 
 import Data.List as L
 
 import MiniOperation
 import Syntax
+
+propagateAllTopLevelCopiesPossible =
+  optimization
+        "PropagateAllTopLevelCopiesPossible"
+        (applyToOpBlock (\b -> block $ propagateTopLevelCopies $ blockStatements b))
 
 propagateTopLevelCopies [] = []
 propagateTopLevelCopies (stmt:rest) =

@@ -4,7 +4,7 @@ module Analysis.Dependence(isFlowDependent,
                           isInputDependent,
                           indexRange,
                           flowDependent, antiDependent,
-                          dependenceGraph) where
+                          dependenceGraphForVectorInnerLoop) where
 
 import Data.Graph.Inductive as G
 import Data.List as L
@@ -15,20 +15,20 @@ import IndexExpression
 import Syntax
 
 isFlowDependent :: (Show a) => [IndexRange] -> Statement a -> Statement a -> Bool
-isFlowDependent iRanges s1 s2 =
-  0 < (L.length $ L.intersectBy (operandsEqual iRanges) [operandWritten s1] (operandsRead s2))
+isFlowDependent iRanges t s =
+  0 < (L.length $ L.intersectBy (operandsEqual iRanges) [operandWritten s] (operandsRead t))
 
 isAntiDependent :: (Show a) => [IndexRange] -> Statement a -> Statement a -> Bool
-isAntiDependent iRanges s1 s2 =
-  0 < (L.length $ L.intersectBy (operandsEqual iRanges) [operandWritten s2] (operandsRead s1))
+isAntiDependent iRanges t s =
+  0 < (L.length $ L.intersectBy (operandsEqual iRanges) [operandWritten t] (operandsRead s))
 
 isOutputDependent :: (Show a) => [IndexRange] -> Statement a -> Statement a -> Bool
-isOutputDependent iRanges s1 s2 =
-  operandsEqual iRanges (operandWritten s1) (operandWritten s2)
+isOutputDependent iRanges t s =
+  operandsEqual iRanges (operandWritten t) (operandWritten s)
 
 isInputDependent :: (Show a) => [IndexRange] -> Statement a -> Statement a -> Bool
-isInputDependent iRanges s1 s2 =
-  0 < (L.length $ L.intersectBy (operandsEqual iRanges) (operandsRead s1) (operandsRead s2))
+isInputDependent iRanges t s =
+  0 < (L.length $ L.intersectBy (operandsEqual iRanges) (operandsRead t) (operandsRead s))
 
 operandsEqual :: [IndexRange] -> Operand -> Operand -> Bool
 operandsEqual iRanges l r = case l == r of
@@ -46,14 +46,12 @@ data IndexRange
 
 indexRange start end = IndexRange start end
 
-computeDependencies :: (Show a) => [Statement a] -> [(Statement a, Statement a, Dependence)]
+computeDependencies :: (Eq a, Show a) => [Statement a] -> [(Statement a, Statement a, Dependence)]
 computeDependencies stmts =
-  L.concatMap statementDeps $ L.tails stmts
+  L.concatMap (\stmt -> statementDeps stmt stmts) stmts
 
-statementDeps :: (Show a) => [Statement a] -> [(Statement a, Statement a, Dependence)]
-statementDeps [] = []
-statementDeps [st] = []
-statementDeps (st:stmts) = L.concatMap (\otherSt -> statementPairDeps st otherSt) stmts
+statementDeps :: (Eq a, Show a) => Statement a -> [Statement a] -> [(Statement a, Statement a, Dependence)]
+statementDeps st others = L.concatMap (\other -> statementPairDeps st other) $ L.filter (\other -> label other /= label st) others
 
 statementPairDeps l r =
   case isFlowDependent [] l r of
@@ -71,14 +69,14 @@ data Dependence
   | Input
     deriving (Eq, Ord, Show)
 
-dependenceGraph :: (Show a, Ord a) => Operation a -> DependenceGraph a
-dependenceGraph op =
-  let stmts = allNonLoopStatementsInOperation op
+dependenceGraphForVectorInnerLoop :: (Show a, Ord a) => Statement a -> DependenceGraph a
+dependenceGraphForVectorInnerLoop forLoopStmt =
+  let stmts = nonLoopStatements forLoopStmt
       labNodePairs = L.zip (L.map label stmts) [1..(length stmts)]
       nodeLabPairs = L.map (\(x, y) -> (y, x)) labNodePairs
       depTriples = computeDependencies stmts
       labNodeMap = M.fromList labNodePairs
-      depEdges = L.map (\(l, r, d) -> (findNode l labNodeMap, findNode r labNodeMap, d)) depTriples in
+      depEdges = L.map (\(l, r, d) -> (findNode r labNodeMap, findNode l labNodeMap, d)) depTriples in
   DependenceGraph labNodeMap (insEdges depEdges $ insNodes nodeLabPairs G.empty)
 
 findNode :: (Show a, Ord a) => Statement a -> Map a Node -> Node
@@ -99,8 +97,8 @@ dependenciesOfType d l dg@(DependenceGraph m g) =
   L.map fst $ L.filter (\(_, y) -> y == d) deps      
 
 dependentQuery :: (Show a, Ord a) => Dependence -> DependenceGraph a -> a -> a -> Bool
-dependentQuery d depGraph l1 l2 =
-  L.elem (graphNode l2 depGraph) (dependenciesOfType d l1 depGraph)
+dependentQuery d depGraph t s =
+  L.elem (graphNode t depGraph) (dependenciesOfType d s depGraph)
 
 flowDependent depGraph l1 l2 = dependentQuery Flow depGraph l1 l2
 antiDependent depGraph l1 l2 = dependentQuery Anti depGraph l2 l1

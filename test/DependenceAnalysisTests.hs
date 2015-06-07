@@ -22,22 +22,22 @@ allDependenceAnalysisTests = do
 noIndexFlowDependentCases =
   L.map (\((x, y), z) -> (([], x, y), z))
   [((plus "a" "b" "c" 0, minus "x" "y" "z" 1), False),
-   ((loadConst "a" (doubleLit 12.2) 0, times "x" "a" "c" 1), True),
-   ((plus "a" "b" "c" 0, store "a" (iVar "i") "a" 1), True)]
+   ((times "x" "a" "c" 1, loadConst "a" (doubleLit 12.2) 0), True),
+   ((store "a" (iVar "i") "a" 1, plus "a" "b" "c" 0), True)]
 
 indexFlowDependentCases =
-  [((dummyRange, store "a" (iVar "i") "b" 0, load "x" "a" (iVar "j") 1), True),
-   ((dummyRange, store "a" (iVar "i") "b" 0, load "x" "b" (iVar "j") 1), False)]
+  [((dummyRange, load "x" "a" (iVar "j") 1, store "a" (iVar "i") "b" 0), True),
+   ((dummyRange, load "x" "b" (iVar "j") 1, store "a" (iVar "i") "b" 0), False)]
 
 noIndexAntiDependentCases =
   L.map (\((x, y), z) -> (([], x, y), z))
-  [((plus "a" "b" "c" 0, minus "x" "y" "z" 1), False),
-   ((plus "k" "b" "x" 0, times "x" "a" "c" 1), True),
-   ((store "a" (iVar "i") "a" 1, plus "a" "b" "c" 0), True)]
+  [((minus "x" "y" "z" 1, plus "a" "b" "c" 0), False),
+   ((times "x" "a" "c" 1, plus "k" "b" "x" 0), True),
+   ((plus "a" "b" "c" 0, store "a" (iVar "i") "a" 1), True)]
 
 indexAntiDependentCases =
-  [((dummyRange, load "x" "a" (iVar "j") 1, store "a" (iVar "i") "b" 0), True),
-   ((dummyRange, load "x" "b" (iVar "j") 1,  store "a" (iVar "i") "b" 0), False)]
+  [((dummyRange, store "a" (iVar "i") "b" 0, load "x" "a" (iVar "j") 1), True),
+   ((dummyRange, store "a" (iVar "i") "b" 0, load "x" "b" (iVar "j") 1), False)]
 
 noIndexOutputDependentCases =
   L.map (\((x, y), z) -> (([], x, y), z))
@@ -61,26 +61,15 @@ isInputDependentTest (i, s1, s2) = isInputDependent i s1 s2
 dummyRange =
   [indexRange (iConst 0) (iVar "n"), indexRange (iConst 0) (iVar "k")]
 
-wholeOperationFlowDepsCases =
-  L.map (\((x, y), z) -> ((opDepGraph, x, y), z))
-  [(("l1", "l2"), False),
-   (("l2", "l3"), True)]
-
-wholeOperationAntiDepsCases =
-  L.map (\((x, y), z) -> ((opDepGraph, x, y), z))
-  [(("l1", "l2"), False),
-   (("l2", "l3"), False)]
---   (("l3", "l2"), True)]
-
 queryFlowDependencies (depGraph, l1, l2) =
   flowDependent depGraph l1 l2
 
 queryAntiDependencies (depGraph, l1, l2) =
   antiDependent depGraph l1 l2
 
-opDepGraph = dependenceGraph testOperation
+opDepGraph = dependenceGraphForVectorInnerLoop alphaLoop
 
-testOperation = operation "test" (miniSymtab []) $ block [alphaLoop, sumLoop, copyLoop]
+testOperation = operation "test" (miniSymtab []) $ block [alphaLoop]
 
 alphaLoop = for "i" (iConst 0) (iSub (iVar "n") (iConst 1)) (iAdd (iVar "i") (iConst 1)) (block alphaBody) "l0"
 
@@ -89,6 +78,13 @@ alphaBody =
    load "x21" "x" (iVar "i") "l2",
    times "tmp022" "alpha20" "x21" "l3"]
 
-sumLoop = for "k" (iConst 0) (iSub (iVar "n") (iConst 1)) (iAdd (iVar "k") (iConst 1)) (block []) "l20"
+wholeOperationFlowDepsCases =
+  L.map (\((x, y), z) -> ((opDepGraph, x, y), z))
+  [(("l1", "l2"), False),
+   (("l3", "l2"), True)]
 
-copyLoop = for "l" (iConst 0) (iSub (iVar "n") (iConst 1)) (iAdd (iVar "l") (iConst 1)) (block []) "l40"
+wholeOperationAntiDepsCases =
+  L.map (\((x, y), z) -> ((opDepGraph, x, y), z))
+  [(("l1", "l2"), False),
+   (("l2", "l3"), False)]
+
