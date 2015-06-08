@@ -10,12 +10,13 @@ import Core.MOpSyntax
 import Core.MiniOperation
 import Core.MiniSyntax
 import Optimizations.ArrayCompaction
+import Optimizations.CopyPropagation
 import Optimizations.FullLoopUnrolling
 import Optimizations.IndexExpressionOptimizations
 import Optimizations.LoopFusion
 import Optimizations.TempBufferElimination
-import Testing.RuntimeEvaluation
 import Testing.EvaluationResult
+import Testing.RuntimeEvaluation
 
 runBackEndWithOptimizations :: [Optimization String] -> [(MatrixOperation, [Map String Int])] -> IO (Either String [Operation String])
 runBackEndWithOptimizations optimizations opsAndTestCases =
@@ -41,6 +42,7 @@ matrixOpToMiniOpNoOptimizations matOp =
 
 defaultOptimizations = [eliminateTempBuffers,
                         fuseAllTopLevelLoopsPossible,
+                        propagateAllTopLevelCopiesPossible,
                         compactArrays,
                         evalIExprConstants,
                         fullyUnrollAllLoops]

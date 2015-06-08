@@ -25,7 +25,7 @@ convertBufferAccessesToRegisters stmts =
 
 bufferAccessToRegisterNameMap stmts =
   let bufAccesses = L.filter isBufferVal $ L.concatMap allOperands stmts in
-  L.zip bufAccesses $ L.map (\i -> "$R" ++ show i) stmts
+  L.zip bufAccesses $ L.map (\i -> "$R" ++ show i) [1..(length bufAccesses)]
 
 replaceBufferAccessWithRegister stmts (bufAccess, reg) =
   L.map (transformStatement (compactBufferAccess bufAccess reg)) stmts
@@ -48,7 +48,7 @@ compactBufferAccessLoad buf reg ld =
     False -> ld
 
 unrollLoopsBy2 stmts =
-  L.concatMap (expandStatement unrollLoopBy2) stmts
+  transformStatementList (L.concatMap (expandStatement unrollLoopBy2)) stmts
 
 unrollLoopBy2 stmt =
   case isFor stmt of

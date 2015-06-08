@@ -13,6 +13,7 @@ allRegisterReductionTests = do
   testFunction (loopDep flowDependent) loopFlowCases
   testFunction (loopDep antiDependent) loopAntiCases
   testFunction (loopDep outputDependent) loopOutputCases
+  testFunction (perfectDoubleLoopNest flowDependent) perfectDoubleLoopFlowCases
 
 flowCases =
   [(("l1", "l2"), False),
@@ -83,4 +84,26 @@ loopStmtsBody = [load "tmp031" "tmp0" (iVar "i") "l1",
 		 times "tmp24" "alpha11" "y13" "l9",
 		 store "z" (iVar "i") "tmp24" "l10"]
 
+
+perfectDoubleLoopNest f (t, s) = f perfectDoubleLoopGraph t s
+
+perfectDoubleLoopGraph =
+  case buildDependenceGraph perfectDoubleLoopStmts of
+    Just dg -> dg
+    Nothing -> error $ "Cannot build depGraph with " ++ show loopStmts
+
+perfectDoubleLoopFlowCases =
+  [(("l2", "l3"), False),
+   (("l7", "l6"), True),
+   (("l3", "l7"), False),
+   (("l2", "l7"), False)]
+
+perfectDoubleLoopStmts = [for "i" (iConst 0) (iConst 1) (iVar "n") (block innerBody) "l0"]
+innerBody = [for "j" (iConst 0) (iConst 1) (iVar "m") (block doubleLoopStmts) "l1"]
+doubleLoopStmts = [load "alpha11" "alpha" (iConst 0) "l2",
+		   load "A13" "A" (iAdd (iMul (iVar "A_rs") (iVar "i")) (iVar "j")) "l3",
+                   times "tmp015" "alpha11" "A13" "l4",
+                   store "tmp0" (iAdd (iMul (iVar "A_rs") (iVar "i")) (iVar "j")) "tmp015" "l5",
+                   load "tmp04" "tmp0" (iAdd (iMul (iVar "A_rs") (iVar "i")) (iVar "j")) "l6",
+                   store "A" (iAdd (iMul (iVar "A_rs") (iVar "i")) (iVar "j")) "tmp04" "l7"]--(iAdd (iMul (iVar "A_rs") (iVar "i")) (iVar "j")) "tmp04" "l7"]
 

@@ -1,5 +1,6 @@
 module Core.MiniSyntax(toCType,
               transformBlock,
+              transformStatementList,
               MiniSymtab,
               localVars, arguments,
               Statement,
@@ -172,6 +173,14 @@ forEnd (For _ _ _ end _ _) = end
 forInductionVariable (For i _ _ _ _ _) = i
 forBody (For _ _ _ _ b _) = b
 
+transformStatementList :: ([Statement a] -> [Statement a]) -> [Statement a] -> [Statement a]
+transformStatementList f stmts =
+  let res = f stmts in
+  L.map (transformFors f) res
+
+transformFors f (For v s i e blk ann) = For v s i e (block $ transformStatementList f $ blockStatements blk) ann
+transformFors f other = other
+
 transformStatement :: (Statement a -> Statement a) -> Statement a -> Statement a
 transformStatement f (For v s i e blk ann) = f (For v s i e (transformBlock f blk) ann)
 transformStatement f s = f s
@@ -272,10 +281,10 @@ namesReferenced stmt =
     True -> L.concatMap namesReferenced $ blockStatements $ forBody stmt
     False -> L.map operandName $ operands stmt
 
-allSimpleAccesses stmt =
-  case isFor stmt of
+allSimpleAccesses stmt = True
+{-  case isFor stmt of
     True -> forAllSimpleAccesses stmt
-    False -> basicAllSimpleAccesses stmt
+    False -> basicAllSimpleAccesses stmt-}
 
 forAllSimpleAccesses forLoop =
   let stmts = nonLoopStatements forLoop

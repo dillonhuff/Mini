@@ -3,7 +3,7 @@ module Main(main) where
 import Control.Monad
 import System.Environment
 
-import RunBackEnd
+import BackEnd.RunBackEnd
 import Testing.LibraryOptimization
 
 l1BLASFile = "/Users/dillon/Haskell/Mini/Level1BLAS.lspc"

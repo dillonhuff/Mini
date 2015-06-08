@@ -16,7 +16,7 @@ fuseAllTopLevelLoopsPossible =
 
 fuseLoopsInBlock b =
   let stmts = blockStatements b in
-  block $ fuseLoopsInStmtList stmts
+  block $ transformStatementList fuseLoopsInStmtList stmts
 
 fuseLoopsInStmtList [] = []
 fuseLoopsInStmtList [stmt] = [stmt]
@@ -29,21 +29,20 @@ fuseLoopsInStmtList (s1:s2:rest) =
 
 tryToFuse l1 l2 =
   case buildDependenceGraph [fuseLoops l1 l2] of
-    Just g -> case noFlowAntiOrOutDeps l1 l2 g of
+    Just g -> case noFlowAntiOrOutDeps g l1 l2 of
       True -> Just $ fuseLoops l1 l2
       False -> Nothing
     Nothing -> Nothing
 
-noFlowAntiOrOutDeps l1 l2 g =
+noFlowAntiOrOutDeps g l1 l2 =
   let labs1 = L.map label $ nonLoopStatements l1
       labs2 = L.map label $ nonLoopStatements l2 in
-  not $ L.or $ L.map (\(t, s) -> antiDependent g t s || flowDependent g t s || outputDependent g t s) [(t, s) | t <- labs1, s <- labs2]
+  not $ anyFlowAntiOrOutputDeps g labs1 labs2
 
 sameIterationSpace s1 s2 =
   forStart s1 == forStart s2 &&
   forEnd s1 == forEnd s2 &&
   forInc s1 == forInc s2
-
 
 noWritesOverlap loop1 loop2 =
   True
