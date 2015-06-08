@@ -1,10 +1,9 @@
-module LoopFusionTests(allLoopFusionTests) where
+module Optimizations.TempBufferEliminationTests(allTempBufferEliminationTests) where
 
-import Optimizations.ArrayCompaction
-import Optimizations.CopyPropagation
 import Optimizations.FullLoopUnrolling
 import Optimizations.IndexExpressionOptimizations
 import Optimizations.LoopFusion
+import Optimizations.TempBufferElimination
 import SystemSettings
 import Testing.LibraryOptimization
 
@@ -12,9 +11,8 @@ libName = "LargeTests"
 level1Path = projectPath ++ libName ++ ".lspc"
 level1CPath = projectPath ++ libName ++ ".c"
 
-allLoopFusionTests =
-  compileLibSpecToFileWithOptimizations [fuseAllTopLevelLoopsPossible,
-                                         propagateAllTopLevelCopiesPossible,
-                                         compactArrays,
+allTempBufferEliminationTests =
+  compileLibSpecToFileWithOptimizations [eliminateTempBuffers,
+                                         fuseAllTopLevelLoopsPossible,
                                          evalIExprConstants,
                                          fullyUnrollAllLoops] level1Path level1CPath

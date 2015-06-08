@@ -1,4 +1,4 @@
-module ArrayCompactionTests(allArrayCompactionTests) where
+module Optimizations.ArrayCompactionTests(allArrayCompactionTests) where
 
 import Optimizations.ArrayCompaction
 import SystemSettings

@@ -1,4 +1,4 @@
-module FullLoopUnrollingTests(allFullLoopUnrollingTests) where
+module Optimizations.FullLoopUnrollingTests(allFullLoopUnrollingTests) where
 
 import Data.List as L
 

@@ -1,4 +1,4 @@
-module PartialLoopUnrollingTests(allPartialLoopUnrollingTests) where
+module Optimizations.PartialLoopUnrollingTests(allPartialLoopUnrollingTests) where
 
 import Optimizations.FullLoopUnrolling
 import Optimizations.IndexExpressionOptimizations

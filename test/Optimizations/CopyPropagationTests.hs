@@ -1,4 +1,4 @@
-module CopyPropagationTests(allCopyPropagationTests) where
+module Optimizations.CopyPropagationTests(allCopyPropagationTests) where
 
 import Core.IndexExpression
 import Core.MiniSyntax
