@@ -1,5 +1,5 @@
 module TestUtils(testFunction,
-                 testFunctionM) where
+                 testFunctionIO) where
 
 import Control.Monad
 import Data.List as L
@@ -13,14 +13,14 @@ makeTestCases func cases =
 testCase func input expected =
   TestCase (assertEqual ("Input: " ++ show input) expected (func input))
 
-testFunctionM :: (Show a, Show b, Eq b, Monad m) => (a -> m b) -> [(a, b)] -> m String
-testFunctionM f cases = do
-  computedValues <- mapM f $ L.map fst cases
-  let expectedValues = L.map snd cases in
-    return $ showResults computedValues expectedValues
+testFunctionIO func cases = runTestTT $ TestList $ L.map (ioTestCase func) cases
 
-showResults [] [] = "Done"
-showResults (c:cs) (e:es) =
-  case c == e of
-    True -> "Test passed" ++ "\n" ++ showResults cs es
-    False -> "***************\nFAILED, expected " ++ show e ++ " but got " ++ show c ++ "\n***************\n" ++ showResults cs es
+ioTestCase :: (Show a, Show b, Eq b) => (a -> IO b) -> (a, b) -> Test
+ioTestCase f (input, expected) =
+  TestCase $ ioAssert f input expected
+
+ioAssert :: (Show a, Show b, Eq b) => (a -> IO b) -> a -> b -> Assertion
+ioAssert f input expected = do
+  actual <- f input
+  assertEqual ("Input: " ++ show input) expected actual
+

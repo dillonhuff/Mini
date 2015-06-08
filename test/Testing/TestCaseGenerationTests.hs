@@ -8,10 +8,8 @@ import Core.SymbolTable
 import Testing.TestCaseGeneration
 import TestUtils
 
-allTestCaseGenerationTests :: IO ()
-allTestCaseGenerationTests = do
-  r1 <- testFunctionM (testGenTestCases (3 :: Int) (100 :: Int)) symtabCases
-  putStrLn r1
+allTestCaseGenerationTests =
+  testFunctionIO (testGenTestCases (3 :: Int) (100 :: Int)) symtabCases
 
 symtabCases =
   L.map (\(x, y) -> (createSymtabFromTuple x, y))
@@ -44,5 +42,4 @@ testGenTestCases lo hi st = do
   case cases of
     [] -> return False
     other -> do
-      putStrLn $ "Cases generated:\n" ++ show other
       return True
