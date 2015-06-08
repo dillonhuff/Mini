@@ -1,4 +1,4 @@
-module LexerTests(allLexerTests) where
+module FrontEnd.LexerTests(allLexerTests) where
 
 import Data.List as L
 

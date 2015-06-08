@@ -1,4 +1,4 @@
-module ParserTests(allParserTests) where
+module FrontEnd.ParserTests(allParserTests) where
 
 import Data.List as L
 

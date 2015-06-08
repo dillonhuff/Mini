@@ -1,4 +1,4 @@
-module RestrictedLayoutTests(allRestrictedLayoutTests) where
+module Testing.RestrictedLayoutTests(allRestrictedLayoutTests) where
 
 import Testing.RestrictedLayout
 import TestUtils

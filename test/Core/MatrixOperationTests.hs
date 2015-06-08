@@ -1,4 +1,4 @@
-module MatrixOperationTests(allMatrixOperationTests) where
+module Core.MatrixOperationTests(allMatrixOperationTests) where
 
 import Control.Monad.Except
 import Data.List as L

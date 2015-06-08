@@ -1,4 +1,4 @@
-module IndexExpressionTests(allIndexExpressionTests) where
+module Core.IndexExpressionTests(allIndexExpressionTests) where
 
 import Data.List as L
 

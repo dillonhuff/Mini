@@ -1,4 +1,4 @@
-module SyntaxTests(allSyntaxTests) where
+module Core.SyntaxTests(allSyntaxTests) where
 
 import Core.IndexExpression
 import Core.MiniSyntax

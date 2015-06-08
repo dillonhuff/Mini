@@ -1,4 +1,4 @@
-module TestCaseGenerationTests(allTestCaseGenerationTests) where
+module Testing.TestCaseGenerationTests(allTestCaseGenerationTests) where
 
 import Control.Monad.Random
 import Data.List as L
