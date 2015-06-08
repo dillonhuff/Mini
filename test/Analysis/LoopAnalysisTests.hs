@@ -1,4 +1,4 @@
-module LoopAnalysisTests(allLoopAnalysisTests) where
+module Analysis.LoopAnalysisTests(allLoopAnalysisTests) where
 
 import Data.List as L
 

@@ -1,4 +1,4 @@
-module DependenceAnalysisTests(allDependenceAnalysisTests) where
+module Analysis.DependenceAnalysisTests(allDependenceAnalysisTests) where
 
 import Data.List as L
 

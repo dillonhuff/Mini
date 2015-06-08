@@ -1,13 +1,13 @@
 module AllModuleTests(main) where
 
-import DependenceAnalysisTests
+import Analysis.DependenceAnalysisTests
+import Analysis.LoopAnalysisTests
+import Analysis.RegisterReductionTests
 import IndexExpressionTests
 import LexerTests
-import LoopAnalysisTests
 import MatrixOperationTests
 import MOpTests
 import ParserTests
-import RegisterReductionTests
 import RestrictedLayoutTests
 import SyntaxTests
 import TestCaseGenerationTests

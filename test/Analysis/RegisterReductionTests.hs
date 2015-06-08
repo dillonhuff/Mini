@@ -1,4 +1,4 @@
-module RegisterReductionTests(allRegisterReductionTests) where
+module Analysis.RegisterReductionTests(allRegisterReductionTests) where
 
 import Analysis.Dependence.Graph
 import Analysis.Dependence.RegisterReduction
