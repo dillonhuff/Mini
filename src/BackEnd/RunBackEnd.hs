@@ -41,9 +41,9 @@ matrixOpToMiniOpNoOptimizations matOp =
   miniRes
 
 defaultOptimizations = [eliminateTempBuffers,
+                        compactArrays,
                         fuseAllTopLevelLoopsPossible,
                         propagateAllTopLevelCopiesPossible,
-                        compactArrays,
                         evalIExprConstants,
                         fullyUnrollAllLoops]
 

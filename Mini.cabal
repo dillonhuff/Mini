@@ -2,7 +2,7 @@
 -- see http://haskell.org/cabal/users-guide/
 
 name:                Mini
-version:             0.1.1.1
+version:             0.1.1.3
 -- synopsis:            
 -- description:         
 license:             AllRightsReserved

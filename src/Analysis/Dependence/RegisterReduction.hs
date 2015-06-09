@@ -1,30 +1,30 @@
-module Analysis.Dependence.RegisterReduction(buildDependenceGraph) where
+module Analysis.Dependence.RegisterReduction(buildDependenceGraph,
+                                             reduceToRegisterForm) where
 
 import Data.List as L
 
+import Analysis.Dependence.Graph
 import Analysis.Dependence.Register
 import Core.IndexExpression
 import Core.MiniSyntax
 
-buildDependenceGraph stmts =
-  case L.and $ L.map allSimpleAccesses stmts of
-    True -> bldDepGraph stmts
-    False -> Nothing
+buildDependenceGraph :: (Ord a, Show a) => [Statement a] -> Maybe (DependenceGraph a)
+buildDependenceGraph stmts = do
+  bufMapRRForm <- reduceToRegisterForm stmts
+  registerDependenceGraph $ snd $ bufMapRRForm
 
-bldDepGraph stmts =
-  let rrForm = reduceToRegisterForm stmts in
-  registerDependenceGraph rrForm
-      
 reduceToRegisterForm stmts =
-  convertBufferAccessesToRegisters stmts
+  case L.and $ L.map allSimpleAccesses stmts of
+    True -> Just $ convertBufferAccessesToRegisters stmts
+    False -> Nothing
 
 convertBufferAccessesToRegisters stmts =
   let uStmts = unrollLoopsBy2 stmts
       bufAccessRegisterNames = bufferAccessToRegisterNameMap uStmts in
-  L.foldl replaceBufferAccessWithRegister uStmts bufAccessRegisterNames
+  (bufAccessRegisterNames, L.foldl replaceBufferAccessWithRegister uStmts bufAccessRegisterNames)
 
 bufferAccessToRegisterNameMap stmts =
-  let bufAccesses = L.filter isBufferVal $ L.concatMap allOperands stmts in
+  let bufAccesses = L.nub $ L.filter isBufferVal $ L.concatMap allOperands stmts in
   L.zip bufAccesses $ L.map (\i -> "$R" ++ show i) [1..(length bufAccesses)]
 
 replaceBufferAccessWithRegister stmts (bufAccess, reg) =

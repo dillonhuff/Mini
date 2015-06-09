@@ -25,17 +25,22 @@ testConvertToMini = do
   testConvert "matrix_assign" masgSC masgOp
 
 testConvert :: String -> Operation String -> MOp -> IO ()
-testConvert opName scImpl op =
-  let resOp = convertToMini op in
-  do
-    rtRes <- timeImplementationsFixedSizes "" opName (Just scImpl) [resOp]
-    case L.and $ L.map (\(n, evalRes) -> passedSanityCheck evalRes) $ M.toList rtRes of
+testConvert opName scImpl op = do
+  allSanityChecksPassed <- testConvertB opName scImpl op
+  case allSanityChecksPassed of
       True -> putStrLn "test passed"
       False -> putStrLn $ failHeader ++ opName ++ failFooter
 
 failHeader = "\n****************************** FAILED ***********************************\n\n"
 failFooter = "\n\n*************************************************************************\n\n"
 
+testConvertB :: String -> Operation String -> MOp -> IO Bool
+testConvertB opName scImpl op =
+  let resOp = convertToMini op in
+  do
+    rtRes <- timeImplementationsFixedSizes "" opName (Just scImpl) [resOp]
+    return $ L.and $ L.map (\(n, evalRes) -> passedSanityCheck evalRes) $ M.toList rtRes
+  
 masgOp =
   mOp "one_matrix_assign" masgOpSym [masg "a" "b"]
 

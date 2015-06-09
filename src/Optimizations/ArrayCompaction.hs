@@ -1,7 +1,9 @@
 module Optimizations.ArrayCompaction(compactArrays) where
 
 import Data.List as L
+import Data.Map as M
 
+import Analysis.Dependence.RegisterReduction
 import Core.IndexExpression
 import Core.MiniOperation
 import Core.MiniSyntax
@@ -15,11 +17,27 @@ compactArrays =
 compactSizeOneArrays op =
   let st = getMiniOpSymtab op
       b = getOpBlock op
-      bufsToCompactWithInfo = getTempBuffersOfSizeOneWithInfo st
+      bufsToCompactWithInfo = compactableBuffers st $ blockStatements b
       newSt = L.foldr replaceWithScalar st bufsToCompactWithInfo
       newOpBlock = L.foldr replaceBufWithScalar b $ L.map fst bufsToCompactWithInfo in
   makeOperation (getOpName op) (getOptimizationsApplied op) newSt newOpBlock
-  
+
+compactableBuffers st stmts =
+  case reduceToRegisterForm stmts of
+    Just (bufRegMap, _) -> oneEntryTempBuffers st bufRegMap
+    Nothing -> []
+
+oneEntryTempBuffers st bufRegPairs =
+  let tmps = getTmpBuffers st
+      tmpBufRegPairs = L.filter (\(bufAcc, reg) -> L.elem (bufferName bufAcc) tmps) bufRegPairs
+      tmpsToCompact = L.filter (\tmp -> oneRegNeeded tmp tmpBufRegPairs) tmps
+      info = L.map (\n -> getMiniSymInfo n id st) tmpsToCompact in
+  L.zip tmpsToCompact info
+
+oneRegNeeded tmp tmpBufRegPairs =
+  let regsNeeded = L.nub $ L.map snd $ L.filter (\(bufAcc, reg) -> bufferName bufAcc == tmp) tmpBufRegPairs in
+  L.length regsNeeded == 1
+    
 getTempBuffersOfSizeOneWithInfo st =
   let tmpBufsOfSizeOne = L.filter (\b -> bufSize b st == iConst 1) $ getTmpBuffers st
       info = L.map (\n -> getMiniSymInfo n id st) tmpBufsOfSizeOne in
