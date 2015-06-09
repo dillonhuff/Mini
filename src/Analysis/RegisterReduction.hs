@@ -1,18 +1,11 @@
-module Analysis.Dependence.RegisterReduction(buildDependenceGraph) where
+module Analysis.RegisterReduction(reduceToRegisterForm) where
 
 import Data.List as L
 
-import Analysis.Dependence.Graph
 import Analysis.Dependence.Register
-import Analysis.RegisterReduction
 import Core.IndexExpression
 import Core.MiniSyntax
 
-buildDependenceGraph :: (Ord a, Show a) => [Statement a] -> Maybe (DependenceGraph a)
-buildDependenceGraph stmts = do
-  bufMapRRForm <- reduceToRegisterForm stmts
-  registerDependenceGraph $ snd $ bufMapRRForm
-{-
 reduceToRegisterForm stmts =
   case L.and $ L.map allSimpleAccesses stmts of
     True -> Just $ convertBufferAccessesToRegisters stmts
@@ -54,4 +47,3 @@ unrollLoopBy2 stmt =
   case isFor stmt of
     True -> L.concatMap (\i -> blockStatements $ subIExprInBlock i (forInductionVariable stmt) (forBody stmt)) [iConst 0, iConst 1]
     False -> [stmt]
--}
