@@ -1,4 +1,6 @@
-module Utils.MapUtils(chain) where
+module Utils.MapUtils(chain,
+                      lookupF,
+                      mergeKeys) where
 
 import Data.List as L
 import Data.Map as M
@@ -14,3 +16,12 @@ maybeNewPair :: (Ord b) => a -> b -> Map b c -> Maybe (a, c)
 maybeNewPair a b bToC = do
   c <- M.lookup b bToC
   return $ (a, c)
+
+lookupF k m =
+  case M.lookup k m of
+    Just v -> v
+    Nothing -> error $ "lookupF: Cannot find " ++ show k ++ " in " ++ show m
+
+mergeKeys :: (Show a, Show c, Ord a) => Map a b -> Map a c -> Map a (b, c)
+mergeKeys l r =
+  M.fromList $ L.map (\(k, v) -> (k, (v, lookupF k r))) $ M.toList l

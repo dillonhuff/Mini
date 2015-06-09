@@ -2,6 +2,7 @@ module AllModuleTests(main) where
 
 import Analysis.DependenceAnalysisTests
 import Analysis.LoopAnalysisTests
+import Analysis.RegisterLivenessTests
 import Analysis.RegisterReductionTests
 import Core.IndexExpressionTests
 import Core.MatrixOperationTests
@@ -20,6 +21,7 @@ main = do
   allMatrixOperationTests
   allMOpTests
   allParserTests
+  allRegisterLivenessTests
   allRegisterReductionTests
   allRestrictedLayoutTests
   allSyntaxTests
