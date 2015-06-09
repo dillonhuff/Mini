@@ -1,5 +1,7 @@
-module Analysis.Liveness.Register(liveRange,
-                                  liveRanges) where
+module Analysis.Liveness.Register(RangeInfo,
+                                  liveRange,
+                                  liveRanges,
+                                  rangesOverlap) where
 
 import Data.List as L
 import Data.Map as M
@@ -33,3 +35,10 @@ addNewNameAt ind namesSoFar name =
   case M.lookup name namesSoFar of
     Just n -> namesSoFar
     Nothing -> M.insert name ind namesSoFar
+
+rangesOverlap (l1, r1) (l2, r2) =
+  case r1 < l2 of
+    True -> False
+    False -> case r2 < l1 of
+      True -> False
+      False -> True

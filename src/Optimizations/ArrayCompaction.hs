@@ -4,6 +4,7 @@ import Data.List as L
 import Data.Map as M
 
 import Analysis.RegisterReduction
+import Analysis.Liveness.Register
 import Core.IndexExpression
 import Core.MiniOperation
 import Core.MiniSyntax
@@ -24,19 +25,21 @@ compactSizeOneArrays op =
 
 compactableBuffers st stmts =
   case reduceToRegisterForm stmts of
-    Just (bufRegMap, _) -> oneEntryTempBuffers st bufRegMap
+    Just (bufRegMap, rrForm) -> oneEntryTempBuffers st bufRegMap rrForm
     Nothing -> []
 
-oneEntryTempBuffers st bufRegPairs =
+oneEntryTempBuffers st bufRegPairs rrForm = 
   let tmps = getTmpBuffers st
+      lRanges = liveRanges rrForm
       tmpBufRegPairs = L.filter (\(bufAcc, reg) -> L.elem (bufferName bufAcc) tmps) bufRegPairs
-      tmpsToCompact = L.filter (\tmp -> oneRegNeeded tmp tmpBufRegPairs) tmps
+      tmpsToCompact = L.filter (\tmp -> oneRegNeeded tmp lRanges tmpBufRegPairs) tmps
       info = L.map (\n -> getMiniSymInfo n id st) tmpsToCompact in
   L.zip tmpsToCompact info
 
-oneRegNeeded tmp tmpBufRegPairs =
-  let regsNeeded = L.nub $ L.map snd $ L.filter (\(bufAcc, reg) -> bufferName bufAcc == tmp) tmpBufRegPairs in
-  L.length regsNeeded == 1
+oneRegNeeded tmp lRanges tmpBufRegPairs =
+  let regsUsed = L.nub $ L.map snd $ L.filter (\(bufAcc, reg) -> bufferName bufAcc == tmp) tmpBufRegPairs
+      regRanges = L.map (\n -> liveRange n lRanges) regsUsed in
+  (L.length $ L.filter (\(x, y) -> rangesOverlap x y) $ L.filter (\(x, y) -> x /= y) [(l, r) | l <- regRanges, r <- regRanges]) == 0
     
 getTempBuffersOfSizeOneWithInfo st =
   let tmpBufsOfSizeOne = L.filter (\b -> bufSize b st == iConst 1) $ getTmpBuffers st
