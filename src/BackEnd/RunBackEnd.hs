@@ -41,7 +41,9 @@ matrixOpToMiniOpNoOptimizations matOp =
       miniRes = convertToMini mOp in
   miniRes
 
-defaultOptimizations = [siftLoops,
+defaultOptimizations = [compactArrays,
+                        fuseAllTopLevelLoopsPossible,
+                        siftLoops,
                         eliminateTempBuffers,
                         compactArrays,
                         fuseAllTopLevelLoopsPossible,

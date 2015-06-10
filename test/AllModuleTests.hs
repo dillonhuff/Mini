@@ -10,12 +10,16 @@ import Core.MOpTests
 import Core.SyntaxTests
 import FrontEnd.LexerTests
 import FrontEnd.ParserTests
+import Optimizations.CopyPropagationTests
+import Optimizations.FullLoopUnrollingTests
 import Optimizations.SiftLoopTests
 import Testing.RestrictedLayoutTests
 import Testing.TestCaseGenerationTests
 
 main = do
+  allCopyPropagationTests
   allDependenceAnalysisTests
+  allFullLoopUnrollingTests
   allIndexExpressionTests
   allLexerTests
   allLoopAnalysisTests
@@ -25,6 +29,7 @@ main = do
   allRegisterLivenessTests
   allRegisterReductionTests
   allRestrictedLayoutTests
+
   allSiftLoopTests
   allSyntaxTests
   allTestCaseGenerationTests
