@@ -8,10 +8,10 @@ import Core.MiniSyntax
 import TestUtils
 
 allFullLoopUnrollingTests = do
-  testFunction fullyUnrollLoop fullUnrollSuccessCases
+  testFunction tryFullyUnrollLoop fullUnrollSuccessCases
 
 fullUnrollSuccessCases =
-  L.map (\(x, y) -> (x, Just y))
+  L.map (\(x, y) -> (x, y))
   [(for "i" (iConst 0) (iConst 1) (iConst 0) (block []) "", []),
    (for "j" (iConst 1) (iConst 2) (iConst 4) (block [load "a" "b" (iVar "j") ""]) "",
     [load "a" "b" (iConst 1) "",

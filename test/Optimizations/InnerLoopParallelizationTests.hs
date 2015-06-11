@@ -14,7 +14,7 @@ innerLoopCases =
   L.map (\(x, y) -> (block x, block y))
   [([], []),
    ([unparallelizableLoop], [unparallelizableLoop]),
-   ([loadLoop], [parLoadLoop]),
+   ([loadLoop], parLoadLoop),
    ([addOneLoop], [parAddOneLoop])]
 
 singleLoop stmts =
@@ -35,7 +35,7 @@ parMainLoop =
               load "x" "b" (iAdd (iVar "i") (iConst 1)) "l2_iter2"]
 
 parResidualLoop =
-  loadLoop
+  singleLoop [load "x" "b" (iVar "i") "l1_u"]
 
 addOneLoop =
   singleLoop [load "x" "b" (iVar "i") "l1",

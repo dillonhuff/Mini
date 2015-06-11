@@ -4,6 +4,7 @@ import Data.List as L
 
 import Analysis.Dependence.Register
 import Core.IndexExpression
+import Core.LoopTransformations
 import Core.MiniSyntax
 
 reduceToRegisterForm stmts =
@@ -39,11 +40,3 @@ compactBufferAccessLoad buf reg ld =
   case (head $ operandsRead ld) == buf of
     True -> regAssign (registerName $ operandWritten ld) reg (label ld)
     False -> ld
-
-unrollLoopsBy2 stmts =
-  transformStatementList (L.concatMap (expandStatement unrollLoopBy2)) stmts
-
-unrollLoopBy2 stmt =
-  case isFor stmt of
-    True -> L.concatMap (\i -> blockStatements $ subIExprInBlock i (forInductionVariable stmt) (forBody stmt)) [iConst 0, iConst 1]
-    False -> [stmt]

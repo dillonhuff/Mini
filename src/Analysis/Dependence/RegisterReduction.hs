@@ -9,6 +9,7 @@ import Analysis.Dependence.Register
 import Analysis.Loop
 import Analysis.RegisterReduction
 import Core.IndexExpression
+import Core.LoopTransformations
 import Core.MiniSyntax
 
 buildDependenceGraph :: (Ord a, Show a) => [Statement a] -> Maybe (DependenceGraph a)
@@ -29,9 +30,3 @@ checkCarriedFlowDeps innerFor =
   case buildDependenceGraph expandedBody of
     Just g -> not $ anyFlowDeps g secondIterLabels firstIterLabels
     Nothing -> error $ "Cannot build dependence graph for " ++ show innerFor
-
-unrollWithNewLabels unrollFactor loop =
-  L.concatMap (\i -> unrolledBody i loop) [1..unrollFactor]
-
-unrolledBody i loop =
-  L.map (\st -> setLabel ((label st) ++ "_iter" ++ show i) st) $ blockStatements $ subIExprInBlock (iConst i) (forInductionVariable loop) (forBody loop)
