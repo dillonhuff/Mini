@@ -28,8 +28,14 @@ loadLoop =
   singleLoop [load "x" "b" (iVar "i") "l1"]
 
 parLoadLoop =
-  singleLoop [load "x" "b" (iVar "i") "l1",
-              load "x" "b" (iAdd (iVar "i") (iConst 1)) "l2"]
+  [parMainLoop, parResidualLoop]
+
+parMainLoop = 
+  singleLoop [load "x" "b" (iVar "i") "l1_iter1",
+              load "x" "b" (iAdd (iVar "i") (iConst 1)) "l2_iter2"]
+
+parResidualLoop =
+  loadLoop
 
 addOneLoop =
   singleLoop [load "x" "b" (iVar "i") "l1",
