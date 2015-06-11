@@ -9,32 +9,49 @@ import Core.IndexExpression
 import Core.MiniSyntax
 
 partiallyUnrollBy n st =
-  [mainLoop, residualLoop]
+  [mainLoop n st unrolledBody, residualLoop st residualBody]
   where
     mainIVarName = forInductionVariable st
     mainIVar = iVar mainIVarName
-    mainEnd = (iAdd (iSub (forEnd st) (iConst n)) (iConst 1))
-    mainLoop = for mainIVarName (forStart st) (iConst n) mainEnd unrolledBody (label st)
-    unrolledBody = block $ L.concatMap (\i -> blockStatements $ subIExprInBlock (iAdd mainIVar (iConst i)) mainIVarName (forBody st)) [0..(n - 1)]
-    residualIVarName = mainIVarName
-    residualIVar = iVar residualIVarName
-    residualLoop = for residualIVarName residualIVar (iConst 1) (forEnd st) residualBody ((label st) ++ "_u")
-    residualBody = block $ blockStatements $ subIExprInBlock residualIVar mainIVarName (forBody st)
+    unrolledBody = unrollBlock (\i a -> a) (L.map (\i -> iAdd mainIVar (iConst i)) [0..(n-1)]) (forInductionVariable st) (forBody st)
+    residualBody = forBody st
+
+mainLoop n st body =
+  let mainIVarName = forInductionVariable st
+      mainIVar = iVar mainIVarName
+      mainEnd = (iAdd (iSub (forEnd st) (iConst n)) (iConst 1))
+      loop = for mainIVarName (forStart st) (iConst n) mainEnd body (label st) in
+  loop
+
+residualLoop st body =
+  let residualIVarName = forInductionVariable st
+      residualIVar = iVar residualIVarName
+      resLoop = for residualIVarName residualIVar (iConst 1) (forEnd st) body ((label st) ++ "_u") in
+  resLoop
+
+tryFullyUnrollLoop :: [IExpr] -> Statement a -> [Statement a]
+tryFullyUnrollLoop iterSpace stmt =
+  case isFor stmt of
+    True -> fullyUnrollLoop iterSpace stmt
+    False -> [stmt]
 
 fullyUnrollLoop :: [IExpr] -> Statement a -> [Statement a]
 fullyUnrollLoop iterSpace st =
-  L.concatMap (\i -> blockStatements $ subIExprInBlock i (forInductionVariable st) (forBody st)) iterSpace
+  blockStatements $ unrollBlock (\i a -> a) iterSpace (forInductionVariable st) $ forBody st
 
 unrollWithNewLabels unrollFactor loop =
-  L.concatMap (\i -> unrolledBody i loop) [1..unrollFactor]
-
-unrolledBody i loop =
-  L.map (\st -> setLabel ((label st) ++ "_iter" ++ show i) st) $ blockStatements $ subIExprInBlock (iConst i) (forInductionVariable loop) (forBody loop)
+  blockStatements $ unrollBlock labF (L.map iConst [1..unrollFactor]) (forInductionVariable loop) $ forBody loop
+  where
+    labF i a = show a ++ "_iter" ++ show i
 
 unrollLoopsBy2 stmts =
-  transformStatementList (L.concatMap (expandStatement unrollLoopBy2)) stmts
+  transformStatementList (L.concatMap (expandStatement (tryFullyUnrollLoop [iConst 0, iConst 1]))) stmts
 
-unrollLoopBy2 stmt =
-  case isFor stmt of
-    True -> L.concatMap (\i -> blockStatements $ subIExprInBlock i (forInductionVariable stmt) (forBody stmt)) [iConst 0, iConst 1]
-    False -> [stmt]
+unrollBlock :: (IExpr -> a -> a) -> [IExpr] -> String -> Block a -> Block a
+unrollBlock labFunc iterSpace inductionVar b =
+  block $ L.concatMap (\i -> unrollB labFunc i inductionVar b) iterSpace
+
+unrollB :: (IExpr -> a -> a) -> IExpr -> String -> Block a -> [Statement a]
+unrollB labFunc iter inductionVar blk =
+  let newIExprBlk = subIExprInBlock iter inductionVar blk in
+  blockStatements $ transformBlock (\st -> setLabel (labFunc iter (label st)) st) newIExprBlk

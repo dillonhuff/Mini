@@ -14,6 +14,7 @@ import Optimizations.CopyPropagation
 import Optimizations.FullLoopUnrolling
 import Optimizations.IndexExpressionOptimizations
 import Optimizations.LoopFusion
+import Optimizations.PartialLoopUnrolling
 import Optimizations.SiftLoops
 import Optimizations.TempBufferElimination
 import Testing.EvaluationResult
@@ -41,7 +42,8 @@ matrixOpToMiniOpNoOptimizations matOp =
       miniRes = convertToMini mOp in
   miniRes
 
-defaultOptimizations = [compactArrays,
+defaultOptimizations = [partiallyUnrollAllLoopsBy 4,
+                        compactArrays,
                         fuseAllTopLevelLoopsPossible,
                         siftLoops,
                         eliminateTempBuffers,
