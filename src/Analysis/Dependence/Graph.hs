@@ -22,16 +22,26 @@ dependenceGraph labels depTriples =
   DependenceGraph labNodeMap (insEdges depEdges $ insNodes nodeLabPairs G.empty)
 
 data Dependence
+  = Dependence DepType (Maybe LoopStatus)
+    deriving (Eq, Ord, Show)
+
+data DepType
   = Flow
   | Anti
   | Output
   | Input
     deriving (Eq, Ord, Show)
 
-flowDep = Flow
-antiDep = Anti
-outputDep = Output
-inputDep = Input
+flowDep = Dependence Flow Nothing
+antiDep = Dependence Anti Nothing
+outputDep = Dependence Output Nothing
+inputDep = Dependence Input Nothing
+
+data LoopStatus
+  = Carried
+  | Independent
+  | Mixed
+    deriving (Eq, Ord, Show)
 
 findLabel :: (Show a, Ord a) => a -> Map a Node -> Node
 findLabel l m =
@@ -54,11 +64,11 @@ dependentQuery :: (Show a, Ord a) => Dependence -> DependenceGraph a -> a -> a -
 dependentQuery d depGraph t s =
   L.elem (graphNode t depGraph) (dependenciesOfType d s depGraph)
 
-flowDependent depGraph t s = dependentQuery Flow depGraph t s
+flowDependent depGraph t s = dependentQuery flowDep depGraph t s
 
-antiDependent depGraph t s = dependentQuery Anti depGraph t s
+antiDependent depGraph t s = dependentQuery antiDep depGraph t s
 
-outputDependent depGraph t s = dependentQuery Output depGraph t s
+outputDependent depGraph t s = dependentQuery outputDep depGraph t s
 
 anyFlowAntiOrOutputDeps g l1 l2 =
   L.or $ L.map (\(t, s) -> antiDependent g t s || flowDependent g t s || outputDependent g t s) [(t, s) | t <- l1, s <- l2]

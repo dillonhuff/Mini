@@ -29,7 +29,6 @@ main = do
   allRegisterLivenessTests
   allRegisterReductionTests
   allRestrictedLayoutTests
-
   allSiftLoopTests
   allSyntaxTests
   allTestCaseGenerationTests

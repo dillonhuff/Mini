@@ -105,5 +105,5 @@ doubleLoopStmts = [load "alpha11" "alpha" (iConst 0) "l2",
                    times "tmp015" "alpha11" "A13" "l4",
                    store "tmp0" (iAdd (iMul (iVar "A_rs") (iVar "i")) (iVar "j")) "tmp015" "l5",
                    load "tmp04" "tmp0" (iAdd (iMul (iVar "A_rs") (iVar "i")) (iVar "j")) "l6",
-                   store "A" (iAdd (iMul (iVar "A_rs") (iVar "i")) (iVar "j")) "tmp04" "l7"]--(iAdd (iMul (iVar "A_rs") (iVar "i")) (iVar "j")) "tmp04" "l7"]
+                   store "A" (iAdd (iMul (iVar "A_rs") (iVar "i")) (iVar "j")) "tmp04" "l7"]
 
