@@ -34,12 +34,6 @@ import BackEnd.CGen
 import Core.IndexExpression
 import Core.SymbolTable
 
-prototype :: String -> MiniSymtab -> String
-prototype n st = "void " ++ n ++ "(" ++ argumentStr st ++ ")"
-
-argumentStr :: MiniSymtab -> String
-argumentStr st = L.concat $ L.intersperse ", " $ L.map (\(n, tp) -> show tp ++ " " ++ n) $ arguments st
-
 toCBlock :: a -> MiniSymtab -> [(String, Type)] -> Block a -> CBlock a
 toCBlock dummyAnn symT decls (Block stmts) = cBlock cDecls cStmts
   where
