@@ -31,10 +31,10 @@ addOneLoop =
 
 parAddOneLoop =
   singleLoop [load "x_iter1" "b" (iVar "i") "l1_iter1",
-              load "x_iter2" "b" (iVar "i") "l1_iter2",
+              load "x_iter2" "b" (iAdd (iVar "i") (iConst 1)) "l1_iter2",
               loadConst "c_iter1" (floatLit 1.0) "l2_iter1",
               loadConst "c_iter2" (floatLit 1.0) "l2_iter2",
               plus "y_iter1" "x_iter1" "c_iter1" "l3_iter1",
               plus "y_iter2" "x_iter2" "c_iter2" "l3_iter2",
               store "b" (iVar "i") "x_iter1" "l4_iter1",
-              store "b" (iVar "i") "x_iter2" "l4_iter2"]
+              store "b" (iAdd (iVar "i") (iConst 1)) "x_iter2" "l4_iter2"]

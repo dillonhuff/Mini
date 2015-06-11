@@ -12,6 +12,7 @@ import FrontEnd.LexerTests
 import FrontEnd.ParserTests
 import Optimizations.CopyPropagationTests
 import Optimizations.FullLoopUnrollingTests
+import Optimizations.InnerLoopParallelizationTests
 import Optimizations.SiftLoopTests
 import Testing.RestrictedLayoutTests
 import Testing.TestCaseGenerationTests
@@ -21,6 +22,7 @@ main = do
   allDependenceAnalysisTests
   allFullLoopUnrollingTests
   allIndexExpressionTests
+  allInnerLoopParallelizationTests
   allLexerTests
   allLoopAnalysisTests
   allMatrixOperationTests

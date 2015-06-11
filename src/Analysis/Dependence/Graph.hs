@@ -32,16 +32,21 @@ data DepType
   | Input
     deriving (Eq, Ord, Show)
 
-flowDep = Dependence Flow Nothing
-antiDep = Dependence Anti Nothing
-outputDep = Dependence Output Nothing
-inputDep = Dependence Input Nothing
-
 data LoopStatus
   = Carried
   | Independent
   | Mixed
     deriving (Eq, Ord, Show)
+
+flowDep = Dependence Flow Nothing
+antiDep = Dependence Anti Nothing
+outputDep = Dependence Output Nothing
+inputDep = Dependence Input Nothing
+
+carriedFlowDep = Dependence Flow (Just Carried)
+carriedAntiDep = Dependence Anti (Just Carried)
+carriedOuputDep = Dependence Output (Just Carried)
+carriedInputDep = Dependence Input (Just Carried)
 
 findLabel :: (Show a, Ord a) => a -> Map a Node -> Node
 findLabel l m =
