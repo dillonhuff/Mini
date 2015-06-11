@@ -2,8 +2,10 @@ module Analysis.Dependence.Graph(DependenceGraph,
                                  dependenceGraph,
                                  Dependence,
                                  flowDep, antiDep, outputDep, inputDep,
-                                 anyFlowAntiOrOutputDeps, anyAnti, anyFlow,
-                                 flowDependent, antiDependent, outputDependent) where
+                                 anyFlowAntiOrOutputDeps, anyFlowDeps,
+                                 flowDependent, antiDependent, outputDependent,
+                                 carriedFlowDependent,
+                                 loopCarriedFlowDeps) where
 
 import Data.Graph.Inductive as G
 import Data.List as L
@@ -70,13 +72,19 @@ dependentQuery d depGraph t s =
   L.elem (graphNode t depGraph) (dependenciesOfType d s depGraph)
 
 flowDependent depGraph t s = dependentQuery flowDep depGraph t s
-
 antiDependent depGraph t s = dependentQuery antiDep depGraph t s
-
 outputDependent depGraph t s = dependentQuery outputDep depGraph t s
+
+carriedFlowDependent depGraph t s = dependentQuery carriedFlowDep depGraph t s
 
 anyFlowAntiOrOutputDeps g l1 l2 =
   L.or $ L.map (\(t, s) -> antiDependent g t s || flowDependent g t s || outputDependent g t s) [(t, s) | t <- l1, s <- l2]
+
+anyFlowDeps g l1 l2 =
+  L.or $ L.map (\(t, s) -> flowDependent g t s) [(t, s) | t <- l1, s <- l2]
+  
+loopCarriedFlowDeps g t =
+  dependenciesOfType carriedFlowDep t g
 
 anyAnti g l1 l2 =
   L.or $ L.map (\(t, s) -> antiDependent g t s) [(t, s) | t <- l1, s <- l2]

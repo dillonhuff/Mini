@@ -12,20 +12,21 @@ import Core.IndexExpression
 import Core.MiniOperation
 import Core.MiniSyntax
 
-isFlowDependent :: (Show a) => Statement a -> Statement a -> Bool
-isFlowDependent t s =
-  0 < (L.length $ L.intersectBy operandsEqual [operandWritten s] (operandsRead t))
+isFlowDependent :: (Show a) => [Operand] -> Statement a -> Statement a -> Bool
+isFlowDependent opsWrittenBetween t s =
+  let possibleDeps = L.intersectBy operandsEqual [operandWritten s] (operandsRead t) in
+  L.or $ L.map (\op -> not $ L.elem op opsWrittenBetween) possibleDeps
 
-isAntiDependent :: (Show a) => Statement a -> Statement a -> Bool
-isAntiDependent t s =
+isAntiDependent :: (Show a) => [Operand] -> Statement a -> Statement a -> Bool
+isAntiDependent opsWrittenBetween t s =
   0 < (L.length $ L.intersectBy operandsEqual [operandWritten t] (operandsRead s))
 
-isOutputDependent :: (Show a) => Statement a -> Statement a -> Bool
-isOutputDependent t s =
+isOutputDependent :: (Show a) => [Operand] -> Statement a -> Statement a -> Bool
+isOutputDependent opsWrittenBetween t s =
   operandsEqual (operandWritten t) (operandWritten s)
 
-isInputDependent :: (Show a) => Statement a -> Statement a -> Bool
-isInputDependent t s =
+isInputDependent :: (Show a) => [Operand] -> Statement a -> Statement a -> Bool
+isInputDependent opsWrittenBetween t s =
   0 < (L.length $ L.intersectBy operandsEqual (operandsRead t) (operandsRead s))
 
 operandsEqual :: Operand -> Operand -> Bool
@@ -41,23 +42,27 @@ computeDependencies stmts =
 statementDeps :: (Eq a, Show a) => [Statement a] -> [(Statement a, Statement a, Dependence)]
 statementDeps [] = []
 statementDeps [x] = []
-statementDeps (st:others) = L.concatMap (\other -> statementPairDeps st other) others
+statementDeps (st:others) = L.concatMap (\otherList -> stDependsOn st otherList) $ L.tails $ L.reverse others
 
-statementPairDeps l r =
-  L.concatMap (\f -> f l r) [fDep, aDep, oDep]
+stDependsOn st [] = []
+stDependsOn st [x] = statementPairDeps [] st x
+stDependsOn st others = statementPairDeps (L.map operandWritten $ L.tail others) st (head others)
 
-aDep l r =
-  case isAntiDependent l r of
+statementPairDeps opsWritten l r =
+  L.concatMap (\f -> f opsWritten l r) [fDep, aDep, oDep]
+
+aDep opsWritten l r =
+  case isAntiDependent opsWritten l r of
     True -> [(l, r, antiDep)]
     False -> []
 
-fDep l r =
-  case isFlowDependent l r of
+fDep opsWritten l r =
+  case isFlowDependent opsWritten l r of
     True -> [(l, r, flowDep)]
     False -> []
 
-oDep l r =
-  case isOutputDependent l r of
+oDep opsWritten l r =
+  case isOutputDependent opsWritten l r of
     True -> [(l, r, outputDep)]
     False -> []
 

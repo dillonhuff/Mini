@@ -7,6 +7,9 @@ import Core.MiniSyntax
 import TestUtils
 
 allRegisterReductionTests = do
+  loopInsensitiveTests
+
+loopInsensitiveTests = do
   testFunction (rrDep flowDependent) flowCases
   testFunction (rrDep antiDependent) antiCases
   testFunction (rrDep outputDependent) outCases
@@ -14,6 +17,7 @@ allRegisterReductionTests = do
   testFunction (loopDep antiDependent) loopAntiCases
   testFunction (loopDep outputDependent) loopOutputCases
   testFunction (perfectDoubleLoopNest flowDependent) perfectDoubleLoopFlowCases
+  testFunction (unparallelizableLoopDep flowDependent) unparallelizableFlowDepCases
 
 flowCases =
   [(("l1", "l2"), False),
@@ -107,3 +111,37 @@ doubleLoopStmts = [load "alpha11" "alpha" (iConst 0) "l2",
                    load "tmp04" "tmp0" (iAdd (iMul (iVar "A_rs") (iVar "i")) (iVar "j")) "l6",
                    store "A" (iAdd (iMul (iVar "A_rs") (iVar "i")) (iVar "j")) "tmp04" "l7"]
 
+unparallelizableLoopDep f (t, s) = f unparallelizableDepGraph t s
+
+unparallelizableDepGraph =
+  case buildDependenceGraph unparallelizableLoop of
+    Just dg -> dg
+    Nothing -> error $ "Cannot build depGraph with " ++ show loopStmts
+
+unparallelizableLoop = [for "i" (iConst 0) (iConst 1) (iVar "n") (block unparallelizableStmts) "l0"]
+unparallelizableStmts =
+  [load "a" "b" (iVar "i") "l1",
+   regAssign "t" "x" "l2",
+   plus "x" "t" "a" "l3",
+   regAssign "t" "a" "l4",
+   plus "q" "t" "x" "l5"]
+
+unparallelizableFlowDepCases =
+  [(("l1", "l2"), False),
+   (("l2", "l3"), True),
+   (("l5", "l2"), False)]
+
+{-simpleCarriedLoopDep f (t, s) = f simpleCarriedDepGraph t s
+
+simpleCarriedDepGraph =
+  case buildLoopDependenceGraph simpleCarriedLoop of
+    Just dg -> dg
+    Nothing -> error $ "Cannot build depGraph with " ++ show simpleStmts
+
+simpleCarriedLoop = for "i" (iConst 0) (iConst 1) (iVar "n") (block simpleCarriedLoopBody) "l0"
+
+simpleCarriedLoopBody = []
+
+carrieFlowCases =
+  [(("l1", "l2"), False)]
+-}

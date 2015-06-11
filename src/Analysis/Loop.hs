@@ -1,11 +1,13 @@
 module Analysis.Loop(numberOfIterations,
                     allIterationsList,
                     moreThanNIterations,
-                    unitIncrement) where
+                    unitIncrement,
+                    noDeeperLoops) where
 
 import Data.List as L
 
 import Core.IndexExpression
+import Core.MiniSyntax
 
 numberOfIterations :: IExpr -> IExpr -> IExpr -> Maybe Int
 numberOfIterations start inc end = do
@@ -28,3 +30,9 @@ moreThanNIterations n st =
 
 unitIncrement st =
   True
+
+noDeeperLoops stmt =
+  let nonLoopStmtsInBody = nonLoopStatements stmt
+      stmtsInBody = blockStatements $ forBody stmt in
+  L.length (L.intersect nonLoopStmtsInBody stmtsInBody) == L.length stmtsInBody
+

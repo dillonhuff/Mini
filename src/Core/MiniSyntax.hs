@@ -6,7 +6,7 @@ module Core.MiniSyntax(toCType,
               Statement,
               transformStatementIExprs,
               transformStatement,
-              label, nonLoopStatements, substituteName,
+              label, setLabel, nonLoopStatements, substituteName,
               Operand, operandWritten, operandsRead, allOperands,
               operandsHaveSameType, isBufferVal,
               bufferName, registerName, 
@@ -23,7 +23,8 @@ module Core.MiniSyntax(toCType,
               isLoad, isStore, isLoadConst, isRegAssign, isBinop, namesReferenced,
               allSimpleAccesses,
               sReg, buffer, accessIExpr,
-              doubleLit, floatLit, getLitType) where
+              doubleLit, floatLit, getLitType,
+              reg, bufferVal) where
 
 import Control.Monad
 import Data.List as L
@@ -103,6 +104,13 @@ label (LoadConst _ _ l) = l
 label (Store _ _ _ l) = l
 label (For _ _ _ _ _ l) = l
 label (RegAssign _ _ l) = l
+
+setLabel l (BOp op a b c _) = BOp op a b c l
+setLabel l (Load a b e _) = Load a b e l
+setLabel l (LoadConst a b _) = LoadConst a b l
+setLabel l (Store a e b _) = Store a e b l
+setLabel l (For v s i e b _) = For v s i e b l
+setLabel l (RegAssign a b _) = RegAssign a b l
 
 nonLoopStatements (For _ _ _ _ b _) = L.concatMap nonLoopStatements $ blockStatements b
 nonLoopStatements st = [st]

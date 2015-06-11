@@ -11,6 +11,10 @@ import Core.MiniSyntax
 import TestUtils
 
 allDependenceAnalysisTests = do
+  noWritesBetweenTests
+  writesBetweenTests
+
+noWritesBetweenTests = do
   testFunction isFlowDependentTest flowDependentCases
   testFunction isAntiDependentTest antiDependentCases
   testFunction isOutputDependentTest outputDependentCases
@@ -66,10 +70,10 @@ grSimpleOutCases =
   [((1, 0), False),
    ((3, 0), True)]
    
-isFlowDependentTest (s1, s2) = isFlowDependent s1 s2
-isAntiDependentTest (s1, s2) = isAntiDependent s1 s2
-isOutputDependentTest (s1, s2) = isOutputDependent s1 s2
-isInputDependentTest (s1, s2) = isInputDependent s1 s2
+isFlowDependentTest (s1, s2) = isFlowDependent [] s1 s2
+isAntiDependentTest (s1, s2) = isAntiDependent [] s1 s2
+isOutputDependentTest (s1, s2) = isOutputDependent [] s1 s2
+isInputDependentTest (s1, s2) = isInputDependent [] s1 s2
 
 grSimpleFlowTest (t, s) =
   flowDependent simpleGraph t s
@@ -83,3 +87,12 @@ grSimpleOutTest (t, s) =
 simpleGraph =
   case registerDependenceGraph [loadConst "a" (doubleLit 1.0) 0, regAssign "b" "a" 1, times "x" "a" "b" 2, plus "a" "b" "x" 3] of
     Just g -> g
+
+writesBetweenTests = do
+  testFunction isFlowDepWBTest flowDependentWBCases
+
+isFlowDepWBTest (t, s) = isFlowDependent [reg "a", reg "c", bufferVal "B" (iVar "0")] t s
+
+flowDependentWBCases =
+  [((times "k" "l" "a" 0, plus "a" "j" "i" 1), False),
+   ((times "k" "j" "p" 0, regAssign "j" "k" 1), True)]

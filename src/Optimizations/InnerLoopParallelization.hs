@@ -3,18 +3,21 @@ module Optimizations.InnerLoopParallelization(parallelizeInnerLoops) where
 import Data.List as L
 import Data.Map as M
 
+import Analysis.Dependence.Graph
 import Analysis.Dependence.RegisterReduction
+import Analysis.Loop
 import Core.IndexExpression
 import Core.MiniSyntax
+import Optimizations.PartialLoopUnrolling
 import Utils.MapUtils
 
 parallelizeInnerLoops parFactor b =
-  transformBlock (tryToParallelizeInnerLoop (registerUsageInfo b) parFactor) b
+  expandBlockStatements (tryToParallelizeInnerLoop (registerUsageInfo b) parFactor) b
 
 tryToParallelizeInnerLoop regUseInfo parFactor stmt =
   case isMapLoop regUseInfo stmt of
-    True -> stmt
-    False -> stmt
+    True -> partiallyUnrollBy parFactor stmt
+    False -> [stmt]
 
 isMapLoop usageInfo stmt =
   isInnerMapLoop usageInfo stmt && forInc stmt == (iConst 1)
@@ -23,7 +26,7 @@ isInnerMapLoop usageInfo stmt =
   isFor stmt &&
   noDeeperLoops stmt &&
   allRegistersWrittenAreOnlyUsedInLoop usageInfo stmt &&
-  noLoopCarriedFlowDependencies stmt
+  noLoopCarriedFlowDependenciesInInnerLoop stmt
 
 registerUsageInfo b =
   let stmts = L.concatMap nonLoopStatements $ blockStatements b
@@ -35,11 +38,6 @@ addRegToUseMap m (reg, lab) =
     Just vals -> M.insert reg (lab:vals) m
     Nothing -> M.insert reg [lab] m
 
-noDeeperLoops stmt =
-  let nonLoopStmtsInBody = nonLoopStatements stmt
-      stmtsInBody = blockStatements $ forBody stmt in
-  L.length (L.intersect nonLoopStmtsInBody stmtsInBody) == L.length stmtsInBody
-
 allRegistersWrittenAreOnlyUsedInLoop usageInfo stmt =
   let bodyStmts = nonLoopStatements stmt
       bodyStmtLabels = L.map label bodyStmts
@@ -50,7 +48,3 @@ noUsageOutside usageInfo labels reg =
   let allUseLabels = lookupF reg usageInfo in
   L.and $ L.map (\l -> L.elem l labels) allUseLabels
 
-noLoopCarriedFlowDependencies stmt =
-  case buildLoopDependenceGraph stmt of
-    Just g -> True
-    Nothing -> False
