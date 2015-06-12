@@ -1,4 +1,4 @@
-module Optimizations.InnerLoopParallelization(parallelizeInnerLoops) where
+module Optimizations.InnerLoopParallelization(parallelizeInnerLoopsBy) where
 
 import Data.List as L
 import Data.Map as M
@@ -7,16 +7,24 @@ import Analysis.Dependence.Graph
 import Analysis.Dependence.RegisterReduction
 import Analysis.Loop
 import Core.IndexExpression
+import Core.LoopTransformations
+import Core.MiniOperation
 import Core.MiniSyntax
 import Optimizations.PartialLoopUnrolling
 import Utils.MapUtils
 
-parallelizeInnerLoops parFactor b =
-  expandBlockStatements (tryToParallelizeInnerLoop (registerUsageInfo b) parFactor) b
+parallelizeInnerLoopsBy :: Int -> Optimization String
+parallelizeInnerLoopsBy parFactor =
+  optimization
+        "ParallelizeInnerLoops"
+        (\op -> applyToOpBlock (parallelizeInnerLoops (getMiniOpSymtab op) parFactor) op)
 
-tryToParallelizeInnerLoop regUseInfo parFactor stmt =
+parallelizeInnerLoops symtab parFactor b =
+  expandBlockStatements (tryToParallelizeInnerLoop symtab (registerUsageInfo b) parFactor) b
+
+tryToParallelizeInnerLoop symtab regUseInfo parFactor stmt =
   case isMapLoop regUseInfo stmt of
-    True -> partiallyUnrollBy parFactor stmt
+    True -> partiallyUnrollAndIntersperse symtab parFactor stmt
     False -> [stmt]
 
 isMapLoop usageInfo stmt =

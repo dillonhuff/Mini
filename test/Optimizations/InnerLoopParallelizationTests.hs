@@ -1,5 +1,6 @@
 module Optimizations.InnerLoopParallelizationTests(allInnerLoopParallelizationTests) where
 
+{-
 import Data.List as L
 
 import Core.IndexExpression
@@ -52,3 +53,4 @@ parAddOneLoop =
               plus "y_iter2" "x_iter2" "c_iter2" "l3_iter2",
               store "b" (iVar "i") "x_iter1" "l4_iter1",
               store "b" (iAdd (iVar "i") (iConst 1)) "x_iter2" "l4_iter2"]
+-}

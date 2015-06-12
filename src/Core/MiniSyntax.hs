@@ -7,6 +7,7 @@ module Core.MiniSyntax(toCType,
               transformStatementIExprs,
               transformStatement,
               label, setLabel, nonLoopStatements, substituteName,
+              multiSubstitution,
               Operand, operandWritten, operandsRead, allOperands,
               operandsHaveSameType, isBufferVal,
               bufferName, registerName, 
@@ -297,3 +298,6 @@ basicAllSimpleAccesses stmt =
   let allOps = (operandWritten stmt) : (operandsRead stmt) in
   L.and $ L.map (\i -> isConst i || isVar i) $ L.map accessIExpr $ L.filter (\op -> isBufferVal op) allOps
 
+multiSubstitution [] st = st
+multiSubstitution ((targetName, resultName):rest) st =
+  multiSubstitution rest $ substituteName targetName resultName st

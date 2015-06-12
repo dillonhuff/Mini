@@ -6,15 +6,15 @@ import Data.List as L
 import Data.Map as M
 
 import Core.MatrixOperation
-import Core.MOpSyntax
 import Core.MiniOperation
 import Core.MiniSyntax
+import Core.MOpSyntax
 import Optimizations.ArrayCompaction
 import Optimizations.CopyPropagation
 import Optimizations.FullLoopUnrolling
 import Optimizations.IndexExpressionOptimizations
+import Optimizations.InnerLoopParallelization
 import Optimizations.LoopFusion
-import Optimizations.PartialLoopUnrolling
 import Optimizations.SiftLoops
 import Optimizations.TempBufferElimination
 import Testing.EvaluationResult
@@ -42,7 +42,7 @@ matrixOpToMiniOpNoOptimizations matOp =
       miniRes = convertToMini mOp in
   miniRes
 
-defaultOptimizations = [partiallyUnrollAllLoopsBy 4,
+defaultOptimizations = [parallelizeInnerLoopsBy 4,
                         compactArrays,
                         fuseAllTopLevelLoopsPossible,
                         siftLoops,
