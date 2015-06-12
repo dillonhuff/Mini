@@ -15,7 +15,7 @@ module Core.MiniSyntax(toCType,
               Block,
               noLoopsInBlock, updateBlock, subIExprInBlock,
               expandStatement,
-              blockStatements, expandBlockStatements,
+              blockStatements, expandBlockStatements, expandBlockStatementsM,
               updateBlockM,
               toCBlock,
               block,
@@ -87,6 +87,11 @@ updateBlockM f b = do
 
 expandBlockStatements :: (Statement a -> [Statement a]) -> Block a -> Block a
 expandBlockStatements f (Block stmts) = block $ L.concatMap (expandStatement f) stmts
+
+expandBlockStatementsM :: (Monad m) => (Statement a -> m [Statement a]) -> Block a -> m (Block a)
+expandBlockStatementsM f (Block stmts) = do
+  resStmts <- liftM L.concat $ sequence $ L.map (expandStatementM f) stmts
+  return $ block resStmts
 
 noLoopsInBlock b = L.and $ L.map (\st -> not $ isFor st) $ blockStatements b
 
@@ -205,6 +210,12 @@ updateStmtBlocksM f other = return other
 expandStatement :: (Statement a -> [Statement a]) -> Statement a -> [Statement a]
 expandStatement f (For v s i e blk ann) = f (For v s i e (expandBlockStatements f blk) ann)
 expandStatement f s = f s
+
+expandStatementM :: (Monad m) => (Statement a -> m [Statement a]) -> Statement a -> m [Statement a]
+expandStatementM f (For v s i e blk ann) = do
+  resBody <- expandBlockStatementsM f blk
+  f (For v s i e resBody ann)
+expandStatementM f s = f s
 
 transformStatementIExprs :: (IExpr -> IExpr) -> Statement a -> Statement a
 transformStatementIExprs f (For v s i e blk ann) = For v (f s) (f i) (f e) blk ann

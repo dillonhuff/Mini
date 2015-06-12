@@ -8,24 +8,38 @@ import Data.List as L
 
 import Core.IndexExpression
 import Core.MiniSyntax
+import Core.SymbolTable
 
+partiallyUnrollAndIntersperse :: MiniSymtab -> Int -> Statement String -> (MiniSymtab, [Statement String])
 partiallyUnrollAndIntersperse symtab n st =
   let mainIVar = iVar $ forInductionVariable st
       stmtsList = replicateBlockStmts (\i a -> show a ++ "_iter" ++ show i) (L.map (\i -> iAdd mainIVar (iConst i)) [0..(n-1)]) (forInductionVariable st) $ forBody st
-      mainBody = block $ intersperseStmts $ L.map (\(stmts, i) -> addRegisterSuffix ("_is" ++ show i) symtab stmts) $ L.zip stmtsList [1..n] in
-  [mainLoop n st mainBody, residualLoop st $ forBody st]
+      stmtsListExecNum = L.zip stmtsList [1..n]
+      subStmtsAndRegs = L.map (\(stmts, i) -> addRegisterSuffix ("_is" ++ show i) symtab stmts) stmtsListExecNum
+      subStmts = L.map snd subStmtsAndRegs
+      allRegs = L.concatMap fst subStmtsAndRegs
+      newSymtab = multiAddVar allRegs symtab
+      bodyStmts = intersperseStmts subStmts
+      mainBody = block bodyStmts in
+  (newSymtab, [mainLoop n st mainBody, residualLoop st $ forBody st])
 
+intersperseStmts :: [[Statement a]] -> [Statement a]
 intersperseStmts stmtsList =
   case L.and $ L.map (\stmts -> L.length stmts == 0) stmtsList of
     True -> []
     False -> (L.concatMap (\stmts -> [L.head stmts]) stmtsList) ++ (intersperseStmts $ L.map L.tail stmtsList)
 
+addRegisterSuffix :: String -> MiniSymtab -> [Statement a] -> ([(String, String)], [Statement a])
 addRegisterSuffix suffix symtab stmts =
   let allStmts = L.concatMap nonLoopStatements stmts
-      regsReferenced = L.map registerName $ L.filter (\op -> not $ isBufferVal op) $ L.concatMap allOperands allStmts
-      regsWithNewNames = L.zip regsReferenced $ L.map (\r -> r ++ suffix) regsReferenced
+      regsWritten = L.map registerName $ L.filter (\op -> not $ isBufferVal op) $ L.map operandWritten allStmts
+      regsWithNewNames = L.zip regsWritten $ L.map (\r -> r ++ suffix) regsWritten
       newStmts = L.map (transformStatement (multiSubstitution regsWithNewNames)) stmts in
-  newStmts
+  (regsWithNewNames, newStmts)
+
+multiAddVar [] st = st
+multiAddVar ((old, new):rest) st =
+  multiAddVar rest $ addEntry new (getMiniSymInfo old id st) st
   
 partiallyUnrollBy n st =
   [mainLoop n st unrolledBody, residualLoop st $ forBody st]

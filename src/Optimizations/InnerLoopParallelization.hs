@@ -1,5 +1,6 @@
 module Optimizations.InnerLoopParallelization(parallelizeInnerLoopsBy) where
 
+import Control.Monad.State.Lazy
 import Data.List as L
 import Data.Map as M
 
@@ -17,15 +18,28 @@ parallelizeInnerLoopsBy :: Int -> Optimization String
 parallelizeInnerLoopsBy parFactor =
   optimization
         "ParallelizeInnerLoops"
-        (\op -> applyToOpBlock (parallelizeInnerLoops (getMiniOpSymtab op) parFactor) op)
+        (tryParallelize parFactor)
 
-parallelizeInnerLoops symtab parFactor b =
-  expandBlockStatements (tryToParallelizeInnerLoop symtab (registerUsageInfo b) parFactor) b
+tryParallelize parFactor op =
+  let st = getMiniOpSymtab op
+      b = getOpBlock op
+      opts = getOptimizationsApplied op
+      (newOpBlock, newSt) = (runState $ parallelizeInnerLoops parFactor b) st in
+  makeOperation (getOpName op) opts newSt newOpBlock
 
-tryToParallelizeInnerLoop symtab regUseInfo parFactor stmt =
+parallelizeInnerLoops parFactor b =
+  expandBlockStatementsM (tryToParallelizeInnerLoop (registerUsageInfo b) parFactor) b
+
+tryToParallelizeInnerLoop :: Map Operand [String] -> Int -> Statement String -> State MiniSymtab [Statement String]
+tryToParallelizeInnerLoop regUseInfo parFactor stmt =
   case isMapLoop regUseInfo stmt of
-    True -> partiallyUnrollAndIntersperse symtab parFactor stmt
-    False -> [stmt]
+    True -> do
+      symtab <- get
+      let (newSymtab, newStmts) = partiallyUnrollAndIntersperse symtab parFactor stmt in
+        do
+          put newSymtab
+          return newStmts
+    False -> return [stmt]
 
 isMapLoop usageInfo stmt =
   isInnerMapLoop usageInfo stmt && forInc stmt == (iConst 1)
