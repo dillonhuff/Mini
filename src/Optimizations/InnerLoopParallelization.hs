@@ -4,6 +4,7 @@ import Control.Monad.State.Lazy
 import Data.List as L
 import Data.Map as M
 
+import Analysis.Basic
 import Analysis.Dependence.Graph
 import Analysis.Dependence.RegisterReduction
 import Analysis.Loop
@@ -28,7 +29,7 @@ tryParallelize parFactor op =
   makeOperation (getOpName op) opts newSt newOpBlock
 
 parallelizeInnerLoops parFactor b =
-  expandBlockStatementsM (tryToParallelizeInnerLoop (registerUsageInfo b) parFactor) b
+  expandBlockStatementsM (tryToParallelizeInnerLoop (registerUsageLocations b) parFactor) b
 
 tryToParallelizeInnerLoop :: Map Operand [String] -> Int -> Statement String -> State MiniSymtab [Statement String]
 tryToParallelizeInnerLoop regUseInfo parFactor stmt =
@@ -49,16 +50,6 @@ isInnerMapLoop usageInfo stmt =
   noDeeperLoops stmt &&
   allRegistersWrittenAreOnlyUsedInLoop usageInfo stmt &&
   noLoopCarriedFlowDependenciesInInnerLoop stmt
-
-registerUsageInfo b =
-  let stmts = L.concatMap nonLoopStatements $ blockStatements b
-      regLabelList = L.concatMap (\stmt -> L.map (\op -> (op, label stmt)) $ L.filter (\op -> not $ isBufferVal op) $ allOperands stmt) stmts in
-  L.foldl addRegToUseMap M.empty regLabelList
-
-addRegToUseMap m (reg, lab) =
-  case M.lookup reg m of
-    Just vals -> M.insert reg (lab:vals) m
-    Nothing -> M.insert reg [lab] m
 
 allRegistersWrittenAreOnlyUsedInLoop usageInfo stmt =
   let bodyStmts = nonLoopStatements stmt

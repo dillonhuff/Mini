@@ -4,6 +4,7 @@ import Analysis.DependenceAnalysisTests
 import Analysis.LoopAnalysisTests
 import Analysis.RegisterLivenessTests
 import Analysis.RegisterReductionTests
+import Analysis.RegisterSynonyms.RegisterTests
 import Core.IndexExpressionTests
 import Core.MatrixOperationTests
 import Core.MOpTests
@@ -12,7 +13,7 @@ import FrontEnd.LexerTests
 import FrontEnd.ParserTests
 import Optimizations.CopyPropagationTests
 import Optimizations.FullLoopUnrollingTests
-import Optimizations.InnerLoopParallelizationTests
+import Optimizations.RegisterSynonymDeletionTests
 import Optimizations.SiftLoopTests
 import Testing.RestrictedLayoutTests
 import Testing.TestCaseGenerationTests
@@ -22,7 +23,6 @@ main = do
   allDependenceAnalysisTests
   allFullLoopUnrollingTests
   allIndexExpressionTests
-  allInnerLoopParallelizationTests
   allLexerTests
   allLoopAnalysisTests
   allMatrixOperationTests
@@ -30,6 +30,8 @@ main = do
   allParserTests
   allRegisterLivenessTests
   allRegisterReductionTests
+  allRegisterSynonymDeletionTests
+  allRegisterSynonymsTests
   allRestrictedLayoutTests
   allSiftLoopTests
   allSyntaxTests
