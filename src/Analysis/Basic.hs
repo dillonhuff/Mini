@@ -1,9 +1,15 @@
-module Analysis.Basic(registerUsageLocations) where
+module Analysis.Basic(registerUsageLocations,
+                      registerWriteLocations) where
 
 import Data.List as L
 import Data.Map as M
 
 import Core.MiniSyntax
+
+registerWriteLocations b =
+  let stmts = L.concatMap nonLoopStatements $ blockStatements b
+      regLabelList = L.concatMap (\stmt -> L.map (\op -> (op, label stmt)) $ L.filter (\op -> not $ isBufferVal op) $ [operandWritten stmt]) stmts in
+  L.foldl addRegToUseMap M.empty regLabelList
 
 registerUsageLocations b =
   let stmts = L.concatMap nonLoopStatements $ blockStatements b
