@@ -6,6 +6,7 @@ module Analysis.Liveness.Register(RangeInfo,
 import Data.List as L
 import Data.Map as M
 
+import Analysis.Basic
 import Core.MiniSyntax
 import Utils.MapUtils
 

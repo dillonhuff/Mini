@@ -1,6 +1,8 @@
 module Analysis.Basic(registerUsageLocations,
                       registerWriteLocations,
-                      allSimpleAccesses) where
+                      allSimpleAccesses,
+                      namesReferenced,
+                      noLoopsInBlock) where
 
 import Data.List as L
 import Data.Map as M
@@ -37,3 +39,10 @@ forAllSimpleAccesses forLoop =
 basicAllSimpleAccesses stmt =
   let allOps = (operandWritten stmt) : (operandsRead stmt) in
   L.and $ L.map (\i -> isConst i || isVar i) $ L.map accessIExpr $ L.filter (\op -> isBufferVal op) allOps
+
+namesReferenced stmt =
+  case isFor stmt of
+    True -> L.concatMap namesReferenced $ blockStatements $ forBody stmt
+    False -> L.map operandName $ allOperands stmt
+
+noLoopsInBlock b = L.and $ L.map (\st -> not $ isFor st) $ blockStatements b

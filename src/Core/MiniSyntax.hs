@@ -10,14 +10,14 @@ module Core.MiniSyntax(toCType,
                        operandWritten, operandsRead, allOperands,
                        Type,
                        Block,
-                       noLoopsInBlock, updateBlock, subIExprInBlock,
+                       updateBlock, subIExprInBlock,
                        expandStatement,
                        blockStatements, expandBlockStatements, expandBlockStatementsM,
                        updateBlockM,
                        block,
                        load, loadConst, store, plus, minus, times, for, regAssign,
                        forStart, forEnd, forInc, isFor, forInductionVariable, forBody,
-                       isLoad, isStore, isLoadConst, isRegAssign, isBinop, namesReferenced,
+                       isLoad, isStore, isLoadConst, isRegAssign, isBinop,
                        sReg, buffer,
                        doubleLit, floatLit, getLitType) where
 
@@ -65,8 +65,6 @@ expandBlockStatementsM :: (Monad m) => (Statement a -> m [Statement a]) -> Block
 expandBlockStatementsM f (Block stmts) = do
   resStmts <- liftM L.concat $ sequence $ L.map (expandStatementM f) stmts
   return $ block resStmts
-
-noLoopsInBlock b = L.and $ L.map (\st -> not $ isFor st) $ blockStatements b
 
 data Statement a
   = BOp Binop String String String a
@@ -240,11 +238,6 @@ getLitType (FloatLit _) = single
 
 miniLitToCLit (DoubleLit d) = cDoubleLit d
 miniLitToCLit (FloatLit f) = cFloatLit f
-
-namesReferenced stmt =
-  case isFor stmt of
-    True -> L.concatMap namesReferenced $ blockStatements $ forBody stmt
-    False -> L.map operandName $ allOperands stmt
 
 multiSubstitution [] st = st
 multiSubstitution ((targetName, resultName):rest) st =

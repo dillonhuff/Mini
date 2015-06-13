@@ -3,6 +3,7 @@ module Optimizations.SiftLoops(siftLoops,
 
 import Data.List as L
 
+import Analysis.Basic
 import Core.MiniOperation
 import Core.MiniSyntax
 

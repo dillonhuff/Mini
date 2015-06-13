@@ -3,6 +3,7 @@ module Optimizations.TempBufferElimination(eliminateTempBuffers) where
 import Control.Monad.State.Lazy
 import Data.List as L
 
+import Analysis.Basic
 import Core.MiniOperation
 import Core.MiniSyntax
 import Core.Operand
