@@ -2,9 +2,9 @@
 module Core.MiniOperation(Operation,
                      operation,
                      getOpName, getBufferSize, getOptimizationsApplied,
+                     getOpLocalVars,
                      getMiniOpSymtab, getOpBlock, makeOperation,
                      getIndexArgs, getBufferArgs, getOpArguments,
-                     toCFunc,
                      applyToOpBlock, allNonLoopStatementsInOperation,
                      Optimization,
                      optimizationName, optimizationFunction,
@@ -38,12 +38,6 @@ applyToOpBlock f (Operation n opts st b) = Operation n opts st (f b)
 
 allNonLoopStatementsInOperation (Operation _ _ _ b) =
   L.concatMap nonLoopStatements $ blockStatements b
-
-toCFunc :: a -> Operation a -> CTopLevelItem a
-toCFunc dummyAnn op = cFuncDecl cVoid (getOpName op) cArgs cCodeBlock
-  where
-    cArgs = L.map (\(n, tp) -> (toCType tp, n)) $ getOpArguments op
-    cCodeBlock = toCBlock dummyAnn (getMiniOpSymtab op) (getOpLocalVars op) (getOpBlock op)
 
 operation n st blk = Operation n [] st blk
 

@@ -3,6 +3,7 @@ module Testing.LibraryOptimization(compileLibSpecToFileWithOptimizations) where
 import Data.List as L
 
 import BackEnd.CGen
+import BackEnd.MiniToC
 import BackEnd.RunBackEnd
 import FrontEnd.RunFrontEnd
 import Core.MiniOperation

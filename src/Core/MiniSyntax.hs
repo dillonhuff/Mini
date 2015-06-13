@@ -1,27 +1,27 @@
 module Core.MiniSyntax(toCType,
-              transformBlock,
-              transformStatementList,
-              MiniSymtab,
-              localVars, arguments,
-              Statement,
-              transformStatementIExprs,
-              transformStatement,
-              label, setLabel, nonLoopStatements, substituteName,
-              multiSubstitution,
-              operandWritten, operandsRead, allOperands,
-              Type,
-              Block,
-              noLoopsInBlock, updateBlock, subIExprInBlock,
-              expandStatement,
-              blockStatements, expandBlockStatements, expandBlockStatementsM,
-              updateBlockM,
-              toCBlock,
-              block,
-              load, loadConst, store, plus, minus, times, for, regAssign,
-              forStart, forEnd, forInc, isFor, forInductionVariable, forBody,
-              isLoad, isStore, isLoadConst, isRegAssign, isBinop, namesReferenced,
-              sReg, buffer,
-              doubleLit, floatLit, getLitType) where
+                       toCStmt,
+                       transformBlock,
+                       transformStatementList,
+                       MiniSymtab,
+                       localVars, arguments,
+                       Statement,
+                       transformStatementIExprs,
+                       transformStatement,
+                       label, setLabel, nonLoopStatements, substituteName,
+                       multiSubstitution,
+                       operandWritten, operandsRead, allOperands,
+                       Type,
+                       Block,
+                       noLoopsInBlock, updateBlock, subIExprInBlock,
+                       expandStatement,
+                       blockStatements, expandBlockStatements, expandBlockStatementsM,
+                       updateBlockM,
+                       block,
+                       load, loadConst, store, plus, minus, times, for, regAssign,
+                       forStart, forEnd, forInc, isFor, forInductionVariable, forBody,
+                       isLoad, isStore, isLoadConst, isRegAssign, isBinop, namesReferenced,
+                       sReg, buffer,
+                       doubleLit, floatLit, getLitType) where
 
 import Control.Monad
 import Data.List as L
@@ -32,31 +32,6 @@ import BackEnd.CGen
 import Core.IndexExpression
 import Core.Operand
 import Core.SymbolTable
-
-toCBlock :: a -> MiniSymtab -> [(String, Type)] -> Block a -> CBlock a
-toCBlock dummyAnn symT decls (Block stmts) = cBlock cDecls cStmts
-  where
-    cDecls = L.map (\(n, tp) -> (toCType tp, n)) decls
-    tmpBuffers = getTmpBuffers symT
-    allocStmts = allocateBuffers dummyAnn tmpBuffers symT
-    bodyStmts = L.map toCStmt $ stmts
-    deallocStmts = freeBuffers dummyAnn tmpBuffers symT
-    cStmts = allocStmts ++ bodyStmts ++ deallocStmts
-
-allocateBuffers dummyAnn bufNames symT =
-  L.map (\n -> allocBuf dummyAnn n symT) bufNames
-
-allocBuf dummyAnn name symT =
-  cExprSt (cAssign (cVar name) (cFuncall "malloc" [cMul (cSizeOf bufTp) bufSz])) dummyAnn
-  where
-    bufTp = toCType $ getBufferType name symT
-    bufSz = iExprToCExpr $ getBufferSize name symT
-
-freeBuffers dummyAnn bufNames symT =
-  L.map (\n -> freeBuffer dummyAnn n symT) bufNames
-  
-freeBuffer dummyAnn bufName symT =
-  cExprSt (cFuncall "free" [cVar bufName]) dummyAnn
 
 data Block a
   = Block [Statement a]
