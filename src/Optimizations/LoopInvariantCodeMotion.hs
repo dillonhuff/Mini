@@ -1,11 +1,19 @@
-module Optimizations.LoopInvariantCodeMotion(pullConstantLoadsOutOfLoops) where
+module Optimizations.LoopInvariantCodeMotion(moveConstantLoadsOutOfLoops,
+                                             pullConstantLoadsOutOfLoops) where
 
 import Data.List as L
 import Data.Map as M
 
 import Analysis.Basic
 import Core.IndexExpression
+import Core.MiniOperation
 import Core.MiniSyntax
+
+moveConstantLoadsOutOfLoops :: (Show a) => Optimization a
+moveConstantLoadsOutOfLoops =
+  optimization
+        "MoveConstantLoadsOutOfLoops"
+        (applyToOpBlock (\b -> block $ pullConstantLoadsOutOfLoops $ blockStatements b))
 
 pullConstantLoadsOutOfLoops :: [Statement a] -> [Statement a]
 pullConstantLoadsOutOfLoops stmts =

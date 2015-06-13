@@ -15,6 +15,7 @@ import Optimizations.FullLoopUnrolling
 import Optimizations.IndexExpressionOptimizations
 import Optimizations.InnerLoopParallelization
 import Optimizations.LoopFusion
+import Optimizations.LoopInvariantCodeMotion
 import Optimizations.RegisterSynonymDeletion
 import Optimizations.SiftLoops
 import Optimizations.TempBufferElimination
@@ -43,7 +44,8 @@ matrixOpToMiniOpNoOptimizations matOp =
       miniRes = convertToMini mOp in
   miniRes
 
-defaultOptimizations = [parallelizeInnerLoopsBy 4,
+defaultOptimizations = [moveConstantLoadsOutOfLoops,
+                        parallelizeInnerLoopsBy 4,
                         deleteRegisterSynonyms,
                         compactArrays,
                         fuseAllTopLevelLoopsPossible,
