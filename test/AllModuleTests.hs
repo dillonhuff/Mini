@@ -8,7 +8,7 @@ import Analysis.RegisterReductionTests
 import Analysis.RegisterSynonyms.RegisterTests
 import Core.IndexExpressionTests
 import Core.MatrixOperationTests
-import Core.MOpTests
+
 import Core.SyntaxTests
 import FrontEnd.LexerTests
 import FrontEnd.ParserTests
@@ -29,7 +29,6 @@ main = do
   allLoopAnalysisTests
   allLoopInvariantCodeMotionTests
   allMatrixOperationTests
-  allMOpTests
   allParserTests
   allReachingAssignmentsTests
   allRegisterLivenessTests
