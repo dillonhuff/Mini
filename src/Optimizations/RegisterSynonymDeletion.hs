@@ -1,20 +1,29 @@
-module Optimizations.RegisterSynonymDeletion(deleteRegisterSynonymsFromStmts) where
+module Optimizations.RegisterSynonymDeletion(deleteRegisterSynonyms,
+                                             deleteRegisterSynonymsFromStmts) where
 
 import Data.List as L
 import Data.Map as M
 
 import Analysis.RegisterReduction
 import Analysis.RegisterSynonyms.Register
+import Core.LoopTransformations
+import Core.MiniOperation
 import Core.MiniSyntax
 import Utils.MapUtils
 
+deleteRegisterSynonyms :: (Ord a, Show a) => Optimization a
+deleteRegisterSynonyms =
+  optimization
+        "DeleteRegisterSynonyms"
+        (applyToOpBlock (\b -> block $ deleteRegisterSynonymsFromStmts $ blockStatements b))
+
 deleteRegisterSynonymsFromStmts :: (Ord a, Show a) => [Statement a] -> [Statement a]
 deleteRegisterSynonymsFromStmts stmts =
-  case reduceToRegisterForm stmts of
-    Just (_, rrForm) ->
-      let regsToDelete = registerSynonyms rrForm in
-      deleteSynonyms regsToDelete stmts
-    Nothing -> stmts
+--  case reduceToRegisterForm stmts of
+--    Just (_, rrForm) ->
+  let regsToDelete = registerSynonyms $ unrollLoopsBy2 stmts in
+  deleteSynonyms regsToDelete stmts
+--    Nothing -> stmts
 
 deleteSynonyms :: Map Operand Operand -> [Statement a] -> [Statement a]
 deleteSynonyms regsToDelete stmts =
