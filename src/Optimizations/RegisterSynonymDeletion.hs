@@ -42,5 +42,5 @@ pickSynonymReg regsToDelete =
 
 deleteReg target result stmts =
   let noAssignsToTarget = transformStatementList (L.filter (\st -> not $ isRegAssign st && operandWritten st == target)) stmts
-      newStmts = L.map (substituteName (registerName target) (registerName result)) noAssignsToTarget in
+      newStmts = transformStatementList (L.map $ substituteName (registerName target) (registerName result)) noAssignsToTarget in
   newStmts

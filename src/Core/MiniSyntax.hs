@@ -63,7 +63,10 @@ freeBuffer dummyAnn bufName symT =
 
 data Block a
   = Block [Statement a]
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+
+instance Show a => Show (Block a) where
+  show (Block stmts) = "{ " ++ L.concat (L.intersperse "; " $ L.map show stmts) ++ " }"
 
 block = Block
 
@@ -102,7 +105,15 @@ data Statement a
   | Store String IExpr String a
   | For String IExpr IExpr IExpr (Block a) a
   | RegAssign String String a
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+
+instance Show a => Show (Statement a) where
+  show (BOp op a b c ann) = a ++ " = " ++ b ++ " " ++ show op ++ " " ++ c ++ " " ++ show ann
+  show (Load a b i ann) = a ++ " = load " ++ b ++ " " ++ show i ++ " " ++ show ann
+  show (LoadConst a l ann) = a ++ " = " ++ show l ++ " " ++ show ann
+  show (Store a i b ann) = "store " ++ a ++ " " ++ show i ++ " " ++ b ++ " " ++ show ann
+  show (For v s i e b ann) = "for " ++ v ++ " " ++ show s ++ ":" ++ show i ++ ":" ++ show e ++ " " ++ show b ++ " " ++ show ann
+  show (RegAssign a b ann) = a ++ " = " ++ b ++ " " ++ show ann
 
 label (BOp _ _ _ _ l) = l
 label (Load _ _ _ l) = l
