@@ -2,8 +2,6 @@ module Core.MiniSyntax(toCType,
                        toCStmt,
                        transformBlock,
                        transformStatementList,
-                       MiniSymtab,
-                       localVars, arguments,
                        Statement,
                        transformStatementIExprs,
                        transformStatement,
@@ -243,12 +241,10 @@ getLitType (FloatLit _) = single
 miniLitToCLit (DoubleLit d) = cDoubleLit d
 miniLitToCLit (FloatLit f) = cFloatLit f
 
-operands stmt = (operandWritten stmt) : (operandsRead stmt)
-
 namesReferenced stmt =
   case isFor stmt of
     True -> L.concatMap namesReferenced $ blockStatements $ forBody stmt
-    False -> L.map operandName $ operands stmt
+    False -> L.map operandName $ allOperands stmt
 
 multiSubstitution [] st = st
 multiSubstitution ((targetName, resultName):rest) st =

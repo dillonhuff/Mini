@@ -13,6 +13,7 @@ import Core.LoopTransformations
 import Core.MiniOperation
 import Core.MiniSyntax
 import Core.Operand
+import Core.SymbolTable
 import Optimizations.PartialLoopUnrolling
 import Utils.MapUtils
 
