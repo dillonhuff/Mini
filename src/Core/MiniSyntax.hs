@@ -8,9 +8,7 @@ module Core.MiniSyntax(toCType,
               transformStatement,
               label, setLabel, nonLoopStatements, substituteName,
               multiSubstitution,
-              Operand, operandWritten, operandsRead, allOperands,
-              operandsHaveSameType, isBufferVal,
-              bufferName, registerName, 
+              operandWritten, operandsRead, allOperands,
               Type,
               Block,
               noLoopsInBlock, updateBlock, subIExprInBlock,
@@ -22,10 +20,8 @@ module Core.MiniSyntax(toCType,
               load, loadConst, store, plus, minus, times, for, regAssign,
               forStart, forEnd, forInc, isFor, forInductionVariable, forBody,
               isLoad, isStore, isLoadConst, isRegAssign, isBinop, namesReferenced,
-              allSimpleAccesses,
-              sReg, buffer, accessIExpr,
-              doubleLit, floatLit, getLitType,
-              reg, bufferVal) where
+              sReg, buffer,
+              doubleLit, floatLit, getLitType) where
 
 import Control.Monad
 import Data.List as L
@@ -34,6 +30,7 @@ import Data.Maybe as Maybe
 
 import BackEnd.CGen
 import Core.IndexExpression
+import Core.Operand
 import Core.SymbolTable
 
 toCBlock :: a -> MiniSymtab -> [(String, Type)] -> Block a -> CBlock a
@@ -271,34 +268,6 @@ getLitType (FloatLit _) = single
 miniLitToCLit (DoubleLit d) = cDoubleLit d
 miniLitToCLit (FloatLit f) = cFloatLit f
 
-data Operand
-  = Register String
-  | BufferVal String IExpr
-    deriving (Eq, Ord, Show)
-
-reg s = Register s
-bufferVal s i = BufferVal s i
-
-isBufferVal (BufferVal _ _) = True
-isBufferVal _ = False
-
-operandsHaveSameType (Register _) (Register _) = True
-
-operandName op =
-  case isBufferVal op of
-    True -> bufferName op
-    False -> registerName op
-
-bufferName (BufferVal s _) = s
-
-accessIExpr (BufferVal _ i) = i
-
-registerName (Register s) = s
-registerName other = error $ "cannot get register name for buffer " ++ show other
-
-subIExprInBlock :: IExpr -> String -> Block a -> Block a
-subIExprInBlock ie n b = transformBlock (transformStatementIExprs (subIExprForVar ie n)) b
-
 operands stmt = (operandWritten stmt) : (operandsRead stmt)
 
 namesReferenced stmt =
@@ -306,20 +275,9 @@ namesReferenced stmt =
     True -> L.concatMap namesReferenced $ blockStatements $ forBody stmt
     False -> L.map operandName $ operands stmt
 
-allSimpleAccesses stmt = True
-{-  case isFor stmt of
-    True -> forAllSimpleAccesses stmt
-    False -> basicAllSimpleAccesses stmt-}
-
-forAllSimpleAccesses forLoop =
-  let stmts = nonLoopStatements forLoop
-      allOps = (L.concatMap operandsRead stmts) ++ (L.map operandWritten stmts) in
-  L.and $ L.map (\i -> isConst i || isVar i) $ L.map accessIExpr $ L.filter (\op -> isBufferVal op) allOps
-
-basicAllSimpleAccesses stmt =
-  let allOps = (operandWritten stmt) : (operandsRead stmt) in
-  L.and $ L.map (\i -> isConst i || isVar i) $ L.map accessIExpr $ L.filter (\op -> isBufferVal op) allOps
-
 multiSubstitution [] st = st
 multiSubstitution ((targetName, resultName):rest) st =
   multiSubstitution rest $ substituteName targetName resultName st
+
+subIExprInBlock :: IExpr -> String -> Block a -> Block a
+subIExprInBlock ie n b = transformBlock (transformStatementIExprs (subIExprForVar ie n)) b

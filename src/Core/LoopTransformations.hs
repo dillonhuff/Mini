@@ -8,6 +8,7 @@ import Data.List as L
 
 import Core.IndexExpression
 import Core.MiniSyntax
+import Core.Operand
 import Core.SymbolTable
 
 partiallyUnrollAndIntersperse :: MiniSymtab -> Int -> Statement String -> (MiniSymtab, [Statement String])

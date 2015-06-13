@@ -8,6 +8,7 @@ import Analysis.Liveness.Register
 import Core.IndexExpression
 import Core.MiniOperation
 import Core.MiniSyntax
+import Core.Operand
 import Core.SymbolTable
 
 compactArrays =

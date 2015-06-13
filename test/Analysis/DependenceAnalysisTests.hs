@@ -6,8 +6,9 @@ import Analysis.Dependence.Graph
 import Analysis.Dependence.Register
 import Core.IndexExpression
 import Core.MiniOperation
-import Core.SymbolTable
 import Core.MiniSyntax
+import Core.Operand
+import Core.SymbolTable
 import TestUtils
 
 allDependenceAnalysisTests = do

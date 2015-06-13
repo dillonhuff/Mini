@@ -5,6 +5,7 @@ import Data.List as L
 
 import Core.MiniOperation
 import Core.MiniSyntax
+import Core.Operand
 
 propagateAllTopLevelCopiesPossible =
   optimization

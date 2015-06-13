@@ -2,10 +2,12 @@ module Analysis.RegisterReduction(reduceToRegisterForm) where
 
 import Data.List as L
 
+import Analysis.Basic
 import Analysis.Dependence.Register
 import Core.IndexExpression
 import Core.LoopTransformations
 import Core.MiniSyntax
+import Core.Operand
 
 reduceToRegisterForm stmts =
   case L.and $ L.map allSimpleAccesses stmts of

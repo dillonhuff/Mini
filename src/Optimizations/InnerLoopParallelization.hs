@@ -12,6 +12,7 @@ import Core.IndexExpression
 import Core.LoopTransformations
 import Core.MiniOperation
 import Core.MiniSyntax
+import Core.Operand
 import Optimizations.PartialLoopUnrolling
 import Utils.MapUtils
 

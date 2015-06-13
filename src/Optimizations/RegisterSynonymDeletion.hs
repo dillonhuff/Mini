@@ -9,6 +9,7 @@ import Analysis.RegisterSynonyms.Register
 import Core.LoopTransformations
 import Core.MiniOperation
 import Core.MiniSyntax
+import Core.Operand
 import Utils.MapUtils
 
 deleteRegisterSynonyms :: (Ord a, Show a) => Optimization a
@@ -19,11 +20,8 @@ deleteRegisterSynonyms =
 
 deleteRegisterSynonymsFromStmts :: (Ord a, Show a) => [Statement a] -> [Statement a]
 deleteRegisterSynonymsFromStmts stmts =
---  case reduceToRegisterForm stmts of
---    Just (_, rrForm) ->
   let regsToDelete = registerSynonyms $ unrollLoopsBy2 stmts in
   deleteSynonyms regsToDelete stmts
---    Nothing -> stmts
 
 deleteSynonyms :: Map Operand Operand -> [Statement a] -> [Statement a]
 deleteSynonyms regsToDelete stmts =

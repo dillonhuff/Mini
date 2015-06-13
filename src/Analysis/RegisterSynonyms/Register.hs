@@ -7,6 +7,7 @@ import Data.Maybe
 import Analysis.Basic
 import Analysis.ReachingAssignments.Register
 import Core.MiniSyntax
+import Core.Operand
 import Utils.MapUtils
 
 registerSynonyms :: (Show a, Ord a) => [Statement a] -> Map Operand Operand

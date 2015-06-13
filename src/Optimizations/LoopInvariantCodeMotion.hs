@@ -8,6 +8,7 @@ import Analysis.Basic
 import Core.IndexExpression
 import Core.MiniOperation
 import Core.MiniSyntax
+import Core.Operand
 
 moveConstantLoadsOutOfLoops :: (Show a) => Optimization a
 moveConstantLoadsOutOfLoops =

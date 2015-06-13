@@ -11,6 +11,7 @@ import Analysis.Dependence.Graph
 import Core.IndexExpression
 import Core.MiniOperation
 import Core.MiniSyntax
+import Core.Operand
 
 isFlowDependent :: (Show a) => [Operand] -> Statement a -> Statement a -> Bool
 isFlowDependent opsWrittenBetween t s =

@@ -8,7 +8,6 @@ import Analysis.RegisterReductionTests
 import Analysis.RegisterSynonyms.RegisterTests
 import Core.IndexExpressionTests
 import Core.MatrixOperationTests
-
 import Core.SyntaxTests
 import FrontEnd.LexerTests
 import FrontEnd.ParserTests
