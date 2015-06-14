@@ -1,6 +1,5 @@
 module Core.MiniSyntax(toCType,
                        toCStmt,
-                       transformBlock,
                        transformStatementList,
                        Statement,
                        transformStatementIExprs,
@@ -10,9 +9,11 @@ module Core.MiniSyntax(toCType,
                        operandWritten, operandsRead, allOperands,
                        Type,
                        Block,
-                       updateBlock, subIExprInBlock,
+                       transformBlock, transformBlockM,
+                       subIExprInBlock,
+                       expandBlockStatements, expandBlockStatementsM,
                        expandStatement,
-                       blockStatements, expandBlockStatements, expandBlockStatementsM,
+                       blockStatements,
                        updateBlockM,
                        block,
                        load, loadConst, store, plus, minus, times, for, regAssign,
@@ -30,6 +31,7 @@ import BackEnd.CGen
 import Core.IndexExpression
 import Core.Operand
 import Core.SymbolTable
+import Core.Type
 
 data Block a
   = Block [Statement a]
@@ -43,12 +45,14 @@ block = Block
 blockStatements (Block stmts) = stmts
 
 transformBlock :: (Statement a -> Statement a) -> Block a -> Block a
-transformBlock f (Block stmts) = block $ L.map (transformStatement f) stmts
+transformBlock f blk = block $ L.map (transformStatement f) $ blockStatements blk
 
 transformBlockM :: (Monad m) => (Statement a -> m (Statement a)) -> Block a -> m (Block a)
-transformBlockM f (Block stmts) = do
-  newStmts <- sequence $ L.map (transformStatementM f) stmts
-  return $ block newStmts
+transformBlockM f blk =
+  let stmts = blockStatements blk in
+  do
+    newStmts <- sequence $ L.map (transformStatementM f) stmts
+    return $ block newStmts
 
 updateBlock :: (Block a -> Block a) -> Block a -> Block a
 updateBlock f b = f $ block $ L.map (transformStatement (updateStmtBlocks f)) $ blockStatements b
@@ -59,12 +63,15 @@ updateBlockM f b = do
   f (block modStmts)
 
 expandBlockStatements :: (Statement a -> [Statement a]) -> Block a -> Block a
-expandBlockStatements f (Block stmts) = block $ L.concatMap (expandStatement f) stmts
+expandBlockStatements f blk = block $ L.concatMap (expandStatement f) $ blockStatements blk
 
 expandBlockStatementsM :: (Monad m) => (Statement a -> m [Statement a]) -> Block a -> m (Block a)
-expandBlockStatementsM f (Block stmts) = do
-  resStmts <- liftM L.concat $ sequence $ L.map (expandStatementM f) stmts
+expandBlockStatementsM f blk = do
+  resStmts <- liftM L.concat $ sequence $ L.map (expandStatementM f) $ blockStatements $ blk
   return $ block resStmts
+
+subIExprInBlock :: IExpr -> String -> Block a -> Block a
+subIExprInBlock ie n b = transformBlock (transformStatementIExprs (subIExprForVar ie n)) b
 
 data Statement a
   = BOp Binop String String String a
@@ -242,6 +249,3 @@ miniLitToCLit (FloatLit f) = cFloatLit f
 multiSubstitution [] st = st
 multiSubstitution ((targetName, resultName):rest) st =
   multiSubstitution rest $ substituteName targetName resultName st
-
-subIExprInBlock :: IExpr -> String -> Block a -> Block a
-subIExprInBlock ie n b = transformBlock (transformStatementIExprs (subIExprForVar ie n)) b

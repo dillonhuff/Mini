@@ -25,15 +25,13 @@ module Core.SymbolTable(MOpSymtab,
                    removeSymbol,
                    getMiniSymInfo,
                    getBufferType, getBufferSize,
+                   bufferType, bufferSize,
                    getTmpBuffers,
                    addEntry,
                    arguments, sReg, buffer, double, single, index,
                    localVars,
                    symInfo,
-                   local, arg, symType, bufType,
-                   bufferSize, isIndex, isBuffer,
-                   Type,
-                   toCType) where
+                   local, arg, symType, bufType) where
 
 import Control.Lens hiding (index)
 import Control.Lens.TH
@@ -42,6 +40,7 @@ import Data.Map as M
 
 import BackEnd.CGen
 import Core.IndexExpression
+import Core.Type
 
 data MOpSymtab
   = MOpSymtab (Map String MOpSymInfo)
@@ -139,8 +138,8 @@ data EntryType
 doubleFloat = DoubleFloat
 singleFloat = SingleFloat
 
-entryTypeToBufferType DoubleFloat = Buffer DoublePrecision
-entryTypeToBufferType SingleFloat = Buffer SinglePrecision
+entryTypeToBufferType DoubleFloat = buffer double
+entryTypeToBufferType SingleFloat = buffer single
 
 data Layout
   = Layout {
@@ -228,37 +227,7 @@ symIsIndex info = isIndex $ symType info
 
 symIsLocalVar info = isLocalVar $ scope info
 
-data Type
-  = Buffer Type IExpr
-  | Index
-  | SReg Type
-  | SinglePrecision
-  | DoublePrecision
-    deriving (Eq, Ord, Show)
-
-toCType (Buffer pt _) = cPtr $ toCType pt
-toCType Index = cInt
-toCType (SReg tp) = toCType tp
-toCType SinglePrecision = cFloat
-toCType DoublePrecision = cDouble
-
-sReg t = SReg t
-buffer t size = Buffer t size
-double = DoublePrecision
-single = SinglePrecision
-index = Index
-
-bufType (Buffer t _) = t
-bufSize (Buffer _ sz) = sz
-
-isIndex Index = True
-isIndex _ = False
-
-isBuffer (Buffer _ _) = True
-isBuffer _ = False
-
 makeLenses ''Layout
 makeLenses ''MOpSymInfo
 
 allLayouts (MOpSymtab m) = L.map (\inf -> view symLayout inf) $ L.map snd $ M.toList m
-

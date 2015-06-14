@@ -11,6 +11,7 @@ import Core.IndexExpression
 import Core.MiniOperation
 import Core.SymbolTable hiding (getBufferSize)
 import Core.MiniSyntax
+import Core.Type
 import SystemSettings
 
 cTestHarness :: (Show a) => a -> Map String Int -> String -> Maybe (Operation a) -> [Operation a] -> String

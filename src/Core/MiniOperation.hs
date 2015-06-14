@@ -16,7 +16,8 @@ import Data.List as L
 import BackEnd.CGen
 import Core.IndexExpression
 import Core.SymbolTable hiding (getBufferSize)
-import Core.MiniSyntax 
+import Core.MiniSyntax
+import Core.Type
 
 data Operation a
   = Operation String [Optimization a] MiniSymtab (Block a)
