@@ -45,22 +45,23 @@ matrixOpToMiniOpNoOptimizations matOp =
   miniRes
 
 defaultOptimization =
-  sequenceOptimization "defaultOptimizaions" [moveConstantLoadsOutOfLoops,
-                                              parallelizeInnerLoopsBy 4,
-                                              deleteRegisterSynonyms,
-                                              compactArrays,
-                                              fuseAllTopLevelLoopsPossible,
-                                              siftLoops,
-                                              eliminateTempBuffers,
-                                              compactArrays,
-                                              fuseAllTopLevelLoopsPossible,
-                                              propagateAllTopLevelCopiesPossible,
-                                              evalIExprConstants,
-                                              fullyUnrollAllLoops]
+  sequenceOptimization "DefaultOpts" [fuseAndParallelize, cleanupOperation]
 
---matrixOpToMiniOpWithOptimization matOp = convertToMini $ matrixOperationToMOp matOp
---matrixOpToMiniOpWithOptimizations (opt:rest) matOp =
---  applyOptimization opt $ matrixOpToMiniOpWithOptimizations rest matOp
-  
+cleanupOperation =
+  sequenceOptimization "CleanupOpts" [evalIExprConstants,
+                                      fullyUnrollAllLoops]
+
+fuseAndParallelize =
+  sequenceOptimization "FuseAndParallelize" [moveConstantLoadsOutOfLoops,
+                                             parallelizeInnerLoopsBy 4,
+                                             deleteRegisterSynonyms,
+                                             compactArrays,
+                                             fuseAllTopLevelLoopsPossible,
+                                             siftLoops,
+                                             eliminateTempBuffers,
+                                             compactArrays,
+                                             fuseAllTopLevelLoopsPossible,
+                                             propagateAllTopLevelCopiesPossible]
+
 sanityCheckFailures :: [Map (String, Map String Int) EvaluationResult] -> [(String, Map String Int)]
 sanityCheckFailures runResults = L.map fst $ L.filter (\(_, res) -> not $ passedSanityCheck res) $ L.concatMap M.toList runResults
