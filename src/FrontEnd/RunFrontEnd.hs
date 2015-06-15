@@ -26,7 +26,9 @@ typeCheckAndGenerateTestCases lo hi matOp =
   case typeCheckMatrixOperation matOp of
     Left err -> return $ Left err
     Right checkedMOp -> do
+      putStrLn "Generating test cases"
       testCases <- genTestCases lo hi (getMatrixOpSymtab checkedMOp)
+      putStrLn $ "Done with test cases " ++ show testCases
       return $ Right (checkedMOp, testCases)
 
 lowDim = 2

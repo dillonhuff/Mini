@@ -21,10 +21,13 @@ siftLoopsInStmtList :: (Show a) => [Statement a] -> [Statement a]
 siftLoopsInStmtList [] = []
 siftLoopsInStmtList [stmt] = [stmt]
 siftLoopsInStmtList (st:rest) =
-  let siftedRest = siftLoopsInStmtList rest in
-  case isFor st of
-    True -> tryToSiftLoop st siftedRest
-    False -> st : (siftLoopsInStmtList siftedRest)
+  case L.or $ L.map isFor (st:rest) of
+    True ->
+      let siftedRest = siftLoopsInStmtList rest in
+      case isFor st of
+        True -> tryToSiftLoop st siftedRest
+        False -> st : (siftLoopsInStmtList rest)
+    False -> st:rest
 
 tryToSiftLoop stmt followingStmts =
   let (nonLoopStmts, rest) = L.break (\st -> isFor st) followingStmts in

@@ -15,7 +15,8 @@ siftTestCases =
    ([oneLoop, ldC, ra], [ldC, ra, oneLoop]),
    ([oneLoop, ldC, ra, emptyLoop], [ldC, ra, oneLoop, emptyLoop]),
    ([oneLoop, ldC, rk], [oneLoop, ldC, rk]),
-   ([oneLoop, ldC, emptyLoop, ra], [ldC, ra, oneLoop, emptyLoop])]
+   ([oneLoop, ldC, emptyLoop, ra], [ldC, ra, oneLoop, emptyLoop]),
+   ([ldC, ldC], [ldC, ldC])]
 
 emptyLoop =
   for "i" (iConst 0) (iConst 1) (iVar "n") (block simpleStmts) "empty-loop"

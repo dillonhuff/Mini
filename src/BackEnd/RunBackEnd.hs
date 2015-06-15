@@ -2,7 +2,8 @@ module BackEnd.RunBackEnd(runBackEndWithOptimization,
                           runBackEnd,
                           defaultOptimization,
                           cleanupOperation,
-                          fuseAndParallelize) where
+                          fuseAndParallelize,
+                          nullOptimization) where
 
 import Data.List as L
 import Data.Map as M
@@ -46,6 +47,9 @@ matrixOpToMiniOpNoOptimizations matOp =
       miniRes = convertToMini mOp in
   miniRes
 
+nullOptimization =
+  sequenceOptimization "Null" []
+  
 defaultOptimization =
   sequenceOptimization "DefaultOpts" [fuseAndParallelize, cleanupOperation]
 
@@ -54,11 +58,11 @@ cleanupOperation =
                                       fullyUnrollAllLoops]
 
 fuseAndParallelize =
-  sequenceOptimization "FuseAndParallelize" [moveConstantLoadsOutOfLoops,
-                                             parallelizeInnerLoopsBy 4,
-                                             deleteRegisterSynonyms,
-                                             compactArrays,
-                                             fuseAllTopLevelLoopsPossible,
+  sequenceOptimization "FuseAndParallelize" [--moveConstantLoadsOutOfLoops,
+                                             --parallelizeInnerLoopsBy 4,
+                                             --deleteRegisterSynonyms,
+                                             --compactArrays,
+                                             --fuseAllTopLevelLoopsPossible,
                                              siftLoops,
                                              eliminateTempBuffers,
                                              compactArrays,

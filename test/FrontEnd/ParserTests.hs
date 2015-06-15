@@ -42,7 +42,8 @@ stCases =
 formalParamCases =
   L.map (\(x, y) -> (x, Right y))
   [("r matrix double 1 1 1 1 c", ("c", mOpSymInfo arg doubleFloat $ layout (iConst 1) (iConst 1) (iConst 1) (iConst 1))),
-   ("r matrix float gen gen gen gen a", ("a", mOpSymInfo arg singleFloat $ layout (iVar "a_nrows") (iVar "a_ncols") (iVar "a_rs") (iVar "a_cs")))]
+   ("r matrix float gen gen gen gen a", ("a", mOpSymInfo arg singleFloat $ layout (iVar "a_nrows") (iVar "a_ncols") (iVar "a_rs") (iVar "a_cs"))),
+   ("r matrix double 4 4 4 1 A", ("A", mOpSymInfo arg doubleFloat $ layout (iConst 4) (iConst 4) (iConst 4) (iConst 1)))]
 
 lexAndParseOperation fName str = (lexString fName str) >>= (parseOperation fName)
 lexAndParseStatement fName str = (lexString fName str) >>= (parseStatement fName)

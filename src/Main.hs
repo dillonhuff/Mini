@@ -6,12 +6,12 @@ import System.Environment
 import BackEnd.RunBackEnd
 import Testing.LibraryOptimization
 
-l1BLASFile = "/Users/dillon/Haskell/Mini/Level1BLAS.lspc"
-cL1BLAS = "/Users/dillon/Haskell/Mini/Level1BLAS.c"
+libPath = "/Users/dillon/Haskell/Mini/DiegoTest.lspc"
+resultFilePath = "/Users/dillon/Haskell/Mini/DiegoTest.c"
 
 main :: IO ()
 main = do
-  (libPath:resultFilePath:[]) <- getArgs
+--  (libPath:resultFilePath:[]) <- getArgs
   compileLibSpecToFileWithOptimization defaultOptimization libPath resultFilePath
 
 
