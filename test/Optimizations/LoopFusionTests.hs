@@ -18,4 +18,4 @@ allLoopFusionTests =
                                                                                    propagateAllTopLevelCopiesPossible,
                                                                                    compactArrays,
                                                                                    evalIExprConstants,
-                                                                                   fullyUnrollAllLoops]) level1Path level1CPath
+                                                                                   fullyUnrollAllLoops] level1Path level1CPath
