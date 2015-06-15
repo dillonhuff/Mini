@@ -3,7 +3,8 @@ module Analysis.Loop(numberOfIterations,
                     moreThanNIterations,
                     unitIncrement,
                     noDeeperLoops,
-                    possibleLoopOrderingsForPerfectNest) where
+                    possibleLoopOrderingsForPerfectNest,
+                    possibleLoopOrderingsForPerfectNests) where
 
 import Data.List as L
 
@@ -37,18 +38,31 @@ noDeeperLoops stmt =
       stmtsInBody = blockStatements $ forBody stmt in
   L.length (L.intersect nonLoopStmtsInBody stmtsInBody) == L.length stmtsInBody
 
+possibleLoopOrderingsForPerfectNests :: [Statement a] -> [[Statement a]]
+possibleLoopOrderingsForPerfectNests stmts =
+  let possibleStmts = L.map possibleLoopOrderingsForPerfectNest stmts in
+  allImpls [] possibleStmts
+
+allImpls :: [[Statement a]] -> [[Statement a]] -> [[Statement a]]
+allImpls impls [] = impls
+allImpls [] (possibleStmts:rest) = allImpls (L.map (\st -> [st]) possibleStmts) rest
+allImpls implsSoFar (possibleStmts:rest) =
+  let dupImpls = L.replicate (L.length possibleStmts) implsSoFar
+      resImpls = L.concat $ L.zipWith appendStmt dupImpls possibleStmts in
+  allImpls resImpls rest
+
+appendStmt :: [[Statement a]] -> Statement a -> [[Statement a]]
+appendStmt possibleImpls nextSt =
+  L.map (\impl -> impl ++ [nextSt]) possibleImpls
+
 possibleLoopOrderingsForPerfectNest :: Statement a -> [Statement a]
 possibleLoopOrderingsForPerfectNest stmt =
-  let possibleResults = possibleLoopsForPerfectNest stmt in
-  possibleResults
-
-possibleLoopsForPerfectNest :: Statement a -> [Statement a]
-possibleLoopsForPerfectNest stmt =
   let (loops, body) = possibleOrderingsForPerfectNest stmt
       possibleOrders = L.permutations loops in
   L.map (\loopOrder -> L.head $ applyLoops loopOrder body) possibleOrders
 
-possibleOrderingsForPerfectNest :: Statement a -> ([[Statement a] -> Statement a], [Statement a])
+possibleOrderingsForPerfectNest :: Statement a ->
+                                   ([[Statement a] -> Statement a], [Statement a])
 possibleOrderingsForPerfectNest stmt =
   case isFor stmt of
     True -> getNestLoopsAndBody stmt
