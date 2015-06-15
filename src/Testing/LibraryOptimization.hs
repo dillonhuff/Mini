@@ -1,4 +1,4 @@
-module Testing.LibraryOptimization(compileLibSpecToFileWithOptimizations) where
+module Testing.LibraryOptimization(compileLibSpecToFileWithOptimization) where
 
 import Data.List as L
 
@@ -8,10 +8,10 @@ import BackEnd.RunBackEnd
 import FrontEnd.RunFrontEnd
 import Core.MiniOperation
 
-compileLibSpecToFileWithOptimizations :: [Optimization String] -> String -> String -> IO ()
-compileLibSpecToFileWithOptimizations opts fileName cResFileName = do
+compileLibSpecToFileWithOptimization :: Optimization String -> String -> String -> IO ()
+compileLibSpecToFileWithOptimization opt fileName cResFileName = do
   fileContents <- readFile fileName
-  compileRes <- compileLibSpecWithOptimizations opts fileName fileContents
+  compileRes <- compileLibSpecWithOptimization opt fileName fileContents
   case compileRes of
     Left err -> putStrLn err
     Right res -> writeFile cResFileName (opCStrings res)
@@ -19,12 +19,12 @@ compileLibSpecToFileWithOptimizations opts fileName cResFileName = do
 opCStrings ops =
   "#include <stdlib.h>\n" ++ (L.concat $ L.intersperse "\n" $ L.map (\op -> miniOpToCString op) ops)
 
-compileLibSpecWithOptimizations :: [Optimization String] -> String -> String -> IO (Either String [Operation String])
-compileLibSpecWithOptimizations opts srcFileName libStr = do
+compileLibSpecWithOptimization :: Optimization String -> String -> String -> IO (Either String [Operation String])
+compileLibSpecWithOptimization opt srcFileName libStr = do
   frontEndRes <- runFrontEnd srcFileName libStr
   case frontEndRes of
     Left err -> return $ Left err
-    Right opsAndTestCases -> runBackEndWithOptimizations opts opsAndTestCases
+    Right opsAndTestCases -> runBackEndWithOptimization opt opsAndTestCases
 
 miniOpToCString miniOp =
   prettyPrint 0 $ (toCFunc "") $ miniOp

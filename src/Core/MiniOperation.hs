@@ -1,15 +1,15 @@
 
 module Core.MiniOperation(Operation,
-                     operation,
-                     getOpName, getBufferSize, getOptimizationsApplied,
-                     getOpLocalVars,
-                     getMiniOpSymtab, getOpBlock, makeOperation,
-                     getIndexArgs, getBufferArgs, getOpArguments,
-                     applyToOpBlock, allNonLoopStatementsInOperation,
-                     Optimization,
-                     optimizationName, optimizationFunction,
-                     applyOptimization,
-                     optimization) where
+                        operation,
+                        getOpName, getBufferSize, getOptimizationsApplied,
+                        getOpLocalVars,
+                        getMiniOpSymtab, getOpBlock, makeOperation,
+                        getIndexArgs, getBufferArgs, getOpArguments,
+                        applyToOpBlock, allNonLoopStatementsInOperation,
+                        Optimization,
+                        optimizationName, optimizationFunction,
+                        applyOptimization,
+                        optimization, sequenceOptimization) where
 
 import Data.List as L
 
@@ -69,3 +69,12 @@ applyOptimization optimization operation =
 
 instance Show (Optimization a) where
   show opt = optimizationName opt
+
+sequenceOptimization :: String -> [Optimization a] -> Optimization a
+sequenceOptimization name opts =
+  optimization name $ applyOptimizationSequence opts
+
+applyOptimizationSequence :: [Optimization a] -> Operation a -> Operation a
+applyOptimizationSequence [] op = op
+applyOptimizationSequence (optimization:rest) op =
+  applyOptimization optimization $ applyOptimizationSequence rest op

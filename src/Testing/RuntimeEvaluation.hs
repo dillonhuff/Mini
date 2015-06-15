@@ -9,10 +9,10 @@ import Data.Map as M
 import System.IO.Strict as S
 import System.Process
 
-import Testing.EvaluationResult
 import Core.MiniOperation
 import Core.MiniSyntax
 import SystemSettings
+import Testing.EvaluationResult
 import Testing.TestHarness
 
 timeOperationsWithOptimizationsFixedSizes :: (Ord a, Show a) => a -> String -> [Operation a] -> [Optimization a] -> IO [Map (Operation a) EvaluationResult]

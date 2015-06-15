@@ -1,5 +1,6 @@
 module Optimizations.TempBufferEliminationTests(allTempBufferEliminationTests) where
 
+import Core.MiniOperation
 import Optimizations.FullLoopUnrolling
 import Optimizations.IndexExpressionOptimizations
 import Optimizations.LoopFusion
@@ -12,7 +13,7 @@ level1Path = projectPath ++ libName ++ ".lspc"
 level1CPath = projectPath ++ libName ++ ".c"
 
 allTempBufferEliminationTests =
-  compileLibSpecToFileWithOptimizations [eliminateTempBuffers,
+  compileLibSpecToFileWithOptimization (sequenceOptimization "TempBufferEliminationTestOpts" [eliminateTempBuffers,
                                          fuseAllTopLevelLoopsPossible,
                                          evalIExprConstants,
-                                         fullyUnrollAllLoops] level1Path level1CPath
+                                         fullyUnrollAllLoops]) level1Path level1CPath

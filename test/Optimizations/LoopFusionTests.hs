@@ -1,5 +1,6 @@
 module Optimizations.LoopFusionTests(allLoopFusionTests) where
 
+import Core.MiniOperation
 import Optimizations.ArrayCompaction
 import Optimizations.CopyPropagation
 import Optimizations.FullLoopUnrolling
@@ -13,8 +14,8 @@ level1Path = projectPath ++ libName ++ ".lspc"
 level1CPath = projectPath ++ libName ++ ".c"
 
 allLoopFusionTests =
-  compileLibSpecToFileWithOptimizations [fuseAllTopLevelLoopsPossible,
-                                         propagateAllTopLevelCopiesPossible,
-                                         compactArrays,
-                                         evalIExprConstants,
-                                         fullyUnrollAllLoops] level1Path level1CPath
+  compileLibSpecToFileWithOptimization (sequenceOptimization "LoopFusionTestOpts" [fuseAllTopLevelLoopsPossible,
+                                                                                   propagateAllTopLevelCopiesPossible,
+                                                                                   compactArrays,
+                                                                                   evalIExprConstants,
+                                                                                   fullyUnrollAllLoops]) level1Path level1CPath

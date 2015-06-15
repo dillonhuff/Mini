@@ -1,6 +1,6 @@
-module BackEnd.RunBackEnd(runBackEndWithOptimizations,
+module BackEnd.RunBackEnd(runBackEndWithOptimization,
                           runBackEnd,
-                          defaultOptimizations) where
+                          defaultOptimization) where
 
 import Data.List as L
 import Data.Map as M
@@ -22,12 +22,12 @@ import Optimizations.TempBufferElimination
 import Testing.EvaluationResult
 import Testing.RuntimeEvaluation
 
-runBackEndWithOptimizations :: [Optimization String] -> [(MatrixOperation, [Map String Int])] -> IO (Either String [Operation String])
-runBackEndWithOptimizations optimizations opsAndTestCases =
+runBackEndWithOptimization :: Optimization String -> [(MatrixOperation, [Map String Int])] -> IO (Either String [Operation String])
+runBackEndWithOptimization optimization opsAndTestCases =
   let ops = L.map fst opsAndTestCases
       testCasesList = L.map snd opsAndTestCases
       unOptimizedOps = L.map matrixOpToMiniOpNoOptimizations ops
-      optimizedOps = L.map (matrixOpToMiniOpWithOptimizations optimizations) ops
+      optimizedOps = L.map (applyOptimization optimization) unOptimizedOps
       operationNames = L.map getOpName unOptimizedOps in
   do
     scResults <- timeOperationsOnExamples "" operationNames testCasesList unOptimizedOps optimizedOps
@@ -37,29 +37,30 @@ runBackEndWithOptimizations optimizations opsAndTestCases =
       errors -> return $ Left $ L.concat $ L.intersperse "\n" $ L.map show errors
 
 runBackEnd opsAndTestCases =
-  runBackEndWithOptimizations defaultOptimizations opsAndTestCases
+  runBackEndWithOptimization defaultOptimization opsAndTestCases
 
 matrixOpToMiniOpNoOptimizations matOp =
   let mOp = matrixOperationToMOp matOp
       miniRes = convertToMini mOp in
   miniRes
 
-defaultOptimizations = [moveConstantLoadsOutOfLoops,
-                        parallelizeInnerLoopsBy 4,
-                        deleteRegisterSynonyms,
-                        compactArrays,
-                        fuseAllTopLevelLoopsPossible,
-                        siftLoops,
-                        eliminateTempBuffers,
-                        compactArrays,
-                        fuseAllTopLevelLoopsPossible,
-                        propagateAllTopLevelCopiesPossible,
-                        evalIExprConstants,
-                        fullyUnrollAllLoops]
+defaultOptimization =
+  sequenceOptimization "defaultOptimizaions" [moveConstantLoadsOutOfLoops,
+                                              parallelizeInnerLoopsBy 4,
+                                              deleteRegisterSynonyms,
+                                              compactArrays,
+                                              fuseAllTopLevelLoopsPossible,
+                                              siftLoops,
+                                              eliminateTempBuffers,
+                                              compactArrays,
+                                              fuseAllTopLevelLoopsPossible,
+                                              propagateAllTopLevelCopiesPossible,
+                                              evalIExprConstants,
+                                              fullyUnrollAllLoops]
 
-matrixOpToMiniOpWithOptimizations [] matOp = convertToMini $ matrixOperationToMOp matOp
-matrixOpToMiniOpWithOptimizations (opt:rest) matOp =
-  applyOptimization opt $ matrixOpToMiniOpWithOptimizations rest matOp
+--matrixOpToMiniOpWithOptimization matOp = convertToMini $ matrixOperationToMOp matOp
+--matrixOpToMiniOpWithOptimizations (opt:rest) matOp =
+--  applyOptimization opt $ matrixOpToMiniOpWithOptimizations rest matOp
   
 sanityCheckFailures :: [Map (String, Map String Int) EvaluationResult] -> [(String, Map String Int)]
 sanityCheckFailures runResults = L.map fst $ L.filter (\(_, res) -> not $ passedSanityCheck res) $ L.concatMap M.toList runResults
