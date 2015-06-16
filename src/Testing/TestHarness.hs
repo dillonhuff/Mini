@@ -49,6 +49,7 @@ mergeResults ((n, b):scRest) rtRes =
 parseRTResults :: [String] -> [(String, Double)]
 parseRTResults [] = []
 parseRTResults (n:avgCyclesPerRun:rest) = (n, read avgCyclesPerRun) : (parseRTResults rest)
+parseRTResults other = error $ "parseRTResults: " ++ show other
 
 parseSCResults :: [String] -> [(String, Bool)]
 parseSCResults [] = []

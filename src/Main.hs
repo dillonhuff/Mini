@@ -6,8 +6,8 @@ import System.Environment
 import BackEnd.RunBackEnd
 import Testing.LibraryOptimization
 
-libPath = "/Users/dillon/Haskell/Mini/DiegoTest.lspc"
-resultFilePath = "/Users/dillon/Haskell/Mini/DiegoTest.c"
+libPath = "/Users/dillon/Haskell/Mini/libs/SmallFixedSizes/Lvl1ish.lspc"
+resultFilePath = "/Users/dillon/Haskell/Mini/libs/SmallFixedSizes/Lvl1ish.c"
 
 main :: IO ()
 main = do

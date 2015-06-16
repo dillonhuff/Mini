@@ -1,4 +1,5 @@
 module BackEnd.RunBackEnd(runBackEndWithOptimization,
+                          runBackEndNoChecksOrOptimizations,
                           runBackEnd,
                           defaultOptimization,
                           cleanupOperation,
@@ -25,6 +26,11 @@ import Optimizations.TempBufferElimination
 import Testing.EvaluationResult
 import Testing.RuntimeEvaluation
 
+runBackEndNoChecksOrOptimizations :: [(MatrixOperation, [Map String Int])] -> [Operation String]
+runBackEndNoChecksOrOptimizations opsAndTestCases =
+  L.map (\opAndTC -> matrixOpToMiniOpNoOptimizations $ fst opAndTC) opsAndTestCases
+      
+      
 runBackEndWithOptimization :: Optimization String -> [(MatrixOperation, [Map String Int])] -> IO (Either String [Operation String])
 runBackEndWithOptimization optimization opsAndTestCases =
   let ops = L.map fst opsAndTestCases
