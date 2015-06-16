@@ -28,20 +28,9 @@ gChartToPNG :: String -> GChart (Layout Int Double) Int Double -> IO ()
 gChartToPNG filePath ct =
   toFile def (filePath ++ "/" ++ plotName ct ++ ".png") $ plot $ chart ct
 
-{-titles = ["Cash","Equity"]
-
-values :: [ (String,[Double]) ]
-values =
-  [ ("Jun", [20,45])
-  , ("Jul", [45,30])
-  , ("Aug", [30,20])
-  , ("Sep", [10,40])
-  , ("Oct", [20,50])
-  ]-}
-
-simpleBar :: String -> [String] -> [(String, [Double])] -> IO ()
-simpleBar filePath titles values = toFile def filePath $ do
-    layout_title .= "Sample Bars"
+simpleBar :: String -> String -> [String] -> [(String, [Double])] -> IO ()
+simpleBar filePath chartTitle titles values = toFile def filePath $ do
+    layout_title .= chartTitle
     layout_title_style . font_size .= 10
     layout_x_axis . laxis_generate .= autoIndexAxis (map fst values)
     plot $ fmap plotBars $ bars titles (addIndexes (map snd values))

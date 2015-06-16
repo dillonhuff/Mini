@@ -34,7 +34,7 @@ parseTimingResults str =
 splitResultsIntoSanityCheckAndTimeSections str =
   let strLines = L.lines str
       scLines = L.takeWhile (\l -> l /= scTimingSeparator) strLines
-      rtLines = L.drop 1 (L.dropWhile (\l -> l /= scTimingSeparator) strLines) in
+      rtLines = L.dropWhile (\l -> l /= scTimingSeparator) strLines in
   (scLines, rtLines)
 
 scTimingSeparator = "#TIMING_RESULTS"
@@ -48,7 +48,7 @@ mergeResults ((n, b):scRest) rtRes =
 
 parseRTResults :: [String] -> [(String, Double)]
 parseRTResults [] = []
-parseRTResults (n:avgCyclesPerRun:rest) = (n, read avgCyclesPerRun) : (parseRTResults rest)
+parseRTResults (_:n:avgCyclesPerRun:rest) = (n, read avgCyclesPerRun) : (parseRTResults rest)
 parseRTResults other = error $ "parseRTResults: " ++ show other
 
 parseSCResults :: [String] -> [(String, Bool)]

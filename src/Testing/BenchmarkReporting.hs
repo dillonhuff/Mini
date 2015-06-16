@@ -31,5 +31,5 @@ generateBenchmarkReport opts ops reportPath = do
       values = L.zip valNames avgCycles in
     do
       putStrLn $ show runRes
-      simpleBar "testChart.png" titles values
+      simpleBar "testChart.png" reportPath titles values
       
