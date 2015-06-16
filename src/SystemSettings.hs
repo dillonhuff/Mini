@@ -1,5 +1,6 @@
 module SystemSettings(compileString,
                       projectPath,
+                      testPath,
                       runString,
                       dataFileName,
                       cFileName,
@@ -10,6 +11,7 @@ import Data.List as L
 projectPath = "/Users/dillon/Haskell/Mini/"
 dataFilePath = projectPath ++ "run_data/"
 evalPath = projectPath ++ "eval_folder/"
+testPath = projectPath ++ "libs/"
 
 dataFileName opName = dataFilePath ++ opName ++ ".txt"
 cFileName opName = evalPath ++ opName ++ ".c"

@@ -58,11 +58,11 @@ cleanupOperation =
                                       fullyUnrollAllLoops]
 
 fuseAndParallelize =
-  sequenceOptimization "FuseAndParallelize" [--moveConstantLoadsOutOfLoops,
-                                             --parallelizeInnerLoopsBy 4,
-                                             --deleteRegisterSynonyms,
-                                             --compactArrays,
-                                             --fuseAllTopLevelLoopsPossible,
+  sequenceOptimization "FuseAndParallelize" [moveConstantLoadsOutOfLoops,
+                                             parallelizeInnerLoopsBy 4,
+                                             deleteRegisterSynonyms,
+                                             compactArrays,
+                                             fuseAllTopLevelLoopsPossible,
                                              siftLoops,
                                              eliminateTempBuffers,
                                              compactArrays,

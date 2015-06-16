@@ -1,0 +1,22 @@
+operation gsSMmul(r matrix double 1 1 1 1 alpha,
+	  	   output matrix double gen gen gen 1 A) {
+  A = alpha.*A;
+}
+
+operation madd(r matrix double gen gen gen gen A,
+	       r matrix double gen gen gen gen B) {
+  A = A + B;
+}
+
+operation dmvmul(r matrix double gen 1 1 1 x,
+	  	 r matrix double gen gen 1 gen A,
+	  	 output matrix double gen 1 1 1 y) {
+  y = A*x + y;
+}
+
+operation daxpy(r matrix double 1 1 1 1 alpha,
+	  	r matrix double gen 1 1 1 x,
+		r matrix double gen gen 1 gen A,
+		output matrix double gen 1 1 1 y) {
+  y = alpha .* A*x + y;
+}

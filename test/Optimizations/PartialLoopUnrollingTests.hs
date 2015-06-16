@@ -8,8 +8,8 @@ import SystemSettings
 import Testing.LibraryOptimization
 
 libName = "LargeTests"
-level1Path = projectPath ++ libName ++ ".lspc"
-level1CPath = projectPath ++ libName ++ ".c"
+level1Path = testPath ++ libName ++ ".lspc"
+level1CPath = testPath ++ libName ++ ".c"
 
 allPartialLoopUnrollingTests = do
   compileLibSpecToFileWithOptimization (sequenceOptimization "PartialUnrollingTestOpts" [partiallyUnrollAllLoopsBy 4, evalIExprConstants, fullyUnrollAllLoops]) level1Path level1CPath

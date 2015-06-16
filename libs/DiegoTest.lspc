@@ -1,0 +1,4 @@
+operation diegoTest(r matrix double 50 50 50 1 A,
+	  	    output matrix double 50 50 50 1 B) {
+  B = A';
+}
