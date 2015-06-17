@@ -27,6 +27,8 @@ generateBenchmarkReport opts ops reportPath = do
   runRes <- timeOperationsWithOptimizationsFixedSizes "" "test" ops opts
   let titles = L.map optimizationName opts
       valNames = L.map getOpName ops
+      valList = L.map M.toList runRes
+      
       avgCycles = L.map (\evalMap -> L.map avgCyclesPerRun $ L.map snd $ M.toList evalMap) runRes
       values = L.zip valNames avgCycles in
     do

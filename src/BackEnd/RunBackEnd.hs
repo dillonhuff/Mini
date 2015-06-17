@@ -3,6 +3,8 @@ module BackEnd.RunBackEnd(runBackEndWithOptimization,
                           runBackEnd,
                           defaultOptimization,
                           cleanupOperation,
+                          cleanupFixedSizeOperation,
+                          defaultFixedSizeOperation,
                           fuseAndParallelize,
                           nullOptimization) where
 
@@ -24,7 +26,7 @@ import Optimizations.RegisterSynonymDeletion
 import Optimizations.SiftLoops
 import Optimizations.TempBufferElimination
 import Testing.EvaluationResult
-import Testing.RuntimeEvaluation
+import Testing.RuntimeEvaluation.Batch
 
 runBackEndNoChecksOrOptimizations :: [(MatrixOperation, [Map String Int])] -> [Operation String]
 runBackEndNoChecksOrOptimizations opsAndTestCases =
@@ -63,6 +65,13 @@ cleanupOperation =
   sequenceOptimization "CleanupOpts" [evalIExprConstants,
                                       fullyUnrollAllLoops]
 
+cleanupFixedSizeOperation =
+  sequenceOptimization "CleanupFixedSize" [evalIExprConstants,
+                                           fullyUnrollLoopsBelow 1]
+
+defaultFixedSizeOperation =
+  sequenceOptimization "FixedSizeDefault" [fuseAndParallelize,
+                                           cleanupFixedSizeOperation]
 fuseAndParallelize =
   sequenceOptimization "FuseAndParallelize" [moveConstantLoadsOutOfLoops,
                                              parallelizeInnerLoopsBy 4,

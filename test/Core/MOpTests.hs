@@ -9,7 +9,7 @@ import Core.MOpSyntax
 import Core.SymbolTable
 import Core.MiniSyntax
 import Testing.EvaluationResult
-import Testing.RuntimeEvaluation
+import Testing.RuntimeEvaluation.FixedSizes
 import Testing.TestHarness
 
 allMOpTests = do
