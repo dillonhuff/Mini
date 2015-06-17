@@ -1,0 +1,19 @@
+operation dotMul2(r matrix double 2 1 1 1 z,
+	  	  output matrix double 2 1 1 1 x) {
+  x = (z' * z) .* x;
+}
+
+operation dotMul4(r matrix double 4 1 1 1 z,
+	  	  output matrix double 4 1 1 1 x) {
+  x = (z' * z) .* x;
+}
+
+operation dotMul8(r matrix double 8 1 1 1 z,
+	  	  output matrix double 8 1 1 1 x) {
+  x = (z' * z) .* x;
+}
+
+operation dotMul13(r matrix double 13 1 1 1 z,
+	  	   output matrix double 13 1 1 1 x) {
+  x = (z' * z) .* x;
+}
