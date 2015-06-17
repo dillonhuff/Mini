@@ -37,8 +37,10 @@ reportComponentToHtml filePath (IntBarPlot pName pSeriesName pData) = do
   gChartToSVG (filePath ++ "/charts") (barChart pName pSeriesName pData)
   return $ chartHtml pName "alt tag"
 reportComponentToHtml filePath (DblBarPlot pName pTitles pValues) = do
-  simpleBar (filePath ++ "/charts/testDblPlot.png") pName pTitles pValues
-  return $ chartHtml "testDblPlot" "alt tag"
+  simpleBar (filePath ++ "/charts/" ++ normedChartName ++ ".png") pName pTitles pValues
+  return $ chartHtml normedChartName "alt tag"
+  where
+    normedChartName = normalizeString pName
 reportComponentToHtml filePath (StrList lName lItems) =
   return $ stringListToHtml lName lItems
 

@@ -8,13 +8,14 @@ import BackEnd.RunBackEnd
 import Core.MiniOperation
 import FrontEnd.RunFrontEnd
 import Reporting.Report
+import Reporting.Utils
 import Testing.EvaluationResult
 import Testing.RuntimeEvaluation.FixedSizes
 
 fixedSizeLibsBenchmarkReport :: [Optimization String] ->
-                               [String] ->
-                               String ->
-                               IO ()
+                                [String] ->
+                                String ->
+                                IO ()
 fixedSizeLibsBenchmarkReport opts libPaths reportPath = do
   reports <- sequence $ L.map (\libPath -> fixedSizeLibBenchmarkReport opts libPath) libPaths
   let reps = rights reports
@@ -39,28 +40,31 @@ fixedSizeLibBenchmarkReport opts libPath = do
     Right opsAndTestCases ->
       let ops = runBackEndNoChecksOrOptimizations opsAndTestCases in
       do
-        r <- genReport opts ops
+        r <- genReport libPath opts ops
         return $ Right r
 
-genReport opts ops = do
+genReport libName opts ops = do
   runRes <- timeOperationsWithOptimizations "" "test" ops opts
-  let perfChart = performanceChart runRes
+  let perfChart = performanceChart libName runRes
       scResults = sanityCheckResults $ L.map (\(opN, m) -> (opN, M.toList m)) $ M.toList runRes in
-    return $ report "test_lib_report" [perfChart, scResults]
+    return $ report ((normalizeString libName) ++ "_report") [perfChart, scResults]
 
-performanceChart runRes =
+performanceChart libName runRes =
   let listRes = L.map (\(opN, m) -> (opN, M.toList m)) $ M.toList runRes
       sortedRes = sortByOptimizationName listRes
       values = L.map (\(opN, optsToResults) -> (opN, L.map (\(opt, res) -> avgCyclesPerRun res) optsToResults)) sortedRes
       titles = L.map fst $ snd $ L.head sortedRes in
-  dblBarPlotComp "Performance Comparison" titles values
+  dblBarPlotComp libName titles values
 
 sanityCheckResults runRes =
-  let scResults = L.concatMap sanityCheckResultStringForOperation runRes in
-  strListComp "Sanity Check Results" scResults
+  let scResults = L.concatMap sanityCheckResultStringForOperation runRes
+      opsThatFailedCheck = L.filter (\(op, scPassed) -> not $ scPassed) scResults in
+  case opsThatFailedCheck of
+    [] -> strListComp "All sanity checks passed" []
+    others -> strListComp "SANITY CHECK FAILURES!" $ L.map (\(op, False) -> op) others
 
 sanityCheckResultStringForOperation (opName, optsAndResults) =
-  L.map (\(opt, result) -> opName ++ " with " ++ opt ++ ": " ++ (show $ passedSanityCheck result)) optsAndResults
+  L.map (\(opt, result) -> (opName ++ " with " ++ opt, passedSanityCheck result)) optsAndResults
 
 sortByOptimizationName :: [(String, [(String, EvaluationResult)])] ->
                           [(String, [(String, EvaluationResult)])]

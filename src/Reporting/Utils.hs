@@ -40,4 +40,5 @@ normalizeChar :: Char -> Char
 normalizeChar ' ' = '_'
 normalizeChar ':' = '-'
 normalizeChar '.' = '-'
+normalizeChar '/' = '_'
 normalizeChar c = c

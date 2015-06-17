@@ -6,13 +6,13 @@ import System.Environment
 import BackEnd.RunBackEnd
 import Testing.LibraryOptimization
 
-libPath = "/Users/dillon/Haskell/Mini/libs/SmallFixedSizes/Lvl1ish.lspc"
-resultFilePath = "/Users/dillon/Haskell/Mini/libs/SmallFixedSizes/Lvl1ish.c"
+libPath = "/Users/dillon/Haskell/Mini/libs/debug/dotMul.lspc"
+resultFilePath = "/Users/dillon/Haskell/Mini/libs/debug/dotMul.c"
 
 main :: IO ()
 main = do
 --  (libPath:resultFilePath:[]) <- getArgs
-  compileLibSpecToFileWithOptimization defaultOptimization libPath resultFilePath
+  compileLibSpecToFileWithOptimization defaultFixedSizeOperation libPath resultFilePath
 
 
 
