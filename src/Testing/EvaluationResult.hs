@@ -1,7 +1,7 @@
 module Testing.EvaluationResult(EvaluationResult,
-                        evaluationResult,
-                        avgCyclesPerRun,
-                        passedSanityCheck) where
+                                evaluationResult,
+                                avgCyclesPerRun,
+                                passedSanityCheck) where
 
 
 data EvaluationResult
