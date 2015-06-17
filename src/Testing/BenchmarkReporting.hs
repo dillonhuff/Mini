@@ -8,7 +8,7 @@ import Core.MiniOperation
 import FrontEnd.RunFrontEnd
 import Reporting.Plot
 import Testing.EvaluationResult
-import Testing.RuntimeEvaluation
+import Testing.RuntimeEvaluation.FixedSizes
 
 fixedSizeLibBenchmarkReport :: [Optimization String] ->
                                String ->
@@ -24,8 +24,19 @@ fixedSizeLibBenchmarkReport opts libPath reportPath = do
       generateBenchmarkReport opts ops reportPath
 
 generateBenchmarkReport opts ops reportPath = do
-  runRes <- timeOperationsWithOptimizationsFixedSizes "" "test" ops opts
-  let titles = L.map optimizationName opts
+  runRes <- timeOperationsWithOptimizations "" "test" ops opts
+  let listRes = L.map (\(opN, m) -> (opN, M.toList m)) $ M.toList runRes
+      sortedRes = sortByOptimizationName listRes
+      values = L.map (\(opN, optsToResults) -> (opN, L.map (\(opt, res) -> avgCyclesPerRun res) optsToResults)) sortedRes
+      titles = L.map fst $ snd $ L.head sortedRes in
+    simpleBar "testChart2.png" reportPath titles values
+
+sortByOptimizationName :: [(String, [(String, EvaluationResult)])] ->
+                          [(String, [(String, EvaluationResult)])]
+sortByOptimizationName listRes =
+  L.map (\(opN, optsToResults) -> (opN, L.sortBy (\(on1, _) (on2, _) -> compare on1 on2) optsToResults)) listRes
+
+  {-  let titles = L.map optimizationName opts
       valNames = L.map getOpName ops
       valList = L.map M.toList runRes
       
@@ -33,5 +44,4 @@ generateBenchmarkReport opts ops reportPath = do
       values = L.zip valNames avgCycles in
     do
       putStrLn $ show runRes
-      simpleBar "testChart.png" reportPath titles values
-      
+      simpleBar "testChart.png" reportPath titles values-}

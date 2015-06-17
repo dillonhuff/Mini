@@ -1,11 +1,9 @@
 module Testing.RuntimeEvaluation.FixedSizes(timeImplementationsFixedSizes,
-                                            timeOperationWithOptimizations) where
+                                            timeOperationsWithOptimizations) where
 
 import Control.Monad
 import Data.List as L
 import Data.Map as M
-import System.IO.Strict as S
-import System.Process
 
 import Core.MiniOperation
 import Core.MiniSyntax

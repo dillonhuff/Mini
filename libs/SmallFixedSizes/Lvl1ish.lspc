@@ -1,0 +1,75 @@
+operation dotMul2(r matrix double 2 1 1 1 z,
+	  	  output matrix double 2 1 1 1 x) {
+  x = (z * z') .* x;
+}
+
+operation dotMul4(r matrix double 4 1 1 1 z,
+	  	  output matrix double 4 1 1 1 x) {
+  x = (z * z') .* x;
+}
+
+operation dotMul8(r matrix double 8 1 1 1 z,
+	  	  output matrix double 8 1 1 1 x) {
+  x = (z * z') .* x;
+}
+
+operation dotMul13(r matrix double 13 1 1 1 z,
+	  	   output matrix double 13 1 1 1 x) {
+  x = (z * z') .* x;
+}
+
+operation daxpy2(r matrix double 2 1 1 1 x,
+	  	 r matrix double 1 1 1 1 alpha,
+		 output matrix double 2 1 1 1 y) {
+  y = alpha .* x + y;
+}
+
+operation daxpy4(r matrix double 4 1 1 1 x,
+	  	 r matrix double 1 1 1 1 alpha,
+		 output matrix double 4 1 1 1 y) {
+  y = alpha .* x + y;
+}
+
+operation daxpy8(r matrix double 8 1 1 1 x,
+	  	 r matrix double 1 1 1 1 alpha,
+		 output matrix double 8 1 1 1 y) {
+  y = alpha .* x + y;
+}
+
+operation daxpy13(r matrix double 13 1 1 1 x,
+	  	  r matrix double 1 1 1 1 alpha,
+		  output matrix double 13 1 1 1 y) {
+  y = alpha .* x + y;
+}
+
+operation axplus2(r matrix double 1 1 1 1 alpha,
+	  	  r matrix double 1 1 1 1 beta,
+		  r matrix double 2 1 1 1 x,
+		  r matrix double 2 1 1 1 z,
+		  output matrix double 2 1 1 1 y) {
+  y = alpha .* x + beta .* (y + z);
+}
+
+operation axplus4(r matrix double 1 1 1 1 alpha,
+	  	  r matrix double 1 1 1 1 beta,
+		  r matrix double 4 1 1 1 x,
+		  r matrix double 4 1 1 1 z,
+		  output matrix double 4 1 1 1 y) {
+  y = alpha .* x + beta .* (y + z);
+}
+
+operation axplus8(r matrix double 1 1 1 1 alpha,
+	  	  r matrix double 1 1 1 1 beta,
+		  r matrix double 8 1 1 1 x,
+		  r matrix double 8 1 1 1 z,
+		  output matrix double 8 1 1 1 y) {
+  y = alpha .* x + beta .* (y + z);
+}
+
+operation axplus13(r matrix double 1 1 1 1 alpha,
+	  	   r matrix double 1 1 1 1 beta,
+		   r matrix double 13 1 1 1 x,
+		   r matrix double 13 1 1 1 z,
+		   output matrix double 13 1 1 1 y) {
+  y = alpha .* x + beta .* (y + z);
+}
