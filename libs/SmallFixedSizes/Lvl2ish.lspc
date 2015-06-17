@@ -1,0 +1,91 @@
+operation mvmul2(r matrix double 2 2 2 1 A,
+	  	r matrix double 2 1 1 1 x,
+		output matrix double 2 1 1 1 y) {
+  y = A * x;
+}
+
+operation mvmul4(r matrix double 4 4 4 1 A,
+	  	r matrix double 4 1 1 1 x,
+		output matrix double 4 1 1 1 y) {
+  y = A * x;
+}
+
+operation mvmul8(r matrix double 8 8 8 1 A,
+	  	r matrix double 8 1 1 1 x,
+		output matrix double 8 1 1 1 y) {
+  y = A * x;
+}
+
+operation mvmul11(r matrix double 11 11 11 1 A,
+	  	r matrix double 11 1 1 1 x,
+		output matrix double 11 1 1 1 y) {
+  y = A * x;
+}
+
+operation gemv2(r matrix double 2 2 2 1 A,
+	  	r matrix double 2 1 1 1 x,
+		r matrix double 1 1 1 1 alpha,
+		r matrix double 1 1 1 1 beta,
+		output matrix double 2 1 1 1 y) {
+  y = alpha .* (A * x) + (beta .* y);
+}
+
+operation gemv3(r matrix double 3 3 3 1 A,
+	  	r matrix double 3 1 1 1 x,
+		r matrix double 1 1 1 1 alpha,
+		r matrix double 1 1 1 1 beta,
+		output matrix double 3 1 1 1 y) {
+  y = alpha .* (A * x) + (beta .* y);
+}
+
+operation gemv8(r matrix double 8 8 8 1 A,
+	  	r matrix double 8 1 1 1 x,
+		r matrix double 1 1 1 1 alpha,
+		r matrix double 1 1 1 1 beta,
+		output matrix double 8 1 1 1 y) {
+  y = alpha .* (A * x) + (beta .* y);
+}
+
+operation gemv15(r matrix double 15 15 15 1 A,
+	  	r matrix double 15 1 1 1 x,
+		r matrix double 1 1 1 1 alpha,
+		r matrix double 1 1 1 1 beta,
+		output matrix double 15 1 1 1 y) {
+  y = alpha .* (A * x) + (beta .* y);
+}
+
+operation gemsumv2(r matrix double 2 2 2 1 A,
+	  	   r matrix double 2 2 2 1 B,
+	  	   r matrix double 2 1 1 1 x,
+		   r matrix double 1 1 1 1 alpha,
+		   r matrix double 1 1 1 1 beta,
+		   output matrix double 2 1 1 1 y) {
+  y = alpha .* (A * x) + beta .* (B * y);
+}
+
+operation gemsumv5(r matrix double 5 5 5 1 A,
+	  	   r matrix double 5 5 5 1 B,
+	  	   r matrix double 5 1 1 1 x,
+		   r matrix double 1 1 1 1 alpha,
+		   r matrix double 1 1 1 1 beta,
+		   output matrix double 5 1 1 1 y) {
+  y = alpha .* (A * x) + beta .* (B * y);
+}
+
+operation gemsumv7(r matrix double 7 7 7 1 A,
+	  	   r matrix double 7 7 7 1 B,
+	  	   r matrix double 7 1 1 1 x,
+		   r matrix double 1 1 1 1 alpha,
+		   r matrix double 1 1 1 1 beta,
+		   output matrix double 7 1 1 1 y) {
+  y = alpha .* (A * x) + beta .* (B * y);
+}
+
+operation gemsumv10(r matrix double 10 10 10 1 A,
+	  	   r matrix double 10 10 10 1 B,
+	  	   r matrix double 10 1 1 1 x,
+		   r matrix double 1 1 1 1 alpha,
+		   r matrix double 1 1 1 1 beta,
+		   output matrix double 10 1 1 1 y) {
+  y = alpha .* (A * x) + beta .* (B * y);
+}

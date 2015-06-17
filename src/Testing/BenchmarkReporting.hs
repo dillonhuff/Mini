@@ -35,13 +35,3 @@ sortByOptimizationName :: [(String, [(String, EvaluationResult)])] ->
                           [(String, [(String, EvaluationResult)])]
 sortByOptimizationName listRes =
   L.map (\(opN, optsToResults) -> (opN, L.sortBy (\(on1, _) (on2, _) -> compare on1 on2) optsToResults)) listRes
-
-  {-  let titles = L.map optimizationName opts
-      valNames = L.map getOpName ops
-      valList = L.map M.toList runRes
-      
-      avgCycles = L.map (\evalMap -> L.map avgCyclesPerRun $ L.map snd $ M.toList evalMap) runRes
-      values = L.zip valNames avgCycles in
-    do
-      putStrLn $ show runRes
-      simpleBar "testChart.png" reportPath titles values-}
