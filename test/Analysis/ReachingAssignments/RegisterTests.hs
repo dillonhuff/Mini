@@ -5,6 +5,7 @@ import Data.Map as M
 
 import Analysis.ReachingAssignments.Register
 import Core.MiniSyntax
+import TestUtils.Dummies.Statement
 import TestUtils.Module
 
 allReachingAssignmentsTests = do
@@ -12,12 +13,8 @@ allReachingAssignmentsTests = do
 
 regSynonymCases =
   L.map (\(x, y) -> (x, M.fromList y))
-  [([ldC], [("l1", [])]),
-   ([ldC, raBA], [("l1", []), ("l2", [raBA])]),
-   ([ldC, raBA, raAC], [("l1", []), ("l2", [raBA]), ("l3", [raAC])]),
-   ([ldC, raBA, raXB], [("l1", []), ("l2", [raBA]), ("l4", [raXB, raBA])])]
+  [([cA], [(label cA, [])]),
+   ([cA, rBA], [(label cA, []), (label rBA, [rBA])]),
+   ([cA, rBA, rAC], [(label cA, []), (label rBA, [rBA]), (label rAC, [rAC])]),
+   ([cA, rBA, rXB], [(label cA, []), (label rBA, [rBA]), (label rXB, [rXB, rBA])])]
 
-ldC = loadConst "a" (doubleLit 1.0) "l1"
-raBA = regAssign "b" "a" "l2"
-raAC = regAssign "a" "c" "l3"
-raXB = regAssign "x" "b" "l4"
