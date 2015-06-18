@@ -7,7 +7,7 @@ import FrontEnd.Lexer
 import Core.MatrixOperation
 import FrontEnd.Parser
 import Core.SymbolTable
-import TestUtils
+import TestUtils.Module
 import FrontEnd.Token
 
 allParserTests = do

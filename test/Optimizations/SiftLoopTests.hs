@@ -3,7 +3,7 @@ module Optimizations.SiftLoopTests(allSiftLoopTests) where
 import Core.IndexExpression
 import Core.MiniSyntax
 import Optimizations.SiftLoops
-import TestUtils
+import TestUtils.Module
 
 allSiftLoopTests = do
   testFunction siftLoopsInStmtList siftTestCases

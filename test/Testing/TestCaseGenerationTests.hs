@@ -6,7 +6,7 @@ import Data.List as L
 import Core.IndexExpression
 import Core.SymbolTable
 import Testing.TestCaseGeneration
-import TestUtils
+import TestUtils.Module
 
 allTestCaseGenerationTests =
   testFunctionIO (testGenTestCases (3 :: Int) (100 :: Int)) symtabCases

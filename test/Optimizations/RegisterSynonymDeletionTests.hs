@@ -3,7 +3,7 @@ module Optimizations.RegisterSynonymDeletionTests(allRegisterSynonymDeletionTest
 import Core.IndexExpression
 import Core.MiniSyntax
 import Optimizations.RegisterSynonymDeletion
-import TestUtils
+import TestUtils.Module
 
 allRegisterSynonymDeletionTests = do
   testFunction deleteRegisterSynonymsFromStmts stmtCases

@@ -3,7 +3,7 @@ module FrontEnd.LexerTests(allLexerTests) where
 import Data.List as L
 
 import FrontEnd.Lexer
-import TestUtils
+import TestUtils.Module
 import FrontEnd.Token
 
 allLexerTests = do

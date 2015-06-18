@@ -2,7 +2,7 @@ module Analysis.RegisterLivenessTests(allRegisterLivenessTests) where
 
 import Analysis.Liveness.Register
 import Core.MiniSyntax
-import TestUtils
+import TestUtils.Module
 
 allRegisterLivenessTests = do
   testFunction regLiveRange liveRangeCases

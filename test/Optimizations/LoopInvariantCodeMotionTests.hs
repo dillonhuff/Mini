@@ -3,7 +3,7 @@ module Optimizations.LoopInvariantCodeMotionTests(allLoopInvariantCodeMotionTest
 import Core.IndexExpression
 import Core.MiniSyntax
 import Optimizations.LoopInvariantCodeMotion
-import TestUtils
+import TestUtils.Module
 
 allLoopInvariantCodeMotionTests = do
   testFunction pullConstantLoadsOutOfLoops constantLoadCases

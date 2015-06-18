@@ -5,7 +5,7 @@ import Data.List as L
 import Core.IndexExpression
 import Optimizations.FullLoopUnrolling
 import Core.MiniSyntax
-import TestUtils
+import TestUtils.Module
 
 allFullLoopUnrollingTests = do
   testFunction tryFullyUnrollLoop fullUnrollSuccessCases

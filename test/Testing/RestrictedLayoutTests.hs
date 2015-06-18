@@ -1,7 +1,7 @@
 module Testing.RestrictedLayoutTests(allRestrictedLayoutTests) where
 
 import Testing.RestrictedLayout
-import TestUtils
+import TestUtils.Module
 
 allRestrictedLayoutTests = do
   testFunction isScalar isScalarCases

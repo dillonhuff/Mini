@@ -3,7 +3,7 @@ module Optimizations.CopyPropagationTests(allCopyPropagationTests) where
 import Core.IndexExpression
 import Core.MiniSyntax
 import Optimizations.CopyPropagation
-import TestUtils
+import TestUtils.Module
 
 allCopyPropagationTests = do
   testFunction propagateTopLevelCopies topLevelCopyCases

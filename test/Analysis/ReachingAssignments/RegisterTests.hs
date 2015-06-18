@@ -5,7 +5,7 @@ import Data.Map as M
 
 import Analysis.ReachingAssignments.Register
 import Core.MiniSyntax
-import TestUtils
+import TestUtils.Module
 
 allReachingAssignmentsTests = do
   testFunction reachingAssignments regSynonymCases

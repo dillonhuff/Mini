@@ -3,7 +3,7 @@ module Core.IndexExpressionTests(allIndexExpressionTests) where
 import Data.List as L
 
 import Core.IndexExpression
-import TestUtils
+import TestUtils.Module
 
 allIndexExpressionTests = do
   testFunction evaluateIExprConstants evalConstTests

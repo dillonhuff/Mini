@@ -7,7 +7,7 @@ import Core.IndexExpression
 import Core.MatrixOperation
 import Core.MOpSyntax
 import Core.SymbolTable
-import TestUtils
+import TestUtils.Module
 import FrontEnd.Token
 
 allMatrixOperationTests = do

@@ -4,7 +4,7 @@ import Analysis.Dependence.Graph
 import Analysis.Dependence.RegisterReduction
 import Core.IndexExpression
 import Core.MiniSyntax
-import TestUtils
+import TestUtils.Module
 
 allRegisterReductionTests = do
   loopInsensitiveTests

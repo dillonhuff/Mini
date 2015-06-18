@@ -6,7 +6,7 @@ import Data.Set as S
 import Analysis.Loop
 import Core.IndexExpression
 import Core.MiniSyntax
-import TestUtils
+import TestUtils.Module
 
 allPossibleLoopNestsTests = do
   testFunction genPossibleLoopNests loopNestCases

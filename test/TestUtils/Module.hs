@@ -1,5 +1,5 @@
-module TestUtils(testFunction,
-                 testFunctionIO) where
+module TestUtils.Module(testFunction,
+                        testFunctionIO) where
 
 import Control.Monad
 import Data.List as L

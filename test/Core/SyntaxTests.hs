@@ -2,7 +2,7 @@ module Core.SyntaxTests(allSyntaxTests) where
 
 import Core.IndexExpression
 import Core.MiniSyntax
-import TestUtils
+import TestUtils.Module
 
 allSyntaxTests = do
   testFunction (transformBlock (transformStatementIExprs evaluateIExprConstants)) evalIExprConstCases

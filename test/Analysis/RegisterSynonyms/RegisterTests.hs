@@ -6,7 +6,7 @@ import Data.Map as M
 import Analysis.RegisterSynonyms.Register
 import Core.MiniSyntax
 import Core.Operand
-import TestUtils
+import TestUtils.Module
 
 allRegisterSynonymsTests = do
   testFunction registerSynonyms regSynonymCases

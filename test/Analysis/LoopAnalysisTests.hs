@@ -4,7 +4,7 @@ import Data.List as L
 
 import Analysis.Loop
 import Core.IndexExpression
-import TestUtils
+import TestUtils.Module
 
 allLoopAnalysisTests = do
   testFunction numberOfIterationsFromTriple numItersSuccessCases
