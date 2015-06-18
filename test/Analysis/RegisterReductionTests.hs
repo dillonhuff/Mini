@@ -4,6 +4,7 @@ import Analysis.Dependence.Graph
 import Analysis.Dependence.RegisterReduction
 import Core.IndexExpression
 import Core.MiniSyntax
+import TestUtils.Dummies.Loop
 import TestUtils.Module
 
 allRegisterReductionTests = do
@@ -75,7 +76,7 @@ loopOutputCases =
   [(("l10", "l10"), False),
    (("l8", "l8"), True)]
 
-loopStmts = [for "i" (iConst 0) (iConst 1) (iVar "n") (block loopStmtsBody) "l0"]
+loopStmts = [pS0I1ES "i" "n" loopStmtsBody]
 
 loopStmtsBody = [load "tmp031" "tmp0" (iVar "i") "l1",
 		 load "y33" "y" (iVar "i") "l2",
@@ -102,8 +103,8 @@ perfectDoubleLoopFlowCases =
    (("l3", "l7"), False),
    (("l2", "l7"), False)]
 
-perfectDoubleLoopStmts = [for "i" (iConst 0) (iConst 1) (iVar "n") (block innerBody) "l0"]
-innerBody = [for "j" (iConst 0) (iConst 1) (iVar "m") (block doubleLoopStmts) "l1"]
+perfectDoubleLoopStmts = [p2S0I1ES "i" "n" "j" "m" doubleLoopStmts]
+
 doubleLoopStmts = [load "alpha11" "alpha" (iConst 0) "l2",
 		   load "A13" "A" (iAdd (iMul (iVar "A_rs") (iVar "i")) (iVar "j")) "l3",
                    times "tmp015" "alpha11" "A13" "l4",
@@ -118,7 +119,8 @@ unparallelizableDepGraph =
     Just dg -> dg
     Nothing -> error $ "Cannot build depGraph with " ++ show loopStmts
 
-unparallelizableLoop = [for "i" (iConst 0) (iConst 1) (iVar "n") (block unparallelizableStmts) "l0"]
+unparallelizableLoop = [pS0I1ES "i" "n" unparallelizableStmts]
+
 unparallelizableStmts =
   [load "a" "b" (iVar "i") "l1",
    regAssign "t" "x" "l2",
@@ -130,18 +132,3 @@ unparallelizableFlowDepCases =
   [(("l1", "l2"), False),
    (("l2", "l3"), True),
    (("l5", "l2"), False)]
-
-{-simpleCarriedLoopDep f (t, s) = f simpleCarriedDepGraph t s
-
-simpleCarriedDepGraph =
-  case buildLoopDependenceGraph simpleCarriedLoop of
-    Just dg -> dg
-    Nothing -> error $ "Cannot build depGraph with " ++ show simpleStmts
-
-simpleCarriedLoop = for "i" (iConst 0) (iConst 1) (iVar "n") (block simpleCarriedLoopBody) "l0"
-
-simpleCarriedLoopBody = []
-
-carrieFlowCases =
-  [(("l1", "l2"), False)]
--}

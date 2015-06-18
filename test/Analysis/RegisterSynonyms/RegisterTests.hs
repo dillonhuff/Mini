@@ -16,6 +16,6 @@ regSynonymCases =
   L.map (\(x, y) -> (x, M.fromList y))
   [([cA], []),
    ([cA, rBA], [(reg "b", reg "a")]),
-   ([cA, rBA, rAC, aBQ], []),
-   ([cA, rBA, aBQ], [(reg "b", reg "a")]),
-   ([cA, rBA, rCB, aCQ], [(reg "b", reg "a"), (reg "c", reg "b")])]
+   ([cA, rBA, rAC, aPBQ], []),
+   ([cA, rBA, aPBQ], [(reg "b", reg "a")]),
+   ([cA, rBA, rCB, aPCQ], [(reg "b", reg "a"), (reg "c", reg "b")])]
