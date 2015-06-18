@@ -4,7 +4,7 @@ module BackEnd.RunBackEnd(runBackEndWithOptimization,
                           defaultOptimization,
                           cleanupOperation,
                           cleanupFixedSizeOperation,
-                          defaultFixedSizeOperation,
+                          defaultFixedSizeOperation, defaultFixedSizeOperationUnrolling,
                           fuseAndParallelize,
                           nullOptimization) where
 
@@ -72,6 +72,11 @@ cleanupFixedSizeOperation =
 defaultFixedSizeOperation =
   sequenceOptimization "FixedSizeDefault" [fuseAndParallelize,
                                            cleanupFixedSizeOperation]
+
+defaultFixedSizeOperationUnrolling =
+  sequenceOptimization "FixedSizeDefaultUnrolling" [fuseAndParallelizeUnrolling,
+                                                    cleanupFixedSizeOperation]
+
 fuseAndParallelize =
   sequenceOptimization "FuseAndParallelize" [moveConstantLoadsOutOfLoops,
                                              parallelizeInnerLoopsBy 4,
@@ -83,6 +88,18 @@ fuseAndParallelize =
                                              compactArrays,
                                              fuseAllTopLevelLoopsPossible,
                                              propagateAllTopLevelCopiesPossible]
+
+fuseAndParallelizeUnrolling =
+  sequenceOptimization "FuseAndParallelizeUnrolling" [moveConstantLoadsOutOfLoops,
+                                                      parallelizeInnerLoopsByWithFixedUnrolling 4,
+                                                      deleteRegisterSynonyms,
+                                                      compactArrays,
+                                                      fuseAllTopLevelLoopsPossible,
+                                                      siftLoops,
+                                                      eliminateTempBuffers,
+                                                      compactArrays,
+                                                      fuseAllTopLevelLoopsPossible,
+                                                      propagateAllTopLevelCopiesPossible]
 
 sanityCheckFailures :: [Map (String, Map String Int) EvaluationResult] -> [(String, Map String Int)]
 sanityCheckFailures runResults = L.map fst $ L.filter (\(_, res) -> not $ passedSanityCheck res) $ L.concatMap M.toList runResults

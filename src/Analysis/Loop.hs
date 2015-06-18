@@ -4,7 +4,8 @@ module Analysis.Loop(numberOfIterations,
                     unitIncrement,
                     noDeeperLoops,
                     possibleLoopOrderingsForPerfectNest,
-                    possibleLoopOrderingsForPerfectNests) where
+                    possibleLoopOrderingsForPerfectNests,
+                    finalIndexValue) where
 
 import Data.List as L
 
@@ -88,3 +89,10 @@ replaceBody forLoop =
 applyLoops :: [[Statement a] -> Statement a] -> [Statement a] -> [Statement a]
 applyLoops [] body = body
 applyLoops (nextLoop:rest) body = applyLoops rest $ [nextLoop body]
+
+finalIndexValue :: Statement a -> Maybe IExpr
+finalIndexValue loop = do
+  s <- ieToConst $ forStart loop
+  i <- ieToConst $ forInc loop
+  e <- ieToConst $ forEnd loop
+  return $ iConst $ ((div (e - s) i) + 1)*i + s

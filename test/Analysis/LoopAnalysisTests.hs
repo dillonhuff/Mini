@@ -4,12 +4,14 @@ import Data.List as L
 
 import Analysis.Loop
 import Core.IndexExpression
+import TestUtils.Dummies.Loop
 import TestUtils.Module
 
 allLoopAnalysisTests = do
   testFunction numberOfIterationsFromTriple numItersSuccessCases
   testFunction numberOfIterationsFromTriple numItersFailureCases
   testFunction allIterationsListFromTriple allIterationsSuccessCases
+  testFunction finalIndexValue finalIndexValueCases
 
 numItersSuccessCases =
   L.map (\(x, y) -> (x, Just y))
@@ -30,3 +32,9 @@ allIterationsSuccessCases =
 
 numberOfIterationsFromTriple (start, inc, end) = numberOfIterations start inc end
 allIterationsListFromTriple (start, inc, end) = allIterationsList start inc end
+
+finalIndexValueCases =
+  [(pS0I1ES "i" "n" [], Nothing),
+   (pS0I1EC "i" 12 [], Just $ iConst 13),
+   (pS0ICEC "i" 5 17 [], Just $ iConst 20),
+   (pSCICEC "i" 5 3 16 [], Just $ iConst 17)]

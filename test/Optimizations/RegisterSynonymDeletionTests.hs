@@ -3,35 +3,33 @@ module Optimizations.RegisterSynonymDeletionTests(allRegisterSynonymDeletionTest
 import Core.IndexExpression
 import Core.MiniSyntax
 import Optimizations.RegisterSynonymDeletion
+import TestUtils.Dummies.Loop
 import TestUtils.Module
 
 allRegisterSynonymDeletionTests = do
   testFunction deleteRegisterSynonymsFromStmts stmtCases
 
 stmtCases =
-  [([ldC], [ldC]),
-   ([ldC, raBA], [ldC]),
-   ([ldC, raBA, addBQ], [ldC, addBA]),
-   ([ldC, raBA, raCB, addCQ], [ldC, addAQ]),
+  [([cA], [cA]),
+   ([cA, rBA], [cA]),
+   ([cA, rBA, addBQ], [cA, addBA]),
+   ([cA, rBA, raCB, aPCQ], [cA, addAQ]),
    ([maddLoops maddBodyStmts], [maddLoops maddBodyStmtsAfterDeletion]),
    ([vaddLoop vaddBody], [vaddLoop vaddBodyAfterDeletion]),
    ([vaddLoop vaddBodyOneAsg], [vaddLoop vaddBodyOneAsgAfterDeletion]),
    (vaddBodyOneAsg, vaddBodyOneAsgAfterDeletion)]
 
-ldC = loadConst "a" (floatLit 1.2) "l1"
-raBA = regAssign "b" "a" "l2"
+cA = loadConst "a" (floatLit 1.2) "l1"
+rBA = regAssign "b" "a" "l2"
 raXB = regAssign "x" "b" "l4"
 addBQ = plus "p" "b" "q" "l5"
 addBA = plus "p" "a" "q" "l5"
-addCQ = plus "p" "c" "q" "l6"
+aPCQ = plus "p" "c" "q" "l6"
 addAQ = plus "p" "a" "q" "l6"
 raCB = regAssign "c" "b" "l7"
 
 maddLoops innerStmts =
-  for "i" (iConst 0) (iConst 1) (iVar "BNRows") (block [maddInnerLoop innerStmts]) "$outer"
-
-maddInnerLoop innerStmts =
-  for "j" (iConst 0) (iConst 1) (iVar "BNCols") (block innerStmts) "$inner"
+  p2S0I1ES "i" "BNRows" "j" "BNCols" innerStmts
 
 maddBodyStmts =
   [load "a" "A" (iAdd (iMul (iVar "A_rs") (iVar "i")) (iMul (iVar "A_cs") (iVar "j"))) "l0",
@@ -48,7 +46,7 @@ maddBodyStmtsAfterDeletion =
    store "B" (iAdd (iMul (iVar "B_rs") (iVar "i")) (iMul (iVar "B_cs") (iVar "j"))) "tmp1" "l5"]
 
 vaddLoop bodyStmts =
-  for "i" (iConst 0) (iConst 1) (iVar "ANumRows") (block bodyStmts) "$l"
+  pS0I1ES "i" "ANumRows" bodyStmts
 
 vaddBody =
   [load "a" "A" (iVar "i") "l0",

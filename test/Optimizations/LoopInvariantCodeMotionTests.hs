@@ -3,6 +3,7 @@ module Optimizations.LoopInvariantCodeMotionTests(allLoopInvariantCodeMotionTest
 import Core.IndexExpression
 import Core.MiniSyntax
 import Optimizations.LoopInvariantCodeMotion
+import TestUtils.Dummies.Loop
 import TestUtils.Module
 
 allLoopInvariantCodeMotionTests = do
@@ -16,7 +17,7 @@ constantLoadCases =
 ldC = loadConst "a" (floatLit 1.2) "l1"
 
 svmulLoop bodyStmts =
-  for "i" (iConst 0) (iConst 1) (iVar "ANumRows") (block bodyStmts) "$l"
+  pS0I1ES "i" "ANumRows" bodyStmts
 
 svmulBody =
   [load "a" "A" (iVar "i") "l0",
@@ -32,10 +33,7 @@ svmulBodyAfterLift =
 ldAlpha = load "alpha1" "alpha" (iConst 0) "l1"
 
 smmulLoops innerStmts =
-  for "i" (iConst 0) (iConst 1) (iVar "BNRows") (block [smmulInnerLoop innerStmts]) "$outer"
-
-smmulInnerLoop innerStmts =
-  for "j" (iConst 0) (iConst 1) (iVar "BNCols") (block innerStmts) "$inner"
+  p2S0I1ES "i" "BNRows" "j" "BNCols" innerStmts
 
 smmulBody =
   [load "a" "A" (iAdd (iMul (iVar "A_rs") (iVar "i")) (iMul (iVar "A_cs") (iVar "j"))) "l0",

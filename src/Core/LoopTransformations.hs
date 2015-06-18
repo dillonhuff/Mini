@@ -1,5 +1,5 @@
 module Core.LoopTransformations(partiallyUnrollBy,
-                                partiallyUnrollAndIntersperse,
+                                partiallyUnrollAndIntersperse, fullyUnrollAndIntersperse,
                                 fullyUnrollLoop,
                                 unrollLoopsBy2,
                                 unrollWithNewLabels) where
@@ -23,6 +23,19 @@ partiallyUnrollAndIntersperse symtab n st =
       bodyStmts = intersperseStmts subStmts
       mainBody = block bodyStmts in
   (newSymtab, [mainLoop n st mainBody, residualLoop st $ forBody st])
+
+fullyUnrollAndIntersperse :: MiniSymtab -> [Int] -> Statement String -> (MiniSymtab, [Statement String])
+fullyUnrollAndIntersperse symtab range st =
+  let mainIVar = iVar $ forInductionVariable st
+      mainIVarName = forInductionVariable st
+      stmtsList = replicateBlockStmts (\i a -> show a ++ "_iter" ++ show i) (L.map (\i -> iConst i) range) mainIVarName $ forBody st
+      stmtsListExecNum = L.zip stmtsList range
+      subStmtsAndRegs = L.map (\(stmts, i) -> addRegisterSuffix ("_is" ++ show i) symtab stmts) stmtsListExecNum
+      subStmts = L.map snd subStmtsAndRegs
+      allRegs = L.concatMap fst subStmtsAndRegs
+      newSymtab = multiAddVar allRegs symtab
+      bodyStmts = intersperseStmts subStmts in
+  (newSymtab, bodyStmts)
 
 intersperseStmts :: [[Statement a]] -> [Statement a]
 intersperseStmts stmtsList =
